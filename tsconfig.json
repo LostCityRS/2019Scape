@@ -1,0 +1,43 @@
+{
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "out",
+    "target": "ESNext",
+    "lib": [
+      "ESNext"
+    ],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "baseUrl": ".",
+    "paths": {
+      "#jagex2/*": ["src/jagex2/*"],
+      "#jagex3/*": ["src/jagex3/*"],
+      "#lostcity/*": ["src/lostcity/*"],
+      "#runewiki/*": ["src/runewiki/*"]
+    },
+    "types": [
+      "node",
+      "jest"
+    ],
+    "sourceMap": true,
+    "allowJs": true,
+    "checkJs": false,
+    "strict": true,
+    "alwaysStrict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowUnreachableCode": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "<node_internals>/**"
+  ],
+  "ts-node": {
+    "swc": true,
+    "esm": true
+  }
+}
