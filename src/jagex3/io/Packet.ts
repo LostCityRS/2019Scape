@@ -12,32 +12,29 @@ export default class Packet {
         }
         Packet.bitmask[32] = 0xffffffff;
 
-        for (let i: number = 0; i < 256; i++) {
-            let remainder: number = i;
-
+        for (let b: number = 0; b < 256; b++) {
+            let remainder: number = b;
             for (let bit: number = 0; bit < 8; bit++) {
-                if ((remainder & 1) == 1) {
-                    remainder = (remainder >>> 1) ^ Packet.CRC32_POLYNOMIAL;
+                if ((remainder & 0x1) == 1) {
+                    remainder = (remainder >>> 1) ^ 0xEDB88320;
                 } else {
-                    remainder >>>= 1;
+                    remainder >>>= 0x1;
                 }
             }
 
-            Packet.crctable[i] = remainder;
+            Packet.crctable[b] = remainder;
         }
     }
 
-    static crc32(src: Packet | Uint8Array | Buffer, length: number = src.length, offset: number = 0): number {
+    static getcrc(src: Packet | Uint8Array | Buffer, length: number = src.length, offset: number = 0): number {
         if (src instanceof Packet) {
             src = src.data;
         }
 
-        let crc: number = 0xffffffff;
-
-        for (let i: number = offset; i < offset + length; i++) {
-            crc = (crc >>> 8) ^ Packet.crctable[(crc ^ src[i]) & 0xff];
+        let crc: number = -1;
+        for (let i: number = offset; i < length; i++) {
+            crc = (crc >>> 8) ^ Packet.crctable[(crc ^ src[i]) & 0xFF];
         }
-
         return ~crc;
     }
 
@@ -310,7 +307,11 @@ export default class Packet {
         this.data[this.pos++] = value;
     }
 
-    pdata(src: Uint8Array): void {
+    pdata(src: Uint8Array | Packet): void {
+        if (src instanceof Packet) {
+            src = src.data;
+        }
+
         this.ensure(src.length);
         this.data.set(src, this.pos);
         this.pos += src.length;

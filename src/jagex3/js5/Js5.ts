@@ -3,54 +3,68 @@ import Js5Compression from '#jagex3/js5/Js5Compression.js';
 import StringUtils from '#jagex3/util/StringUtils.js';
 import Packet from '#jagex3/io/Packet.js';
 
-import { OpenRS2, CacheInfo } from '#runewiki/util/OpenRS2.js';
 import DiskStore from '#jagex3/io/DiskStore.js';
 
 export default class Js5 {
     static RAISE_EXCEPTIONS: boolean = false;
 
-    static async create(archive: number, openrs2: OpenRS2, prefetchAll: boolean = false): Promise<Js5> {
-        if (archive > openrs2.info.valid_indexes) {
-            throw new Error('Index does not exist for this cache');
-        }
-
-        const src: Uint8Array | null = await openrs2.getGroup(255, archive);
-        if (src === null || src.length == 0) {
-            throw new Error(`Failed to download idx255 for archive ${archive}`);
-        }
-
-        const index: Js5Index = new Js5Index(Js5Compression.uncompress(src));
-        const js5: Js5 = new Js5(index, archive, openrs2);
-        if (prefetchAll) {
-            await js5.fetchAll();
-        }
-        return js5;
-    }
-
-    static createRaw(store: DiskStore, masterIndex: Uint8Array, archive: number, prefetchAll: boolean = false): Js5 {
-        const index: Js5Index = new Js5Index(Js5Compression.uncompress(masterIndex));
-        const js5: Js5 = new Js5(index, archive, null);
-        js5.store = store;
-        if (prefetchAll) {
-            js5.fetchAll();
-        }
+    static async create(store: DiskStore, masterIndex: Uint8Array, archive: number): Promise<Js5> {
+        const index: Js5Index = await Js5Index.from(masterIndex);
+        const js5: Js5 = new Js5(index, archive, store);
+        js5.masterIndex = masterIndex;
         return js5;
     }
 
     index: Js5Index;
-    private archive: number;
-    unpacked: (Uint8Array[] | null)[] = [];
+    archive: number;
+    store: DiskStore;
     packed: (Uint8Array | null)[] = [];
-    private openrs2: OpenRS2 | null = null;
-    private store: DiskStore | null = null;
+    unpacked: (Uint8Array[] | null)[] = [];
+    masterIndex: Uint8Array | null = null;
 
-    constructor(index: Js5Index, archive: number, openrs2: OpenRS2 | null) {
+    constructor(index: Js5Index, archive: number, store: DiskStore) {
         this.index = index;
         this.archive = archive;
-        this.openrs2 = openrs2;
+        this.store = store;
 
         this.packed = new Array(this.index.capacity).fill(null);
         this.unpacked = new Array(this.index.capacity).fill(null);
+    }
+
+    getPrefetchArchive(): number {
+        if (!this.index.groupIds) {
+            return 0;
+        }
+
+        let total: number = 0;
+
+        for (let i: number = 0; i < this.index.size; i++) {
+            const id: number = this.index.groupIds[i];
+            if (this.isGroupValid(id)) {
+                const data: Uint8Array | null = this.store.read(id);
+                total += data ? data.length - 2 : 0;
+            }
+        }
+
+        if (this.masterIndex) {
+            total += this.masterIndex.length;
+        }
+
+        return total;
+    }
+
+    getPrefetchGroup(group: string | number): number {
+        const id: number = typeof group === 'string' ? this.getGroupId(group) : group;
+        if (id === -1) {
+            return 0;
+        }
+
+        const data: Uint8Array | null = this.store.read(id);
+        if (!data) {
+            return 0;
+        }
+
+        return data.length - 2;
     }
 
     capacity(): number {
@@ -102,13 +116,11 @@ export default class Js5 {
         return success;
     }
 
-    async fetchGroup(group: number): Promise<void> {
-        if (this.openrs2) {
-            this.packed[group] = await this.openrs2.getGroup(this.archive, group);
-        }
+    fetchGroup(group: number): void {
+        this.packed[group] = this.store.read(group);
     }
 
-    async readGroup(group: number = 0, key: number[] | null = null): Promise<Uint8Array | null> {
+    readGroup(group: number = 0, key: number[] | null = null): Uint8Array | null {
         if (!this.isGroupValid(group) || !this.index.fileIds) {
             return null;
         }
@@ -124,7 +136,7 @@ export default class Js5 {
         if (this.unpacked[group] == null || this.unpacked[group]![fileId] == null) {
             let success: boolean = this.unpackGroup(group, key);
             if (!success) {
-                await this.fetchGroup(group);
+                this.fetchGroup(group);
 
                 success = this.unpackGroup(group, key);
                 if (!success) {

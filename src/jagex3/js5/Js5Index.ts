@@ -1,16 +1,24 @@
 import Packet from '#jagex3/io/Packet.js';
 
+import Whirlpool from '#jagex3/util/Whirlpool.js';
+import Js5Compression from './Js5Compression.js';
+
 export default class Js5Index {
     checksum: number = 0;
     size: number = 0;
     version: number = 0;
     capacity: number = 0;
+    digest: Uint8Array | null = null;
+    totalLength: number = 0;
+    totalUncompressedLength: number = 0;
 
     groupCapacities: Int32Array | null = null;
     groupChecksums: Int32Array | null = null;
     groupUncompressedChecksums: Int32Array | null = null;
     groupDigests: Uint8Array[] | null = null;
     groupSizes: Int32Array | null = null;
+    groupLengths: Int32Array | null = null;
+    groupUncompressedLengths: Int32Array | null = null;
     groupNameHashes: Int32Array | null = null;
     groupNameHashTable: Map<number, number> | null = null;
     groupIds: Int32Array | null = null;
@@ -20,23 +28,30 @@ export default class Js5Index {
     fileNameHashTables: Map<number, number>[] | null = null;
 
     constructor(bytes: Uint8Array) {
-        this.checksum = Packet.crc32(bytes);
+        this.checksum = Packet.getcrc(bytes);
         this.decode(bytes);
+    }
+
+    static async from(bytes: Uint8Array): Promise<Js5Index> {
+        const index: Js5Index = new Js5Index(bytes);
+        const digest: Uint8Array = await Whirlpool.compute(bytes);
+        index.digest = digest;
+        return index;
     }
 
     decode(bytes: Uint8Array): void {
         // console.time('buf');
-        const buf: Packet = new Packet(bytes);
+        const buf: Packet = new Packet(Js5Compression.uncompress(bytes));
         // console.timeEnd('buf');
 
         // console.time('read');
-        const protocol: number = buf.g1();
+        const format: number = buf.g1();
 
-        if (protocol < 5 || protocol > 8) {
-            throw new Error('Unsupported protocol: ' + protocol);
+        if (format < 5 || format > 8) {
+            throw new Error('Unsupported format: ' + format);
         }
 
-        if (protocol >= 6) {
+        if (format >= 6) {
             this.version = buf.g4();
         } else {
             this.version = 0;
@@ -51,7 +66,7 @@ export default class Js5Index {
 
         // console.time('size');
         this.size = 0;
-        if (protocol >= 7) {
+        if (format >= 7) {
             this.size = buf.gSmart2or4();
         } else {
             this.size = buf.g2();
@@ -64,7 +79,7 @@ export default class Js5Index {
         this.groupIds = new Int32Array(this.size);
 
         for (let i: number = 0; i < this.size; i++) {
-            if (protocol >= 7) {
+            if (format >= 7) {
                 this.groupIds[i] = prevGroupId += buf.gSmart2or4();
             } else {
                 this.groupIds[i] = prevGroupId += buf.g2();
@@ -127,9 +142,15 @@ export default class Js5Index {
 
         // console.time('groupLengths');
         if (hasLengths) {
+            this.groupLengths = new Int32Array(this.capacity);
+            this.groupUncompressedLengths = new Int32Array(this.capacity);
+
             for (let i: number = 0; i < this.size; i++) {
-                buf.g4();
-                buf.g4();
+                this.groupLengths[this.groupIds[i]] = buf.g4();
+                this.totalLength += this.groupLengths[this.groupIds[i]];
+
+                this.groupUncompressedLengths[this.groupIds[i]] = buf.g4();
+                this.totalUncompressedLength += this.groupUncompressedLengths[this.groupIds[i]];
             }
         }
         // console.timeEnd('groupLengths');
@@ -157,7 +178,7 @@ export default class Js5Index {
 
             for (let j: number = 0; j < groupSize; j++) {
                 let fileId: number = 0;
-                if (protocol >= 7) {
+                if (format >= 7) {
                     fileId = prevFileId += buf.gSmart2or4();
                 } else {
                     fileId = prevFileId += buf.g2();
@@ -206,5 +227,29 @@ export default class Js5Index {
             }
         }
         // console.timeEnd('fileNames');
+    }
+
+    encodeForMasterIndex(format: number = 8): Uint8Array {
+        const buf: Packet = new Packet();
+        buf.p4(this.checksum);
+
+        if (format >= 6) {
+            buf.p4(this.version);
+        }
+
+        if (format >= 8) {
+            buf.p4(this.size);
+            buf.p4(this.totalUncompressedLength);
+        }
+
+        if (format >= 7) {
+            if (!this.digest) {
+                throw new Error('Need digest to create master index!');
+            }
+
+            buf.pdata(this.digest);
+        }
+
+        return buf.data;
     }
 }

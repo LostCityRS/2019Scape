@@ -13,6 +13,10 @@ export default class DiskStore {
         this.archive = archive;
     }
 
+    get count(): number {
+        return this.index.length / 6;
+    }
+
     read(group: number): Uint8Array | null {
         if ((group * 6) + 6 > this.index.length) {
             return null;

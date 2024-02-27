@@ -1,17 +1,7 @@
-import fs from 'fs';
 import net from 'net';
 
-import { OpenRS2 } from '#runewiki/util/OpenRS2.js';
 import Packet from '#jagex3/io/Packet.js';
-import Js5 from '#jagex3/js5/Js5.js';
-import DiskStore from '#jagex3/io/DiskStore.js';
-import Js5Index from '#jagex3/js5/Js5Index.js';
-
-const openrs2: OpenRS2 = await OpenRS2.find({ rev: '910' });
-
-const prefetchSizes: number[] = [
-    3300, 69795, 41651, 35866, 358716, 3987016, 44375, 18239, 57708, 328737, 1250879, 626813, 674472, 1226204, 1398484, 41322, 1258511, 7072, 35277, 1244, 91867, 2285, 119, 1244028, 4951060, 44023, 24426
-];
+import Cache from '#jagex3/js5/Cache.js';
 
 enum ConnectionState {
     Login = 0,
@@ -43,65 +33,10 @@ type Js5QueueRequest = {
 const LoginProtLengths: number[] = [];
 LoginProtLengths[LoginProt.INIT_JS5REMOTE_CONNECTION] = -1;
 
-const SPLIT_DAT_INDEXES: boolean = true;
-const stores: DiskStore[] = [];
-let maxIndex: number = -1;
-for (let i: number = 0; i < 256; i++) {
-    if (!fs.existsSync(`data/cache/main_file_cache.idx${i}`)) {
-        continue;
-    }
-
-    if (SPLIT_DAT_INDEXES) {
-        if (!fs.existsSync(`data/cache/main_file_cache.dat${i}`)) {
-            continue;
-        }
-
-        stores[i] = new DiskStore(`data/cache/main_file_cache.dat${i}`, `data/cache/main_file_cache.idx${i}`, i);
-    } else {
-        stores[i] = new DiskStore('data/cache/main_file_cache.dat2', `data/cache/main_file_cache.idx${i}`, i);
-    }
-
-    if (i < 255 && i + 1 > maxIndex) {
-        maxIndex = i + 1;
-    }
-}
-
-const tempIndex: Uint8Array = fs.readFileSync('data/cache/255_255.dat');
-const masterIndexIndex: Uint8Array = new Uint8Array(tempIndex.length + 5);
-masterIndexIndex[0] = 0;
-masterIndexIndex[1] = tempIndex.length >> 24;
-masterIndexIndex[2] = tempIndex.length >> 16;
-masterIndexIndex[3] = tempIndex.length >> 8;
-masterIndexIndex[4] = tempIndex.length;
-masterIndexIndex.set(tempIndex, 5);
-
-// const masterIndexIndex: Packet = new Packet();
-// masterIndexIndex.p1(maxIndex);
-// for (let i: number = 0; i < maxIndex; i++) {
-//     console.log(i);
-
-//     const data: Uint8Array | null = stores[255].read(i);
-//     if (!data || !data.length) {
-//         masterIndexIndex.p4(0);
-//         masterIndexIndex.p4(0);
-//         masterIndexIndex.pdata(new Uint8Array(64));
-//         continue;
-//     }
-
-//     if (i < 45) {
-//         continue;
-//     }
-
-//     const masterIndex: Js5 = Js5.createRaw(stores[i], data, i);
-//     masterIndexIndex.p4(masterIndex.index.checksum);
-//     masterIndexIndex.p4(masterIndex.index.version);
-//     masterIndexIndex.pdata(new Uint8Array(64));
-// }
-// console.log(masterIndexIndex);
-
-class Js5Server {
+export default class Server {
     tcp: net.Server;
 
+    cache: Cache = new Cache();
     js5Queue: Js5QueueRequest[] = [];
     currentJs5Cycle: number = 0;
 
@@ -145,15 +80,15 @@ class Js5Server {
                             const language: number = buf.g1();
 
                             if (buildMajor !== 910 && buildMinor !== 1) {
-                                socket.write(Uint8Array.from([ 6 ]));
+                                socket.write(Uint8Array.from([6]));
                                 socket.end();
                                 return;
                             }
 
-                            const reply: Packet = Packet.alloc(1 + prefetchSizes.length * 4);
+                            const reply: Packet = Packet.alloc(1 + this.cache.prefetches.length * 4);
                             reply.p1(0);
-                            for (let i: number = 0; i < prefetchSizes.length; i++) {
-                                reply.p4(prefetchSizes[i]);
+                            for (let i: number = 0; i < this.cache.prefetches.length; i++) {
+                                reply.p4(this.cache.prefetches[i]);
                             }
                             reply.send(socket);
 
@@ -203,12 +138,17 @@ class Js5Server {
                 socket.destroy();
             });
         });
+    }
+
+    async start(): Promise<void> {
+        await this.cache.load('data/cache');
+        // await this.cache.loadOpenRS2();
 
         this.tcp.listen(43594, '0.0.0.0', (): void => {
             console.log('Server started');
-        });
 
-        this.js5Cycle();
+            this.js5Cycle();
+        });
     }
 
     async js5Cycle(): Promise<void> {
@@ -220,12 +160,7 @@ class Js5Server {
                 continue;
             }
 
-            // let data: Uint8Array | null = await openrs2.getGroup(archive, group);
-            let data: Uint8Array | null = stores[archive].read(group);
-            if (archive === 255 && group === 255) {
-                data = masterIndexIndex;
-            }
-
+            let data: Uint8Array | null = await this.cache.getGroup(archive, group, true);
             if (!data) {
                 continue;
             }
@@ -234,7 +169,7 @@ class Js5Server {
                 data = data.subarray(0, data.length - 2); // remove version trailer
             }
 
-            const maxChunkSize: number = 102395;
+            const maxChunkSize: number = 102400 - 5;
             for (let offset: number = 0; offset < data.length; offset += maxChunkSize) {
                 const chunkSize: number = Math.min(maxChunkSize, data.length - offset);
                 const buf: Packet = new Packet();
@@ -251,5 +186,3 @@ class Js5Server {
         setTimeout(this.js5Cycle.bind(this), 1000);
     }
 }
-
-new Js5Server();

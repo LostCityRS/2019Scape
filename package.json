@@ -10,7 +10,7 @@
     "#runewiki/*": "./src/runewiki/*"
   },
   "scripts": {
-    "start": "nodemon src/app.ts",
+    "start": "nodemon src/runewiki/app.ts",
     "test": "jest",
     "ts-loader": "node --no-warnings --loader ts-node/esm"
   },
@@ -19,6 +19,7 @@
   "dependencies": {
     "dotenv": "^16.4.5",
     "fastify": "^4.26.0",
+    "hash-wasm": "^4.11.0",
     "seek-bzip": "^2.0.0"
   },
   "devDependencies": {
