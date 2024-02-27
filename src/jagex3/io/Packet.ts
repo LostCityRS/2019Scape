@@ -160,6 +160,13 @@ export default class Packet {
         return (BigInt(high) << 32n) + BigInt(low);
     }
 
+    g6(): bigint {
+        const high: number = this.g2();
+        const low: number = this.g4();
+
+        return (BigInt(high) << 32n) + BigInt(low);
+    }
+
     g8(): bigint {
         const high: number = this.g4();
         const low: number = this.g4();
@@ -228,20 +235,11 @@ export default class Packet {
     }
 
     gSmart2or4(): number {
-        if (this.data[this.pos] < 0) {
-            return this.g4() & 0x7FFFFFFF;
-        }
-
-        return this.g2();
+        return this.data[this.pos] >= 128 ? this.g4() & 0x7FFFFFFF : this.g2();
     }
 
     gSmart2or4null(): number {
-        if (this.data[this.pos] < 0) {
-            return this.g4() & 0x7FFFFFFF;
-        }
-
-        const value: number = this.g2();
-        return value === 32767 ? -1 : value;
+        return this.data[this.pos] >= 128 ? this.g4() & 0x7FFFFFFF : this.g2() === 32767 ? -1 : this.g2();
     }
 
     gVarInt(): number {

@@ -25,7 +25,11 @@ export default class Js5Index {
     }
 
     decode(bytes: Uint8Array): void {
+        // console.time('buf');
         const buf: Packet = new Packet(bytes);
+        // console.timeEnd('buf');
+
+        // console.time('read');
         const protocol: number = buf.g1();
 
         if (protocol < 5 || protocol > 8) {
@@ -43,16 +47,20 @@ export default class Js5Index {
         const hasDigests: number = flags & 0x2;
         const hasLengths: number = flags & 0x4;
         const hasUncompressedChecksums: number = flags & 0x8;
+        // console.timeEnd('read');
 
+        // console.time('size');
         this.size = 0;
         if (protocol >= 7) {
             this.size = buf.gSmart2or4();
         } else {
             this.size = buf.g2();
         }
+        // console.timeEnd('size');
 
-        let maxGroupId: number = -1;
+        // console.time('groupIds');
         let prevGroupId: number = 0;
+        let maxGroupId: number = -1;
         this.groupIds = new Int32Array(this.size);
 
         for (let i: number = 0; i < this.size; i++) {
@@ -66,7 +74,9 @@ export default class Js5Index {
                 maxGroupId = this.groupIds[i];
             }
         }
+        // console.timeEnd('groupIds');
 
+        // console.time('groupAlloc');
         this.capacity = maxGroupId + 1;
         this.groupSizes = new Int32Array(this.capacity);
         this.groupChecksums = new Int32Array(this.capacity);
@@ -75,7 +85,9 @@ export default class Js5Index {
         this.groupCapacities = new Int32Array(this.capacity);
         this.groupVersions = new Int32Array(this.capacity);
         this.fileIds = new Array(this.capacity).fill(null);
+        // console.timeEnd('groupAlloc');
 
+        // console.time('groupNames');
         if (hasNames) {
             this.groupNameHashes = new Int32Array(this.capacity);
             this.groupNameHashTable = new Map();
@@ -89,41 +101,55 @@ export default class Js5Index {
                 this.groupNameHashTable.set(this.groupNameHashes[this.groupIds[i]], this.groupIds[i]);
             }
         }
+        // console.timeEnd('groupNames');
 
+        // console.time('groupChecksums');
         for (let i: number = 0; i < this.size; i++) {
             this.groupChecksums[this.groupIds[i]] = buf.g4();
         }
+        // console.timeEnd('groupChecksums');
 
+        // console.time('groupUncompressedChecksum');
         if (hasUncompressedChecksums) {
             for (let i: number = 0; i < this.size; i++) {
                 this.groupUncompressedChecksums[this.groupIds[i]] = buf.g4();
             }
         }
+        // console.timeEnd('groupUncompressedChecksum');
 
+        // console.time('groupDigests');
         if (hasDigests) {
             for (let i: number = 0; i < this.size; i++) {
                 this.groupDigests[this.groupIds[i]] = buf.gdata(64);
             }
         }
+        // console.timeEnd('groupDigests');
 
+        // console.time('groupLengths');
         if (hasLengths) {
             for (let i: number = 0; i < this.size; i++) {
                 buf.g4();
                 buf.g4();
             }
         }
+        // console.timeEnd('groupLengths');
 
+        // console.time('groupVersions');
         for (let i: number = 0; i < this.size; i++) {
             this.groupVersions[this.groupIds[i]] = buf.g4();
         }
+        // console.timeEnd('groupVersions');
 
+        // console.time('groupSizes');
         for (let i: number = 0; i < this.size; i++) {
             this.groupSizes[this.groupIds[i]] = buf.g2();
         }
+        // console.timeEnd('groupSizes');
 
+        // console.time('fileIds');
         for (let i: number = 0; i < this.size; i++) {
             let prevFileId: number = 0;
-            let maxFileId: number = 0;
+            let maxFileId: number = -1;
 
             const groupId: number = this.groupIds[i];
             const groupSize: number = this.groupSizes[groupId];
@@ -148,7 +174,9 @@ export default class Js5Index {
                 this.fileIds[groupId] = null;
             }
         }
+        // console.timeEnd('fileIds');
 
+        // console.time('fileNames');
         if (hasNames) {
             this.fileNameHashes = new Array(this.capacity).fill(null);
             this.fileNameHashTables = new Array(this.capacity).fill(null);
@@ -177,5 +205,6 @@ export default class Js5Index {
                 }
             }
         }
+        // console.timeEnd('fileNames');
     }
 }
