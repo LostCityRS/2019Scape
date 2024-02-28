@@ -1,5 +1,5 @@
 import Server from './server/Server.js';
-import './web/app.js';
+import startWeb from './web/app.js';
 
-const server: Server = new Server();
-await server.start();
+await Server.start();
+startWeb();

@@ -26,7 +26,7 @@ enum Js5Prot {
 const LoginProtLengths: number[] = [];
 LoginProtLengths[LoginProt.INIT_JS5REMOTE_CONNECTION] = -1;
 
-export default class Server {
+class Server {
     tcp: net.Server;
 
     cache: Cache = new Cache();
@@ -38,7 +38,7 @@ export default class Server {
             let state: ConnectionState = ConnectionState.Login;
 
             socket.on('data', async (data: Buffer): Promise<void> => {
-                console.log('Received data', data.length, 'bytes');
+                // console.log('Received data', data.length, 'bytes');
 
                 const stream: Packet = Packet.wrap(data, false);
                 while (stream.available > 0) {
@@ -96,11 +96,11 @@ export default class Server {
                             if (!data) {
                                 continue;
                             }
-                
+
                             if (archive !== 255) {
                                 data = data.subarray(0, data.length - 2); // remove version trailer
                             }
-                
+
                             const maxChunkSize: number = 102400 - 5;
                             for (let offset: number = 0; offset < data.length; offset += maxChunkSize) {
                                 const chunkSize: number = Math.min(maxChunkSize, data.length - offset);
@@ -109,7 +109,7 @@ export default class Server {
                                 buf.p4(opcode === Js5Prot.RequestGroupUrgent ? group : group | 0x80000000);
                                 buf.pdata(data.subarray(offset, offset + chunkSize));
                                 buf.send(socket);
-                                console.log(`Sending ${archive} ${group} ${offset} ${chunkSize}`);
+                                // console.log(`Sending ${archive} ${group} ${offset} ${chunkSize}`);
                             }
                         } else if (opcode === Js5Prot.LoggedIn) {
                             // g5
@@ -146,10 +146,11 @@ export default class Server {
 
     async start(): Promise<void> {
         await this.cache.load('data/cache');
-        // await this.cache.loadOpenRS2();
 
         this.tcp.listen(43594, '0.0.0.0', (): void => {
             console.log('Server started');
         });
     }
 }
+
+export default new Server();

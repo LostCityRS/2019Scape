@@ -1,6 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-
 import { download, downloadJson } from '#runewiki/util/DownloadUtils.js';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
