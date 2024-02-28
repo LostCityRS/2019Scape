@@ -149,7 +149,7 @@ export default class Js5 {
     }
 
     // preferred name is fetchFile but we can't overload in JS, and readGroup/readFile would be overloads...
-    async readFile(file: number, group: number = 0, key: number[] | null = null): Promise<Uint8Array | null> {
+    readFile(file: number, group: number = 0, key: number[] | null = null): Uint8Array | null {
         if (!this.isFileValid(group, file)) {
             return null;
         }
@@ -157,7 +157,7 @@ export default class Js5 {
         if (this.unpacked[group] == null || this.unpacked[group]![file] == null) {
             let success: boolean = this.unpackGroup(group, key);
             if (!success) {
-                await this.fetchGroup(group);
+                this.fetchGroup(group);
 
                 success = this.unpackGroup(group, key);
                 if (!success) {

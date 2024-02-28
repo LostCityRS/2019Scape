@@ -163,7 +163,11 @@ export default class Js5Index {
 
         // console.time('groupSizes');
         for (let i: number = 0; i < this.size; i++) {
-            this.groupSizes[this.groupIds[i]] = buf.g2();
+            if (format >= 7) {
+                this.groupSizes[this.groupIds[i]] = buf.gSmart2or4();
+            } else {
+                this.groupSizes[this.groupIds[i]] = buf.g2();
+            }
         }
         // console.timeEnd('groupSizes');
 
