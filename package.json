@@ -20,6 +20,8 @@
     "dotenv": "^16.4.5",
     "fastify": "^4.26.0",
     "hash-wasm": "^4.11.0",
+    "kysely": "^0.27.2",
+    "mysql2": "^3.9.2",
     "seek-bzip": "^2.0.0"
   },
   "devDependencies": {
@@ -32,6 +34,8 @@
     "eslint": "^8.57.0",
     "jest": "^29.7.0",
     "nodemon": "^3.1.0",
+    "prisma": "^5.10.2",
+    "prisma-kysely": "^1.8.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"

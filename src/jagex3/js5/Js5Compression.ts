@@ -3,7 +3,7 @@ import GzipDecompressor from '#jagex3/io/GzipDecompressor.js';
 import Packet from '#jagex3/io/Packet.js';
 
 export default class Js5Compression {
-    static uncompress(src: Uint8Array): Uint8Array {
+    static decompress(src: Uint8Array): Uint8Array {
         const buf: Packet = new Packet(src);
         const type: number = buf.g1();
         const len: number = buf.g4();
@@ -25,6 +25,8 @@ export default class Js5Compression {
                 Bzip2Decompressor.bunzip(buf, out);
             } else if (type === 2) {
                 GzipDecompressor.gunzip(buf, out);
+            } else if (type === 3) {
+                
             } else {
                 throw new Error(`Js5Compression: unsupported compression type ${type}`);
             }

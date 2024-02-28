@@ -23,13 +23,6 @@ enum Js5Prot {
     Disconnect = 7
 }
 
-type Js5QueueRequest = {
-    socket: net.Socket;
-    archive: number;
-    group: number;
-    urgent: boolean;
-}
-
 const LoginProtLengths: number[] = [];
 LoginProtLengths[LoginProt.INIT_JS5REMOTE_CONNECTION] = -1;
 
@@ -37,8 +30,6 @@ export default class Server {
     tcp: net.Server;
 
     cache: Cache = new Cache();
-    js5Queue: Js5QueueRequest[] = [];
-    currentJs5Cycle: number = 0;
 
     constructor() {
         this.tcp = net.createServer((socket): void => {
@@ -101,12 +92,25 @@ export default class Server {
                             const archive: number = stream.g1();
                             const group: number = stream.g4();
 
-                            this.js5Queue.push({
-                                archive,
-                                group,
-                                urgent: opcode === Js5Prot.RequestGroupUrgent,
-                                socket
-                            });
+                            let data: Uint8Array | null = await this.cache.getGroup(archive, group, true);
+                            if (!data) {
+                                continue;
+                            }
+                
+                            if (archive !== 255) {
+                                data = data.subarray(0, data.length - 2); // remove version trailer
+                            }
+                
+                            const maxChunkSize: number = 102400 - 5;
+                            for (let offset: number = 0; offset < data.length; offset += maxChunkSize) {
+                                const chunkSize: number = Math.min(maxChunkSize, data.length - offset);
+                                const buf: Packet = new Packet();
+                                buf.p1(archive);
+                                buf.p4(opcode === Js5Prot.RequestGroupUrgent ? group : group | 0x80000000);
+                                buf.pdata(data.subarray(offset, offset + chunkSize));
+                                buf.send(socket);
+                                console.log(`Sending ${archive} ${group} ${offset} ${chunkSize}`);
+                            }
                         } else if (opcode === Js5Prot.LoggedIn) {
                             // g5
                             stream.pos += 5;
@@ -146,43 +150,6 @@ export default class Server {
 
         this.tcp.listen(43594, '0.0.0.0', (): void => {
             console.log('Server started');
-
-            this.js5Cycle();
         });
-    }
-
-    async js5Cycle(): Promise<void> {
-        for (let i: number = 0; i < this.js5Queue.length; i++) {
-            const { archive, group, urgent, socket } = this.js5Queue[i];
-            this.js5Queue.splice(i--, 1);
-
-            if (socket.closed) {
-                continue;
-            }
-
-            let data: Uint8Array | null = await this.cache.getGroup(archive, group, true);
-            if (!data) {
-                continue;
-            }
-
-            if (archive !== 255) {
-                data = data.subarray(0, data.length - 2); // remove version trailer
-            }
-
-            const maxChunkSize: number = 102400 - 5;
-            for (let offset: number = 0; offset < data.length; offset += maxChunkSize) {
-                const chunkSize: number = Math.min(maxChunkSize, data.length - offset);
-                const buf: Packet = new Packet();
-                buf.p1(archive);
-                buf.p4(urgent ? group : group | 0x80000000);
-                buf.pdata(data.subarray(offset, offset + chunkSize));
-                buf.send(socket);
-                console.log(`Sending ${archive} ${group} ${offset} ${chunkSize}`);
-            }
-        }
-
-        console.log('JS5 cycle', this.currentJs5Cycle, 'complete');
-        this.currentJs5Cycle++;
-        setTimeout(this.js5Cycle.bind(this), 1000);
     }
 }

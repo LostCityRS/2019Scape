@@ -41,7 +41,7 @@ export default class Js5Index {
 
     decode(bytes: Uint8Array): void {
         // console.time('buf');
-        const buf: Packet = new Packet(Js5Compression.uncompress(bytes));
+        const buf: Packet = new Packet(Js5Compression.decompress(bytes));
         // console.timeEnd('buf');
 
         // console.time('read');
@@ -95,8 +95,6 @@ export default class Js5Index {
         this.capacity = maxGroupId + 1;
         this.groupSizes = new Int32Array(this.capacity);
         this.groupChecksums = new Int32Array(this.capacity);
-        this.groupUncompressedChecksums = new Int32Array(this.capacity);
-        this.groupDigests = new Array(this.capacity).fill(null);
         this.groupCapacities = new Int32Array(this.capacity);
         this.groupVersions = new Int32Array(this.capacity);
         this.fileIds = new Array(this.capacity).fill(null);
@@ -126,6 +124,8 @@ export default class Js5Index {
 
         // console.time('groupUncompressedChecksum');
         if (hasUncompressedChecksums) {
+            this.groupUncompressedChecksums = new Int32Array(this.capacity);
+
             for (let i: number = 0; i < this.size; i++) {
                 this.groupUncompressedChecksums[this.groupIds[i]] = buf.g4();
             }
@@ -134,6 +134,8 @@ export default class Js5Index {
 
         // console.time('groupDigests');
         if (hasDigests) {
+            this.groupDigests = new Array(this.capacity).fill(null);
+
             for (let i: number = 0; i < this.size; i++) {
                 this.groupDigests[this.groupIds[i]] = buf.gdata(64);
             }

@@ -322,7 +322,7 @@ export default class Js5 {
 
         let uncompressed: Uint8Array = new Uint8Array();
         try {
-            uncompressed = Js5Compression.uncompress(compressed);
+            uncompressed = Js5Compression.decompress(compressed);
         } catch (err) {
             // console.error('T3 - ' + (key != null) + ',' + group + ',' + compressed.length);
             // console.error(err);
