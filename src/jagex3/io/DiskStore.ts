@@ -3,21 +3,32 @@ import RandomAccessFile from '#jagex3/io/RandomAccessFile.js';
 export default class DiskStore {
     static buffer: Uint8Array = new Uint8Array(520);
 
-    data: RandomAccessFile;
-    index: RandomAccessFile;
+    data: RandomAccessFile | null = null;
+    index: RandomAccessFile | null = null;
     archive: number;
 
     constructor(data: string, index: string, archive: number) {
-        this.data = new RandomAccessFile(data, 'r');
-        this.index = new RandomAccessFile(index, 'r');
         this.archive = archive;
+
+        if (data.length && index.length) {
+            this.data = new RandomAccessFile(data, 'r');
+            this.index = new RandomAccessFile(index, 'r');
+        }
     }
 
     get count(): number {
+        if (!this.index) {
+            return 0;
+        }
+
         return this.index.length / 6;
     }
 
     read(group: number): Uint8Array | null {
+        if (!this.data || !this.index) {
+            return null;
+        }
+
         if ((group * 6) + 6 > this.index.length) {
             return null;
         }

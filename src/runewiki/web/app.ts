@@ -7,7 +7,9 @@ import Server from '#runewiki/server/Server.js';
 const app: fastify.FastifyInstance = fastify({ logger: true });
 
 app.get('/clienterror.ws', (req: any): void => {
-    console.log(req.query);
+    const { c: client, cs: clientSub, u: update, v1: version1, v2: version2, e: error } = req.query;
+
+    console.error(`${client}.${clientSub}.${update} - ${version1} ${version2}: ${error}`);
 });
 
 app.get('/ms', async (req: any, res: any): Promise<void> => {
@@ -19,7 +21,7 @@ app.get('/ms', async (req: any, res: any): Promise<void> => {
         return;
     }
 
-    if (archive != 255) {
+    if (archive != 255 && archive !== 28) {
         data = data.subarray(0, data.length - 2); // remove version trailer
     }
 

@@ -1,6 +1,7 @@
 import fs from 'fs';
 
 import DiskStore from '#jagex3/io/DiskStore.js';
+import FlatDiskStore from '#jagex3/io/FlatDiskStore.js';
 import Packet from '#jagex3/io/Packet.js';
 
 import Js5 from '#jagex3/js5/Js5.js';
@@ -18,8 +19,9 @@ export default class Cache {
     prefetches: number[] = [];
     masterIndexIndex: Uint8Array | null = null;
 
-    async load(dir: string): Promise<void> {
-        this.masterStore = new DiskStore(`${dir}/main_file_cache.dat255`, `${dir}/main_file_cache.idx255`, 255);
+    async load(dir: string, overrides: string[] = []): Promise<void> {
+        this.masterStore = new FlatDiskStore(dir, 255);
+        // this.masterStore = new DiskStore(`${dir}/main_file_cache.dat255`, `${dir}/main_file_cache.idx255`, 255);
         this.maxArchive = this.masterStore.count;
 
         for (let archive: number = 0; archive < this.maxArchive; archive++) {
@@ -28,22 +30,29 @@ export default class Cache {
                 continue;
             }
 
-            if (archive === 47) {
-                // LZMA-compressed, temp
+            if (archive === Js5Archive.ModelsRT7) {
+                // until we can handle LZMA
                 continue;
             }
 
-            const store: DiskStore = new DiskStore(`${dir}/main_file_cache.dat${archive}`, `${dir}/main_file_cache.idx${archive}`, archive);
+            if (typeof overrides[archive] !== 'undefined') {
+                const store: FlatDiskStore = new FlatDiskStore(overrides[archive], archive);
+                this.js5[archive] = await Js5.create(store, index, archive);
+                continue;
+            }
+
+            const store: FlatDiskStore = new FlatDiskStore(dir, archive);
+            // const store: DiskStore = new DiskStore(`${dir}/main_file_cache.dat${archive}`, `${dir}/main_file_cache.idx${archive}`, archive);
             this.js5[archive] = await Js5.create(store, index, archive);
         }
 
-        if (!fs.existsSync(`${dir}/main_file_cache.idx255_255`)) {
+        // if (!fs.existsSync(`${dir}/main_file_cache.idx255_255`)) {
             console.log('Generating master index... index');
             await this.generateMasterIndexIndex();
-            fs.writeFileSync(`${dir}/main_file_cache.idx255_255`, this.masterIndexIndex!);
-        } else {
-            this.masterIndexIndex = fs.readFileSync(`${dir}/main_file_cache.idx255_255`);
-        }
+        //     fs.writeFileSync(`${dir}/main_file_cache.idx255_255`, this.masterIndexIndex!);
+        // } else {
+        //     this.masterIndexIndex = fs.readFileSync(`${dir}/main_file_cache.idx255_255`);
+        // }
 
         this.prefetches.push(this.js5[Js5Archive.Defaults].getPrefetchArchive());
         this.prefetches.push(this.js5[Js5Archive.Dlls].getPrefetchGroup('windows/x86/jaclib.dll'));

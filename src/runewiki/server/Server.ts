@@ -2,6 +2,7 @@ import net from 'net';
 
 import Packet from '#jagex3/io/Packet.js';
 import Cache from '#jagex3/js5/Cache.js';
+import Js5Archive from '#jagex3/js5/Js5Archive.js';
 
 enum ConnectionState {
     Login = 0,
@@ -97,7 +98,7 @@ class Server {
                                 continue;
                             }
 
-                            if (archive !== 255) {
+                            if (archive !== 255 && archive !== 28) {
                                 data = data.subarray(0, data.length - 2); // remove version trailer
                             }
 
@@ -145,7 +146,10 @@ class Server {
     }
 
     async start(): Promise<void> {
-        await this.cache.load('data/cache');
+        const overrides: string[] = [];
+        overrides[Js5Archive.Defaults] = 'data/1176';
+        await this.cache.load('data/1730', overrides);
+        // await this.cache.load('data/cache');
 
         this.tcp.listen(43594, '0.0.0.0', (): void => {
             console.log('Server started');
