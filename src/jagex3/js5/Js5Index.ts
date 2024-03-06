@@ -214,7 +214,7 @@ export default class Js5Index {
                 const groupId: number = this.groupIds[i];
                 const groupSize: number = this.groupSizes[groupId];
 
-                this.fileNameHashes[groupId] = new Int32Array(this.groupCapacities[groupSize]);
+                this.fileNameHashes[groupId] = new Int32Array(this.groupCapacities[groupId]);
                 this.fileNameHashTables[groupId] = new Map();
 
                 for (let fileId: number = 0; fileId < this.groupCapacities[groupId]; fileId++) {
@@ -238,7 +238,7 @@ export default class Js5Index {
     }
 
     encodeIndex(): Uint8Array {
-        const buf: Packet = new Packet();
+        const buf: Packet = Packet.alloc(10);
         buf.p1(this.format);
 
         if (this.format >= 6) {
@@ -274,6 +274,7 @@ export default class Js5Index {
         if (this.groupIds) {
             let prevGroupId: number = 0;
 
+            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 if (this.format >= 7) {
                     buf.pSmart2or4(this.groupIds[i] - prevGroupId);
@@ -286,30 +287,35 @@ export default class Js5Index {
         }
 
         if (this.groupNameHashes && this.groupIds) {
+            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 buf.p4(this.groupNameHashes[this.groupIds[i]]);
             }
         }
 
         if (this.groupChecksums && this.groupIds) {
+            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 buf.p4(this.groupChecksums[this.groupIds[i]]);
             }
         }
 
         if (this.groupUncompressedChecksums && this.groupIds) {
+            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 buf.p4(this.groupUncompressedChecksums[this.groupIds[i]]);
             }
         }
 
         if (this.groupDigests && this.groupIds) {
+            buf.ensure(this.size * 64);
             for (let i: number = 0; i < this.size; i++) {
                 buf.pdata(this.groupDigests[this.groupIds[i]]);
             }
         }
 
         if (this.groupLengths && this.groupUncompressedLengths && this.groupIds) {
+            buf.ensure(this.size * 8);
             for (let i: number = 0; i < this.size; i++) {
                 buf.p4(this.groupLengths[this.groupIds[i]]);
                 buf.p4(this.groupUncompressedLengths[this.groupIds[i]]);
@@ -317,12 +323,14 @@ export default class Js5Index {
         }
 
         if (this.groupVersions && this.groupIds) {
+            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 buf.p4(this.groupVersions[this.groupIds[i]]);
             }
         }
 
         if (this.groupSizes && this.groupIds) {
+            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 if (this.format >= 7) {
                     buf.pSmart2or4(this.groupSizes[this.groupIds[i]]);
@@ -333,6 +341,12 @@ export default class Js5Index {
         }
 
         if (this.fileIds && this.groupIds && this.groupSizes) {
+            let totalFiles: number = 0;
+            for (let i: number = 0; i < this.size; i++) {
+                totalFiles += this.groupSizes[this.groupIds[i]];
+            }
+            buf.ensure(totalFiles * 4);
+
             for (let i: number = 0; i < this.size; i++) {
                 let prevFileId: number = 0;
 
@@ -341,29 +355,32 @@ export default class Js5Index {
 
                 for (let j: number = 0; j < groupSize; j++) {
                     if (!this.fileIds[groupId]) {
+                        const fileId: number = j;
+
                         if (this.format >= 7) {
-                            buf.pSmart2or4(0);
+                            buf.pSmart2or4(fileId - prevFileId);
                         } else {
-                            buf.p2(0);
+                            buf.p2(fileId - prevFileId);
                         }
 
-                        continue;
-                    }
-
-                    const fileId: number = this.fileIds[groupId]![j];
-
-                    if (this.format >= 7) {
-                        buf.pSmart2or4(fileId - prevFileId);
+                        prevFileId = fileId;
                     } else {
-                        buf.p2(fileId - prevFileId);
-                    }
+                        const fileId: number = this.fileIds[groupId]![j];
 
-                    prevFileId = fileId;
+                        if (this.format >= 7) {
+                            buf.pSmart2or4(fileId - prevFileId);
+                        } else {
+                            buf.p2(fileId - prevFileId);
+                        }
+
+                        prevFileId = fileId;
+                    }
                 }
             }
         }
 
         if (this.fileIds && this.fileNameHashes && this.groupIds && this.groupSizes) {
+            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 const groupId: number = this.groupIds[i];
                 const groupSize: number = this.groupSizes[groupId];
@@ -381,7 +398,7 @@ export default class Js5Index {
             }
         }
 
-        return buf.data;
+        return buf.data.subarray(0, buf.pos);
     }
 
     encodeForMasterIndex(): Uint8Array {
@@ -392,12 +409,10 @@ export default class Js5Index {
             buf.p4(this.version);
         }
 
-        if (this.format >= 8) {
+        if (this.format >= 7) {
             buf.p4(this.size);
             buf.p4(this.totalUncompressedLength);
-        }
 
-        if (this.format >= 7) {
             if (!this.digest) {
                 throw new Error('Need digest to create master index!');
             }

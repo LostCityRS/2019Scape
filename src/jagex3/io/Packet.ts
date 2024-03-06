@@ -117,7 +117,7 @@ export default class Packet {
         }
     }
 
-    private ensure(size: number): void {
+    ensure(size: number): void {
         if (this.available < size) {
             this.resize(this.length + size);
         }
