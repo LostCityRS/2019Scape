@@ -26,7 +26,7 @@ for (let i: number = 0; i < src.length; i++) {
 }
 buf.p1(0);
 
-const packed: Packet = Js5.packGroup(buf, 2);
+const packed: Packet = Js5.packGroup(buf);
 packed.save(`data/pack/patch/${Js5ArchiveType.Defaults}/4.dat`);
 
 // ----
