@@ -4,7 +4,7 @@ import Js5 from '#jagex3/js5/Js5.js';
 import { Js5ArchiveType } from '#jagex3/js5/Js5Archive.js';
 import Packet from '#jagex3/io/Packet.js';
 
-const js5: Js5 = await Js5.create('data/pack/client.defaults.js5', Js5ArchiveType.Defaults);
+const js5: Js5 = await Js5.load('data/pack/client.defaults.js5', Js5ArchiveType.Defaults);
 
 const def: string[] = [];
 

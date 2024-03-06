@@ -28,15 +28,11 @@ export default class Js5Index {
     fileNameHashes: (Int32Array | null)[] | null = null;
     fileNameHashTables: Map<number, number>[] | null = null;
 
-    constructor(bytes: Uint8Array) {
-        this.checksum = Packet.getcrc(bytes);
-    }
-
     static async from(bytes: Uint8Array): Promise<Js5Index> {
-        const index: Js5Index = new Js5Index(bytes);
+        const index: Js5Index = new Js5Index();
+        index.checksum = Packet.getcrc(bytes);
+        index.digest = await Whirlpool.compute(bytes);
         await index.decode(bytes);
-        const digest: Uint8Array = await Whirlpool.compute(bytes);
-        index.digest = digest;
         return index;
     }
 
@@ -149,6 +145,8 @@ export default class Js5Index {
             this.groupLengths = new Int32Array(this.capacity);
             this.groupUncompressedLengths = new Int32Array(this.capacity);
 
+            this.totalLength = 0;
+            this.totalUncompressedLength = 0;
             for (let i: number = 0; i < this.size; i++) {
                 this.groupLengths[this.groupIds[i]] = buf.g4();
                 this.totalLength += this.groupLengths[this.groupIds[i]];
@@ -237,7 +235,7 @@ export default class Js5Index {
         // console.timeEnd('fileNames');
     }
 
-    encodeIndex(): Uint8Array {
+    encode(): Uint8Array {
         const buf: Packet = Packet.alloc(10);
         buf.p1(this.format);
 
@@ -421,5 +419,30 @@ export default class Js5Index {
         }
 
         return buf.data;
+    }
+
+    addGroup(groupId: number, checksum: number, uncompressedChecksum: number, length: number, uncompressedLength: number, version: number): void {
+        // todo extend logic
+        this.size = 1;
+        this.capacity = groupId + 1;
+
+        this.groupIds = new Int32Array(this.size);
+        this.groupSizes = new Int32Array(this.capacity);
+        this.groupChecksums = new Int32Array(this.capacity);
+        this.groupCapacities = new Int32Array(this.capacity);
+        this.groupVersions = new Int32Array(this.capacity);
+        this.fileIds = new Array(this.capacity).fill(null);
+
+        this.groupUncompressedChecksums = new Int32Array(this.capacity);
+        this.groupLengths = new Int32Array(this.capacity);
+        this.groupUncompressedLengths = new Int32Array(this.capacity);
+
+        this.groupIds[0] = groupId;
+        this.groupSizes[groupId] = 1;
+        this.groupChecksums[groupId] = checksum;
+        this.groupUncompressedChecksums[groupId] = uncompressedChecksum;
+        this.groupLengths[groupId] = length;
+        this.groupUncompressedLengths[groupId] = uncompressedLength;
+        this.groupVersions[groupId] = version;
     }
 }

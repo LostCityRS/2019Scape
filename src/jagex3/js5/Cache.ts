@@ -16,7 +16,7 @@ export default class Cache {
             const type: Js5Archive | null = Js5Archive.forId(archive);
 
             if (type) {
-                this.js5[type.id] = await Js5.create(`${dir}/client.${type.name}.js5`, archive);
+                this.js5[type.id] = await Js5.load(`${dir}/client.${type.name}.js5`, archive);
             }
         }
 
@@ -42,7 +42,7 @@ export default class Cache {
         return null;
     }
 
-    async generateMasterIndexIndex(format: number = 8): Promise<void> {
+    async generateMasterIndexIndex(format: number = 7): Promise<void> {
         const buf: Packet = new Packet();
         if (format >= 7) {
             buf.p1(Js5Archive.getMaxId());
@@ -55,18 +55,16 @@ export default class Cache {
                 if (format >= 6) {
                     buf.p4(0);
                 }
-                if (format >= 8) {
-                    buf.p4(0);
-                    buf.p4(0);
-                }
                 if (format >= 7) {
+                    buf.p4(0);
+                    buf.p4(0);
                     buf.pdata(new Uint8Array(64));
                 }
                 continue;
             }
 
             const index: Js5Index = this.js5[i].index;
-            buf.pdata(index.encodeForMasterIndex(format));
+            buf.pdata(index.encodeForMasterIndex());
         }
 
         if (format >= 7) {

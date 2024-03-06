@@ -1,8 +1,12 @@
+import fs from 'fs';
+import zlib from 'zlib';
+
 import Js5Compression from '#jagex3/js5/Js5Compression.js';
 import Js5Index from '#jagex3/js5/Js5Index.js';
 import Packet from '#jagex3/io/Packet.js';
 import StringUtils from '#jagex3/util/StringUtils.js';
 import RandomAccessFile from '#jagex3/io/RandomAccessFile.js';
+import Whirlpool from '#jagex3/util/Whirlpool.js';
 
 export default class Js5 {
     index: Js5Index;
@@ -15,7 +19,9 @@ export default class Js5 {
     masterIndex: Uint8Array;
     groupPos: number[] = [];
 
-    static async create(file: string, archive: number): Promise<Js5> {
+    patch: Js5 | null = null;
+
+    static async load(file: string, archive: number, patch: boolean = true): Promise<Js5> {
         const store: RandomAccessFile = new RandomAccessFile(file, 'r');
 
         const header: Packet = Packet.alloc(5);
@@ -33,7 +39,151 @@ export default class Js5 {
         store.read(masterIndex, 0, masterIndexLength);
 
         const index: Js5Index = await Js5Index.from(masterIndex.data);
-        return new Js5(store, index, archive, masterIndex.data);
+        const js5: Js5 = new Js5(store, index, archive, masterIndex.data);
+
+        if (patch && fs.existsSync(file.replace('.js5', '.patch.js5'))) {
+            // merge the master indexes
+            js5.patch = await Js5.load(file.replace('.js5', '.patch.js5'), archive, false);
+
+            if (js5.patch.index.groupIds) {
+                for (let i: number = 0; i < js5.patch.index.size; i++) {
+                    // resize if needed
+                    if (js5.patch.index.capacity > js5.index.capacity) {
+                        js5.index.capacity = js5.patch.index.capacity;
+
+                        const temp: Int32Array = new Int32Array(js5.index.capacity);
+
+                        temp.set(js5.index.groupIds!);
+                        js5.index.groupIds = temp;
+
+                        temp.set(js5.index.groupSizes!);
+                        js5.index.groupSizes = temp;
+                        
+                        temp.set(js5.index.groupCapacities!);
+                        js5.index.groupCapacities = temp;
+
+                        temp.set(js5.index.groupVersions!);
+                        js5.index.groupVersions = temp;
+
+                        if (js5.index.groupNameHashes) {
+                            temp.set(js5.index.groupNameHashes);
+                            js5.index.groupNameHashes = temp;
+                        }
+
+                        temp.set(js5.index.groupChecksums!);
+                        js5.index.groupChecksums = temp;
+
+                        if (js5.index.groupUncompressedChecksums) {
+                            temp.set(js5.index.groupUncompressedChecksums!);
+                            js5.index.groupUncompressedChecksums = temp;
+                        }
+
+                        if (js5.index.groupLengths && js5.index.groupUncompressedLengths) {
+                            temp.set(js5.index.groupLengths);
+                            js5.index.groupLengths = temp;
+
+                            temp.set(js5.index.groupUncompressedLengths);
+                            js5.index.groupUncompressedLengths = temp;
+                        }
+
+                        temp.set(js5.index.groupVersions!);
+                        js5.index.groupVersions = temp;
+
+                        temp.set(js5.index.groupSizes!);
+                        js5.index.groupSizes = temp;
+                    }
+
+                    // add groups
+                    const groupId: number = js5.patch.index.groupIds[i];
+
+                    if (!js5.index.groupIds!.includes(groupId)) {
+                        js5.index.groupIds![js5.index.size] = groupId;
+                        js5.index.size++;
+                    }
+
+                    js5.index.groupChecksums![groupId] = js5.patch.index.groupChecksums![groupId];
+
+                    if (js5.index.groupUncompressedChecksums) {
+                        js5.index.groupUncompressedChecksums![groupId] = js5.patch.index.groupUncompressedChecksums![groupId];
+                    }
+
+                    if (js5.index.groupLengths) {
+                        js5.index.groupLengths![groupId] = js5.patch.index.groupLengths![groupId];
+                        js5.index.groupUncompressedLengths![groupId] = js5.patch.index.groupUncompressedLengths![groupId];
+                    }
+
+                    if (js5.index.groupVersions) {
+                        js5.index.groupVersions![groupId] = js5.patch.index.groupVersions![groupId];
+                    }
+                }
+
+                js5.index.groupIds = js5.index.groupIds!.sort((a, b): number => a - b);
+            }
+
+            js5.index.version = 1;
+
+            // fs.writeFileSync('data/test1.bin', await Js5Compression.decompress(js5.masterIndex));
+            // fs.writeFileSync('data/test2.bin', index.encode());
+
+            js5.masterIndex = Js5.packGroup(index.encode(), 2).data;
+
+            index.checksum = Packet.getcrc(js5.masterIndex);
+            index.digest = await Whirlpool.compute(js5.masterIndex);
+            await index.decode(js5.masterIndex);
+        }
+
+        return js5;
+    }
+
+    static packArchive(inDir: string, outDir: string, name: string, archive: number, patch: boolean = false, regenerate: boolean = false): void {
+        if (!regenerate && fs.existsSync(`${outDir}/client.${name}${patch ? '.patch' : ''}.js5`)) {
+            return;
+        }
+
+        const files: string[] = fs.readdirSync(`${inDir}/${archive}`);
+        const groups: number[] = files.map((f: string): number => parseInt(f.replace('.dat', ''))).sort((a, b): number => a - b);
+
+        const js5: RandomAccessFile = new RandomAccessFile(`${outDir}/client.${name}${patch ? '.patch' : ''}.js5`, 'w');
+        const info: Packet = Packet.alloc(groups.length * 8);
+
+        const idx255: Uint8Array = fs.readFileSync(`${inDir}/255/${archive}.dat`);
+        js5.write(idx255, 0, idx255.length);
+
+        for (const group of groups) {
+            const data: Uint8Array = fs.readFileSync(`${inDir}/${archive}/${group}.dat`);
+            js5.write(data, 0, data.length - 2);
+            info.p4(data.length - 2);
+        }
+
+        js5.write(info.data, 0, info.pos);
+    }
+
+    static packGroup(src: Uint8Array | Packet, compression: number = 0): Packet {
+        if (src instanceof Packet) {
+            src = src.data;
+        }
+
+        const buf: Packet = Packet.alloc(5);
+
+        buf.p1(compression);
+
+        if (compression === 0) {
+            buf.ensure(src.length);
+            buf.p4(src.length);
+            buf.pdata(src);
+        } else if (compression === 2) {
+            const compressed: Uint8Array = zlib.gzipSync(src);
+            compressed[9] = 0;
+
+            buf.ensure(compressed.length + 4);
+            buf.p4(compressed.length);
+            buf.p4(src.length);
+            buf.pdata(compressed);
+        } else {
+            throw new Error(`Unsupported compression type ${compression}`);
+        }
+
+        return buf;
     }
 
     constructor(store: RandomAccessFile, index: Js5Index, archive: number, masterIndex: Uint8Array) {
@@ -202,9 +352,13 @@ export default class Js5 {
         }
     }
 
-    readRaw(group: number): Uint8Array | null{
+    readRaw(group: number): Uint8Array | null {
         if (!this.isGroupValid(group)) {
             return null;
+        }
+
+        if (this.patch && typeof this.patch.groupPos[group] !== 'undefined') {
+            return this.patch.readRaw(group);
         }
 
         const pos: number = this.groupPos[group];
