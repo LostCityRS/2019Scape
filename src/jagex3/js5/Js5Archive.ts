@@ -3,18 +3,18 @@ enum Js5Archive {
     Bases = 1,
     Config = 2,
     Interfaces = 3,
-    SynthSounds = 4,
+    SynthSounds = 4, // empty
     Maps = 5,
-    MidiSongs = 6,
+    MidiSongs = 6, // empty
     Models = 7,
     Sprites = 8,
-    Textures = 9,
+    Textures = 9, // empty
     Binary = 10,
-    MidiJingles = 11,
+    MidiJingles = 11, // empty
     ClientScripts = 12,
     FontMetrics = 13,
     Vorbis = 14,
-    MidiInstruments = 15,
+    MidiInstruments = 15, // empty
     ConfigLoc = 16,
     ConfigEnum = 17,
     ConfigNpc = 18,
@@ -35,16 +35,22 @@ enum Js5Archive {
     LoadingScreen = 33,
     LoadingSpritesRaw = 34,
     Cutscenes = 35,
+    // 36 empty
+    // 37 empty
+    // 38 empty
+    // 39 empty
     AudioStreams = 40,
     WorldMapAreas = 41,
     WorldMapLabels = 42,
-    TexturesDiffusePng = 43,
-    TexturesHdrPng = 44,
-    TexturesDiffuseDxt = 45,
-    TexturesHdrPngMipped = 46,
+    TexturesDiffusePng = 43, // empty
+    TexturesHdrPng = 44, // empty
+    TexturesDiffuseDxt = 45, // empty
+    TexturesHdrPngMipped = 46, // empty
     ModelsRT7 = 47,
     AnimsRT7 = 48,
     DbTableIndex = 49,
+    // 50 empty
+    // 51 empty
     TexturesDxt = 52,
     TexturesPng = 53,
     TexturesPngMipped = 54,

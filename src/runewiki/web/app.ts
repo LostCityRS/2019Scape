@@ -21,7 +21,7 @@ app.get('/ms', async (req: any, res: any): Promise<void> => {
         return;
     }
 
-    if (archive != 255 && archive !== 28) {
+    if (archive != 255) {
         data = data.subarray(0, data.length - 2); // remove version trailer
     }
 

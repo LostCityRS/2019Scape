@@ -1,5 +1,7 @@
 import fs from 'fs';
 
+import Packet from '#jagex3/io/Packet.js';
+
 export default class RandomAccessFile {
     fd: number;
     path: string;
@@ -19,8 +21,23 @@ export default class RandomAccessFile {
         this.pos = pos;
     }
 
-    read(buffer: Uint8Array, offset: number, length: number): void {
-        fs.readSync(this.fd, buffer, offset, length, this.pos);
+    read(buffer: Uint8Array | Packet, offset: number, length: number): void {
+        if (buffer instanceof Packet) {
+            fs.readSync(this.fd, buffer.data, offset, length, this.pos);
+        } else {
+            fs.readSync(this.fd, buffer, offset, length, this.pos);
+        }
+
+        this.pos += length;
+    }
+
+    write(buffer: Uint8Array | Packet, offset: number, length: number): void {
+        if (buffer instanceof Packet) {
+            fs.writeSync(this.fd, buffer.data, offset, length, this.pos);
+        } else {
+            fs.writeSync(this.fd, buffer, offset, length, this.pos);
+        }
+
         this.pos += length;
     }
 }

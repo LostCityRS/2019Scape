@@ -1,4 +1,5 @@
 import fs from 'fs';
+
 import DiskStore from '#jagex3/io/DiskStore.js';
 
 export default class FlatDiskStore extends DiskStore {
@@ -18,8 +19,6 @@ export default class FlatDiskStore extends DiskStore {
         } else {
             this._count = highest + 1;
         }
-
-        console.log(`Archive ${archive} has ${this.count} groups (${dir})`);
     }
 
     get count(): number {

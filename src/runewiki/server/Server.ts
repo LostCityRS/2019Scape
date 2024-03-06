@@ -98,7 +98,7 @@ class Server {
                                 continue;
                             }
 
-                            if (archive !== 255 && archive !== 28) {
+                            if (archive !== 255) {
                                 data = data.subarray(0, data.length - 2); // remove version trailer
                             }
 
@@ -146,9 +146,7 @@ class Server {
     }
 
     async start(): Promise<void> {
-        const overrides: string[] = [];
-        overrides[Js5Archive.Defaults] = 'data/1176';
-        await this.cache.load('data/1730', overrides);
+        await this.cache.load('data/cache/1730');
         // await this.cache.load('data/cache');
 
         this.tcp.listen(43594, '0.0.0.0', (): void => {

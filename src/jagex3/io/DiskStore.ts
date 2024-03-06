@@ -1,7 +1,8 @@
+import Packet from '#jagex3/io/Packet.js';
 import RandomAccessFile from '#jagex3/io/RandomAccessFile.js';
 
 export default class DiskStore {
-    static buffer: Uint8Array = new Uint8Array(520);
+    static buffer: Packet = Packet.alloc(520);
 
     data: RandomAccessFile | null = null;
     index: RandomAccessFile | null = null;
@@ -36,8 +37,8 @@ export default class DiskStore {
         this.index.seek(group * 6);
         this.index.read(DiskStore.buffer, 0, 6);
 
-        const len: number = ((DiskStore.buffer[0] & 0xff) << 16) + ((DiskStore.buffer[1] & 0xff) << 8) + (DiskStore.buffer[2] & 0xff);
-        let block: number = ((DiskStore.buffer[3] & 0xff) << 16) + ((DiskStore.buffer[4] & 0xff) << 8) + (DiskStore.buffer[5] & 0xff);
+        const len: number = DiskStore.buffer.g3();
+        let block: number = DiskStore.buffer.g3();
 
         if (len < 0 || len > 1_000_000_000) {
             return null;
@@ -64,10 +65,10 @@ export default class DiskStore {
             }
 
             this.data.read(DiskStore.buffer, 0, blockSize + 8);
-            const actualGroup: number = ((DiskStore.buffer[0] & 0xff) << 8) + (DiskStore.buffer[1] & 0xff);
-            const actualBlockNum: number = ((DiskStore.buffer[2] & 0xff) << 8) + (DiskStore.buffer[3] & 0xff);
-            const nextBlock: number = ((DiskStore.buffer[4] & 0xff) << 16) + ((DiskStore.buffer[5] & 0xff) << 8) + (DiskStore.buffer[6] & 0xff);
-            const archive: number = DiskStore.buffer[7] & 0xff;
+            const actualGroup: number = DiskStore.buffer.g2();
+            const actualBlockNum: number = DiskStore.buffer.g2();
+            const nextBlock: number = DiskStore.buffer.g3();
+            const archive: number = DiskStore.buffer.g1();
 
             if (actualGroup !== group || actualBlockNum !== blockNum || archive !== this.archive) {
                 return null;
@@ -77,7 +78,7 @@ export default class DiskStore {
                 return null;
             }
 
-            data.set(DiskStore.buffer.subarray(8, 8 + blockSize), off);
+            data.set(DiskStore.buffer.gdata(blockSize), off);
             off += blockSize;
 
             blockNum++;
