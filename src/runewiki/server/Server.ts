@@ -92,7 +92,7 @@ class Server {
                             const archive: number = stream.g1();
                             const group: number = stream.g4();
 
-                            let data: Uint8Array | null = await this.cache.getGroup(archive, group, true);
+                            const data: Uint8Array | null = await this.cache.getGroup(archive, group, true);
                             if (!data) {
                                 continue;
                             }
@@ -141,9 +141,7 @@ class Server {
     }
 
     async start(): Promise<void> {
-        console.time('startup');
         await this.cache.load('data/pack');
-        console.timeEnd('startup');
 
         this.tcp.listen(43594, '0.0.0.0', (): void => {
             console.log('Server started');

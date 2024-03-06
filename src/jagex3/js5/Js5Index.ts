@@ -4,6 +4,7 @@ import Whirlpool from '#jagex3/util/Whirlpool.js';
 import Js5Compression from './Js5Compression.js';
 
 export default class Js5Index {
+    format: number = 0;
     checksum: number = 0;
     size: number = 0;
     version: number = 0;
@@ -46,6 +47,7 @@ export default class Js5Index {
 
         // console.time('read');
         const format: number = buf.g1();
+        this.format = format;
 
         if (format < 5 || format > 8) {
             throw new Error('Unsupported format: ' + format);
@@ -221,7 +223,7 @@ export default class Js5Index {
 
                 for (let j: number = 0; j < groupSize; j++) {
                     let fileId: number = -1;
-                    if (this.fileIds[groupId] !== null) {
+                    if (this.fileIds[groupId]) {
                         fileId = this.fileIds[groupId]![j];
                     } else {
                         fileId = j;
@@ -235,20 +237,167 @@ export default class Js5Index {
         // console.timeEnd('fileNames');
     }
 
-    encodeForMasterIndex(format: number = 8): Uint8Array {
+    encodeIndex(): Uint8Array {
         const buf: Packet = new Packet();
-        buf.p4(this.checksum);
+        buf.p1(this.format);
 
-        if (format >= 6) {
+        if (this.format >= 6) {
             buf.p4(this.version);
         }
 
-        if (format >= 8) {
+        let flags: number = 0;
+
+        if (this.groupNameHashes) {
+            flags |= 0x1;
+        }
+
+        if (this.groupDigests) {
+            flags |= 0x2;
+        }
+
+        if (this.groupLengths) {
+            flags |= 0x4;
+        }
+
+        if (this.groupUncompressedChecksums) {
+            flags |= 0x8;
+        }
+
+        buf.p1(flags);
+
+        if (this.format >= 7) {
+            buf.pSmart2or4(this.size);
+        } else {
+            buf.p2(this.size);
+        }
+
+        if (this.groupIds) {
+            let prevGroupId: number = 0;
+
+            for (let i: number = 0; i < this.size; i++) {
+                if (this.format >= 7) {
+                    buf.pSmart2or4(this.groupIds[i] - prevGroupId);
+                } else {
+                    buf.p2(this.groupIds[i] - prevGroupId);
+                }
+
+                prevGroupId = this.groupIds[i];
+            }
+        }
+
+        if (this.groupNameHashes && this.groupIds) {
+            for (let i: number = 0; i < this.size; i++) {
+                buf.p4(this.groupNameHashes[this.groupIds[i]]);
+            }
+        }
+
+        if (this.groupChecksums && this.groupIds) {
+            for (let i: number = 0; i < this.size; i++) {
+                buf.p4(this.groupChecksums[this.groupIds[i]]);
+            }
+        }
+
+        if (this.groupUncompressedChecksums && this.groupIds) {
+            for (let i: number = 0; i < this.size; i++) {
+                buf.p4(this.groupUncompressedChecksums[this.groupIds[i]]);
+            }
+        }
+
+        if (this.groupDigests && this.groupIds) {
+            for (let i: number = 0; i < this.size; i++) {
+                buf.pdata(this.groupDigests[this.groupIds[i]]);
+            }
+        }
+
+        if (this.groupLengths && this.groupUncompressedLengths && this.groupIds) {
+            for (let i: number = 0; i < this.size; i++) {
+                buf.p4(this.groupLengths[this.groupIds[i]]);
+                buf.p4(this.groupUncompressedLengths[this.groupIds[i]]);
+            }
+        }
+
+        if (this.groupVersions && this.groupIds) {
+            for (let i: number = 0; i < this.size; i++) {
+                buf.p4(this.groupVersions[this.groupIds[i]]);
+            }
+        }
+
+        if (this.groupSizes && this.groupIds) {
+            for (let i: number = 0; i < this.size; i++) {
+                if (this.format >= 7) {
+                    buf.pSmart2or4(this.groupSizes[this.groupIds[i]]);
+                } else {
+                    buf.p2(this.groupSizes[this.groupIds[i]]);
+                }
+            }
+        }
+
+        if (this.fileIds && this.groupIds && this.groupSizes) {
+            for (let i: number = 0; i < this.size; i++) {
+                let prevFileId: number = 0;
+
+                const groupId: number = this.groupIds[i];
+                const groupSize: number = this.groupSizes[groupId];
+
+                for (let j: number = 0; j < groupSize; j++) {
+                    if (!this.fileIds[groupId]) {
+                        if (this.format >= 7) {
+                            buf.pSmart2or4(0);
+                        } else {
+                            buf.p2(0);
+                        }
+
+                        continue;
+                    }
+
+                    const fileId: number = this.fileIds[groupId]![j];
+
+                    if (this.format >= 7) {
+                        buf.pSmart2or4(fileId - prevFileId);
+                    } else {
+                        buf.p2(fileId - prevFileId);
+                    }
+
+                    prevFileId = fileId;
+                }
+            }
+        }
+
+        if (this.fileIds && this.fileNameHashes && this.groupIds && this.groupSizes) {
+            for (let i: number = 0; i < this.size; i++) {
+                const groupId: number = this.groupIds[i];
+                const groupSize: number = this.groupSizes[groupId];
+
+                for (let j: number = 0; j < groupSize; j++) {
+                    let fileId: number = -1;
+                    if (this.fileIds[groupId]) {
+                        fileId = this.fileIds[groupId]![j];
+                    } else {
+                        fileId = j;
+                    }
+
+                    buf.p4(this.fileNameHashes[groupId]![fileId]);
+                }
+            }
+        }
+
+        return buf.data;
+    }
+
+    encodeForMasterIndex(): Uint8Array {
+        const buf: Packet = new Packet();
+        buf.p4(this.checksum);
+
+        if (this.format >= 6) {
+            buf.p4(this.version);
+        }
+
+        if (this.format >= 8) {
             buf.p4(this.size);
             buf.p4(this.totalUncompressedLength);
         }
 
-        if (format >= 7) {
+        if (this.format >= 7) {
             if (!this.digest) {
                 throw new Error('Need digest to create master index!');
             }

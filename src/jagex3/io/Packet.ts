@@ -89,10 +89,10 @@ export default class Packet {
     data: Uint8Array;
     pos: number;
 
-    constructor(src?: ArrayBuffer | Packet) {
+    constructor(src?: ArrayBuffer | Packet | null) {
         if (src instanceof Packet) {
             this.data = src.data;
-        } else if (typeof src === 'undefined') {
+        } else if (typeof src === 'undefined' || src === null) {
             this.data = new Uint8Array();
         } else {
             this.data = new Uint8Array(src);
@@ -327,6 +327,40 @@ export default class Packet {
         this.ensure(src.length);
         this.data.set(src, this.pos);
         this.pos += src.length;
+    }
+
+    pSmart1or2(value: number): void {
+        if (value < 128) {
+            this.p1(value);
+        } else {
+            this.p2(value + 32768);
+        }
+    }
+
+    pSmart1or2s(value: number): void {
+        if (value < -64 || value >= 64) {
+            this.p2(value + 49152);
+        } else {
+            this.p1(value + 64);
+        }
+    }
+
+    pSmart2or4(value: number): void {
+        if (value < 32768) {
+            this.p2(value);
+        } else {
+            this.p4(value | 0x80000000);
+        }
+    }
+
+    pSmart2or4null(value: number): void {
+        if (value === -1) {
+            this.p2(32767);
+        } else if (value < 32768) {
+            this.p2(value);
+        } else {
+            this.p4(value | 0x80000000);
+        }
     }
 
     // ----

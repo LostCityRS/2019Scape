@@ -11,8 +11,8 @@ export default class FlatDiskStore extends DiskStore {
 
         this.dir = dir;
 
-        const groups = fs.readdirSync(`${this.dir}/${this.archive}`);
-        const highest = groups.map((group) => parseInt(group.replace('.dat', ''))).sort((a, b) => a - b).pop();
+        const groups: string[] = fs.readdirSync(`${this.dir}/${this.archive}`);
+        const highest: number | undefined = groups.map((group): number => parseInt(group.replace('.dat', ''))).sort((a, b): number => a - b).pop();
 
         if (typeof highest === 'undefined') {
             this._count = 0;

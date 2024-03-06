@@ -15,7 +15,7 @@ app.get('/clienterror.ws', (req: any): void => {
 app.get('/ms', async (req: any, res: any): Promise<void> => {
     const { m, a: archive, g: group, cb, c: checksum, v: version } = req.query;
 
-    let data: Uint8Array | null = await Server.cache.getGroup(parseInt(archive), parseInt(group), true);
+    const data: Uint8Array | null = await Server.cache.getGroup(parseInt(archive), parseInt(group), true);
     if (!data) {
         res.status(404);
         return;
