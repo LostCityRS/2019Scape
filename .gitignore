@@ -1,4 +1,6 @@
 /data
+/dump
+/out
 
 node_modules
 .env

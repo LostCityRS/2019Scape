@@ -28,24 +28,20 @@ export default class Js5Index {
     fileNameHashTables: Map<number, number>[] | null = null;
 
     constructor(bytes: Uint8Array) {
-        if (!bytes.length) {
-            throw new Error('Empty index');
-        }
-
         this.checksum = Packet.getcrc(bytes);
-        this.decode(bytes);
     }
 
     static async from(bytes: Uint8Array): Promise<Js5Index> {
         const index: Js5Index = new Js5Index(bytes);
+        await index.decode(bytes);
         const digest: Uint8Array = await Whirlpool.compute(bytes);
         index.digest = digest;
         return index;
     }
 
-    decode(bytes: Uint8Array): void {
+    async decode(bytes: Uint8Array): Promise<void> {
         // console.time('buf');
-        const buf: Packet = new Packet(Js5Compression.decompress(bytes));
+        const buf: Packet = new Packet(await Js5Compression.decompress(bytes));
         // console.timeEnd('buf');
 
         // console.time('read');

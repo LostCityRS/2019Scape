@@ -1,9 +1,10 @@
 import Bzip2Decompressor from '#jagex3/io/Bzip2Decompressor.js';
 import GzipDecompressor from '#jagex3/io/GzipDecompressor.js';
+import LzmaDecompressor from '#jagex3/io/LzmaDecompressor.js';
 import Packet from '#jagex3/io/Packet.js';
 
 export default class Js5Compression {
-    static decompress(src: Uint8Array): Uint8Array {
+    static async decompress(src: Uint8Array): Promise<Uint8Array> {
         const buf: Packet = new Packet(src);
         const type: number = buf.g1();
         const len: number = buf.g4();
@@ -26,7 +27,7 @@ export default class Js5Compression {
             } else if (type === 2) {
                 GzipDecompressor.gunzip(buf, out);
             } else if (type === 3) {
-                
+                await LzmaDecompressor.unzip(buf, out);
             } else {
                 throw new Error(`Js5Compression: unsupported compression type ${type}`);
             }

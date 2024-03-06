@@ -1,5 +1,6 @@
 import fs from 'fs';
 import net from 'net';
+import { dirname } from 'path';
 
 export default class Packet {
     static bitmask: Uint32Array = new Uint32Array(33);
@@ -122,7 +123,11 @@ export default class Packet {
         }
     }
 
-    save(file: string, all: boolean): void {
+    save(file: string, all: boolean = false): void {
+        if (!fs.existsSync(dirname(file))) {
+            fs.mkdirSync(dirname(file), { recursive: true });
+        }
+
         fs.writeFileSync(file, this.data.subarray(0, all ? this.length : this.pos));
     }
 

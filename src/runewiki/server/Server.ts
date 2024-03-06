@@ -92,7 +92,7 @@ class Server {
                             const archive: number = stream.g1();
                             const group: number = stream.g4();
 
-                            let data: Uint8Array | null = this.cache.getGroup(archive, group, true);
+                            let data: Uint8Array | null = await this.cache.getGroup(archive, group, true);
                             if (!data) {
                                 continue;
                             }

@@ -250,7 +250,7 @@ export default class Js5 {
         this.packed[group] = this.readRaw(group);
     }
 
-    readGroup(group: number = 0, key: number[] | null = null): Uint8Array | null {
+    async readGroup(group: number = 0, key: number[] | null = null): Promise<Uint8Array | null> {
         if (!this.isGroupValid(group) || !this.index.fileIds) {
             return null;
         }
@@ -264,11 +264,11 @@ export default class Js5 {
         }
 
         if (this.unpacked[group] == null || this.unpacked[group]![fileId] == null) {
-            let success: boolean = this.unpackGroup(group, key);
+            let success: boolean = await this.unpackGroup(group, key);
             if (!success) {
                 this.fetchGroup(group);
 
-                success = this.unpackGroup(group, key);
+                success = await this.unpackGroup(group, key);
                 if (!success) {
                     return null;
                 }
@@ -278,17 +278,17 @@ export default class Js5 {
         return this.unpacked[group]![fileId];
     }
 
-    readFile(group: number, file: number, key: number[] | null = null): Uint8Array | null {
+    async readFile(group: number, file: number, key: number[] | null = null): Promise<Uint8Array | null> {
         if (!this.isFileValid(group, file)) {
             return null;
         }
 
         if (this.unpacked[group] == null || this.unpacked[group]![file] == null) {
-            let success: boolean = this.unpackGroup(group, key);
+            let success: boolean = await this.unpackGroup(group, key);
             if (!success) {
                 this.fetchGroup(group);
 
-                success = this.unpackGroup(group, key);
+                success = await this.unpackGroup(group, key);
                 if (!success) {
                     return null;
                 }
@@ -298,7 +298,7 @@ export default class Js5 {
         return this.unpacked[group]![file];
     }
 
-    unpackGroup(group: number, key: number[] | null = null): boolean {
+    async unpackGroup(group: number, key: number[] | null = null): Promise<boolean> {
         if (!this.isGroupValid(group) || !this.index.fileIds || !this.index.groupSizes || !this.index.groupCapacities) {
             return false;
         }
@@ -345,7 +345,7 @@ export default class Js5 {
 
         let uncompressed: Uint8Array = new Uint8Array();
         try {
-            uncompressed = Js5Compression.decompress(compressed);
+            uncompressed = await Js5Compression.decompress(compressed);
         } catch (err) {
             // console.error('T3 - ' + (key != null) + ',' + group + ',' + compressed.length);
             // console.error(err);

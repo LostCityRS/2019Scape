@@ -15,7 +15,7 @@ export default class Cache {
         for (let archive: number = 0; archive < Js5Archive.getMaxId(); archive++) {
             const type: Js5Archive | null = Js5Archive.forId(archive);
 
-            if (type && type.id !== Js5ArchiveType.ModelsRT7) {
+            if (type) {
                 this.js5[type.id] = await Js5.create(`${dir}/client.${type.name}.js5`, archive);
             }
         }
@@ -24,7 +24,7 @@ export default class Cache {
         this.generatePrefetches();
     }
 
-    getGroup(archive: number, group: number, raw: boolean = false): Uint8Array | null {
+    async getGroup(archive: number, group: number, raw: boolean = false): Promise<Uint8Array | null> {
         if (archive === Js5ArchiveType.ArchiveSet && group === Js5ArchiveType.ArchiveSet) {
             return this.masterIndexIndex;
         } else if (archive === Js5ArchiveType.ArchiveSet) {
@@ -35,7 +35,7 @@ export default class Cache {
             if (raw) {
                 return this.js5[archive].readRaw(group);
             } else {
-                return this.js5[archive].readGroup(group);
+                return await this.js5[archive].readGroup(group);
             }
         }
 
@@ -49,8 +49,8 @@ export default class Cache {
         }
 
         for (let i: number = 0; i < Js5Archive.getMaxId(); i++) {
-            const masterIndexData: Uint8Array | null = this.getGroup(255, i);
-            if (!masterIndexData || i === Js5ArchiveType.ModelsRT7) {
+            const masterIndexData: Uint8Array | null = await this.getGroup(255, i);
+            if (!masterIndexData) {
                 buf.p4(0);
                 if (format >= 6) {
                     buf.p4(0);
