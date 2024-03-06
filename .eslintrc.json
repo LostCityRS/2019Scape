@@ -1,6 +1,11 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "project": ["tsconfig.json"] ,
+    "sourceType": "module"
+  },
   "plugins": [
     "@typescript-eslint"
   ],
@@ -24,6 +29,7 @@
         "variableDeclaration": true,
         "variableDeclarationIgnoreFunction": true
       }
-    ]
+    ],
+    "@typescript-eslint/strict-boolean-expressions": "error"
   }
 }

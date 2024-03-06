@@ -28,7 +28,7 @@ export default class Cache {
         if (archive === Js5ArchiveType.ArchiveSet && group === Js5ArchiveType.ArchiveSet) {
             return this.masterIndexIndex;
         } else if (archive === Js5ArchiveType.ArchiveSet) {
-            if (this.js5[group]) {
+            if (typeof this.js5[group] !== 'undefined') {
                 return this.js5[group].masterIndex;
             }
         } else {

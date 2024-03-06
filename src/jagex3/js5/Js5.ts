@@ -255,10 +255,7 @@ export default class Js5 {
             }
         }
 
-        if (this.masterIndex) {
-            total += this.masterIndex.length;
-        }
-
+        total += this.masterIndex.length;
         return total;
     }
 
@@ -463,7 +460,7 @@ export default class Js5 {
             return false;
         }
 
-        if (!this.packed || !this.packed[group]) {
+        if (this.packed[group] === null) {
             return false;
         }
 

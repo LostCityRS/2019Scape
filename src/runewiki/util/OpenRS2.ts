@@ -52,7 +52,7 @@ export class OpenRS2 {
         const { openrs2 = -1, environment = 'live', lang = 'en', rev = -1, match = 0 } = query;
         let { game = '' } = query;
 
-        if ((rev < 0 && openrs2 < 0) || (!rev.length && !openrs2.length)) {
+        if ((rev < 0 && openrs2 < 0) || (rev.length === 0 && openrs2.length === 0)) {
             throw new Error('No rev or openrs2 build in your query. Example: &rev=550 or &openrs2=1');
         }
 
@@ -72,7 +72,7 @@ export class OpenRS2 {
                 throw new Error(`Ambiguous revision, please specify the game in your query. Example: &game=${matches[0].game}`);
             }
 
-            if (!game) {
+            if (game.length === 0) {
                 // for ease of use we can make some assumptions and rely on the ambiguous revision check
                 if (rev < 226) {
                     game = 'oldschool';
@@ -81,7 +81,7 @@ export class OpenRS2 {
                 }
             }
 
-            if (matches.length > 0 && matches[match] && matches[match].game == game) {
+            if (matches.length > 0 && typeof matches[match] !== 'undefined' && matches[match].game == game) {
                 return new OpenRS2(matches[match]);
             }
         }

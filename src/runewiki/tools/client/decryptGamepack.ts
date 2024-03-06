@@ -16,7 +16,7 @@ for (const line of paramTxt.toString().split('\n')) {
 const secret: string | undefined = parameters.get('0');
 const vector: string | undefined = parameters.get('-1');
 
-if (!secret || !vector) {
+if (typeof secret === 'undefined' || typeof vector === 'undefined') {
     console.error('Could not find decryption parameters');
     process.exit(1);
 }
