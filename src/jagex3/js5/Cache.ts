@@ -1,99 +1,39 @@
-import fs from 'fs';
-
-import DiskStore from '#jagex3/io/DiskStore.js';
-import FlatDiskStore from '#jagex3/io/FlatDiskStore.js';
-import Packet from '#jagex3/io/Packet.js';
-
 import Js5 from '#jagex3/js5/Js5.js';
+import Js5Archive, { Js5ArchiveType } from '#jagex3/js5/Js5Archive.js';
 import Js5Index from '#jagex3/js5/Js5Index.js';
-import Js5Archive from '#jagex3/js5/Js5Archive.js';
+import Packet from '#jagex3/io/Packet.js';
 
 import Whirlpool from '#jagex3/util/Whirlpool.js';
 
 export default class Cache {
     js5: Js5[] = [];
 
-    masterStore: DiskStore | null = null;
-    maxArchive: number = -1;
-
     prefetches: number[] = [];
     masterIndexIndex: Uint8Array | null = null;
 
-    async load(dir: string, overrides: string[] = []): Promise<void> {
-        this.masterStore = new FlatDiskStore(dir, 255);
-        // this.masterStore = new DiskStore(`${dir}/main_file_cache.dat255`, `${dir}/main_file_cache.idx255`, 255);
-        this.maxArchive = this.masterStore.count;
+    async load(dir: string): Promise<void> {
+        for (let archive: number = 0; archive < Js5Archive.getMaxId(); archive++) {
+            const type: Js5Archive | null = Js5Archive.forId(archive);
 
-        for (let archive: number = 0; archive < this.maxArchive; archive++) {
-            const index: Uint8Array | null = this.masterStore.read(archive);
-            if (index === null) {
-                continue;
+            if (type && type.id !== Js5ArchiveType.ModelsRT7) {
+                this.js5[type.id] = await Js5.create(`${dir}/client.${type.name}.js5`, archive);
             }
-
-            if (archive === Js5Archive.ModelsRT7) {
-                // until we can handle LZMA
-                continue;
-            }
-
-            if (typeof overrides[archive] !== 'undefined') {
-                const store: FlatDiskStore = new FlatDiskStore(overrides[archive], archive);
-                this.js5[archive] = await Js5.create(store, index, archive);
-                continue;
-            }
-
-            const store: FlatDiskStore = new FlatDiskStore(dir, archive);
-            // const store: DiskStore = new DiskStore(`${dir}/main_file_cache.dat${archive}`, `${dir}/main_file_cache.idx${archive}`, archive);
-            this.js5[archive] = await Js5.create(store, index, archive);
         }
 
-        // if (!fs.existsSync(`${dir}/main_file_cache.idx255_255`)) {
-            console.log('Generating master index... index');
-            await this.generateMasterIndexIndex();
-        //     fs.writeFileSync(`${dir}/main_file_cache.idx255_255`, this.masterIndexIndex!);
-        // } else {
-        //     this.masterIndexIndex = fs.readFileSync(`${dir}/main_file_cache.idx255_255`);
-        // }
-
-        this.prefetches.push(this.js5[Js5Archive.Defaults].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.Dlls].getPrefetchGroup('windows/x86/jaclib.dll'));
-        this.prefetches.push(this.js5[Js5Archive.Dlls].getPrefetchGroup('windows/x86/jaggl.dll'));
-        this.prefetches.push(this.js5[Js5Archive.Dlls].getPrefetchGroup('windows/x86/jagdx.dll'));
-        this.prefetches.push(this.js5[Js5Archive.Dlls].getPrefetchGroup('windows/x86/sw3d.dll'));
-        this.prefetches.push(this.js5[Js5Archive.Dlls].getPrefetchGroup('RuneScape-Setup.exe'));
-        this.prefetches.push(this.js5[Js5Archive.Dlls].getPrefetchGroup('windows/x86/hw3d.dll'));
-        this.prefetches.push(this.js5[Js5Archive.Shaders].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.Materials].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.Config].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.ConfigLoc].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.ConfigEnum].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.ConfigNpc].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.ConfigObj].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.ConfigSeq].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.ConfigSpot].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.ConfigStruct].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.DbTableIndex].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.QuickChat].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.QuickChatGlobal].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.ConfigParticle].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.ConfigBillboard].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.Binary].getPrefetchGroup('huffman'));
-        this.prefetches.push(this.js5[Js5Archive.Interfaces].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.ClientScripts].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.FontMetrics].getPrefetchArchive());
-        this.prefetches.push(this.js5[Js5Archive.WorldMapData].getPrefetchGroup(0));
+        await this.generateMasterIndexIndex();
+        this.generatePrefetches();
     }
 
-    async getGroup(archive: number, group: number, raw: boolean = false): Promise<Uint8Array | null> {
-        if (archive === 255 && group === 255) {
+    getGroup(archive: number, group: number, raw: boolean = false): Uint8Array | null {
+        if (archive === Js5ArchiveType.ArchiveSet && group === Js5ArchiveType.ArchiveSet) {
             return this.masterIndexIndex;
-        } else if (archive === 255) {
-            if (this.masterStore) {
-                return this.masterStore.read(group);
+        } else if (archive === Js5ArchiveType.ArchiveSet) {
+            if (this.js5[group]) {
+                return this.js5[group].masterIndex;
             }
         } else {
-            const store: DiskStore | null = this.js5[archive].store;
-            if (raw && store) {
-                return store.read(group);
+            if (raw) {
+                return this.js5[archive].readRaw(group);
             } else {
                 return this.js5[archive].readGroup(group);
             }
@@ -105,12 +45,12 @@ export default class Cache {
     async generateMasterIndexIndex(format: number = 8): Promise<void> {
         const buf: Packet = new Packet();
         if (format >= 7) {
-            buf.p1(this.maxArchive);
+            buf.p1(Js5Archive.getMaxId());
         }
 
-        for (let i: number = 0; i < this.maxArchive; i++) {
-            const masterIndexData: Uint8Array | null = await this.getGroup(255, i);
-            if (!masterIndexData || i === 47) {
+        for (let i: number = 0; i < Js5Archive.getMaxId(); i++) {
+            const masterIndexData: Uint8Array | null = this.getGroup(255, i);
+            if (!masterIndexData || i === Js5ArchiveType.ModelsRT7) {
                 buf.p4(0);
                 if (format >= 6) {
                     buf.p4(0);
@@ -143,5 +83,35 @@ export default class Cache {
         js5Buf.pdata(buf);
 
         this.masterIndexIndex = js5Buf.data;
+    }
+
+    generatePrefetches(): void {
+        this.prefetches.push(this.js5[Js5ArchiveType.Defaults].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.Dlls].getPrefetchGroup('windows/x86/jaclib.dll'));
+        this.prefetches.push(this.js5[Js5ArchiveType.Dlls].getPrefetchGroup('windows/x86/jaggl.dll'));
+        this.prefetches.push(this.js5[Js5ArchiveType.Dlls].getPrefetchGroup('windows/x86/jagdx.dll'));
+        this.prefetches.push(this.js5[Js5ArchiveType.Dlls].getPrefetchGroup('windows/x86/sw3d.dll'));
+        this.prefetches.push(this.js5[Js5ArchiveType.Dlls].getPrefetchGroup('RuneScape-Setup.exe'));
+        this.prefetches.push(this.js5[Js5ArchiveType.Dlls].getPrefetchGroup('windows/x86/hw3d.dll'));
+        this.prefetches.push(this.js5[Js5ArchiveType.Shaders].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.Materials].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.Config].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.ConfigLoc].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.ConfigEnum].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.ConfigNpc].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.ConfigObj].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.ConfigSeq].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.ConfigSpot].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.ConfigStruct].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.DbTableIndex].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.QuickChat].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.QuickChatGlobal].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.ConfigParticle].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.ConfigBillboard].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.Binary].getPrefetchGroup('huffman'));
+        this.prefetches.push(this.js5[Js5ArchiveType.Interfaces].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.ClientScripts].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.FontMetrics].getPrefetchArchive());
+        this.prefetches.push(this.js5[Js5ArchiveType.WorldMapData].getPrefetchGroup(0));
     }
 }

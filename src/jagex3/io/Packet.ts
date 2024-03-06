@@ -1,3 +1,4 @@
+import fs from 'fs';
 import net from 'net';
 
 export default class Packet {
@@ -76,6 +77,14 @@ export default class Packet {
         return new Packet(new Uint8Array(size));
     }
 
+    static load(file: string): Packet {
+        if (!fs.existsSync(file)) {
+            throw new Error(`File not found: ${file}`);
+        }
+
+        return new Packet(fs.readFileSync(file));
+    }
+
     data: Uint8Array;
     pos: number;
 
@@ -111,6 +120,10 @@ export default class Packet {
         if (this.available < size) {
             this.resize(this.length + size);
         }
+    }
+
+    save(file: string, all: boolean): void {
+        fs.writeFileSync(file, this.data.subarray(0, all ? this.length : this.pos));
     }
 
     // ----
@@ -295,16 +308,10 @@ export default class Packet {
         this.data[this.pos++] = value;
     }
 
-    p8(value: number): void {
+    p8(value: bigint): void {
         this.ensure(8);
-        this.data[this.pos++] = value >> 56;
-        this.data[this.pos++] = value >> 48;
-        this.data[this.pos++] = value >> 40;
-        this.data[this.pos++] = value >> 32;
-        this.data[this.pos++] = value >> 24;
-        this.data[this.pos++] = value >> 16;
-        this.data[this.pos++] = value >> 8;
-        this.data[this.pos++] = value;
+        this.p4(Number(value >> 32n));
+        this.p4(Number(value & 0xffffffffn));
     }
 
     pdata(src: Uint8Array | Packet): void {

@@ -28,6 +28,10 @@ export default class Js5Index {
     fileNameHashTables: Map<number, number>[] | null = null;
 
     constructor(bytes: Uint8Array) {
+        if (!bytes.length) {
+            throw new Error('Empty index');
+        }
+
         this.checksum = Packet.getcrc(bytes);
         this.decode(bytes);
     }

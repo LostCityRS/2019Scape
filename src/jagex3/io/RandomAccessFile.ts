@@ -17,6 +17,10 @@ export default class RandomAccessFile {
         return fs.fstatSync(this.fd).size;
     }
 
+    get available(): number {
+        return this.length - this.pos;
+    }
+
     seek(pos: number): void {
         this.pos = pos;
     }

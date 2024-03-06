@@ -21,10 +21,6 @@ app.get('/ms', async (req: any, res: any): Promise<void> => {
         return;
     }
 
-    if (archive != 255) {
-        data = data.subarray(0, data.length - 2); // remove version trailer
-    }
-
     res.header('Content-Type', 'application/octet-stream');
     res.header('Content-Disposition', `attachment; filename=${archive}_${group}.dat`);
     return res.send(data);

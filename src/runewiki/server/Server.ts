@@ -2,7 +2,6 @@ import net from 'net';
 
 import Packet from '#jagex3/io/Packet.js';
 import Cache from '#jagex3/js5/Cache.js';
-import Js5Archive from '#jagex3/js5/Js5Archive.js';
 
 enum ConnectionState {
     Login = 0,
@@ -93,13 +92,9 @@ class Server {
                             const archive: number = stream.g1();
                             const group: number = stream.g4();
 
-                            let data: Uint8Array | null = await this.cache.getGroup(archive, group, true);
+                            let data: Uint8Array | null = this.cache.getGroup(archive, group, true);
                             if (!data) {
                                 continue;
-                            }
-
-                            if (archive !== 255) {
-                                data = data.subarray(0, data.length - 2); // remove version trailer
                             }
 
                             const maxChunkSize: number = 102400 - 5;
@@ -146,8 +141,9 @@ class Server {
     }
 
     async start(): Promise<void> {
-        await this.cache.load('data/cache/1730');
-        // await this.cache.load('data/cache');
+        console.time('startup');
+        await this.cache.load('data/pack');
+        console.timeEnd('startup');
 
         this.tcp.listen(43594, '0.0.0.0', (): void => {
             console.log('Server started');

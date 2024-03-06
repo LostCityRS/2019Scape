@@ -1,84 +1,32 @@
-import Js5Compression from '#jagex3/js5/Js5Compression.js';
 import Js5Index from '#jagex3/js5/Js5Index.js';
-import Packet from '#jagex3/io/Packet.js';
+import Js5Compression from '#jagex3/js5/Js5Compression.js';
 import StringUtils from '#jagex3/util/StringUtils.js';
-import RandomAccessFile from '#jagex3/io/RandomAccessFile.js';
+import Packet from '#jagex3/io/Packet.js';
 
-export default class Js5 {
+import DiskStore from '#jagex3/io/DiskStore.js';
+
+export default class ClientJs5 {
+    static RAISE_EXCEPTIONS: boolean = false;
+
+    static async create(store: DiskStore, masterIndex: Uint8Array, archive: number): Promise<ClientJs5> {
+        const index: Js5Index = await Js5Index.from(masterIndex);
+        const js5: ClientJs5 = new ClientJs5(index, archive, store);
+        js5.masterIndex = masterIndex;
+        return js5;
+    }
+
     index: Js5Index;
     archive: number;
 
+    store: DiskStore;
     packed: (Uint8Array | null)[] = [];
     unpacked: (Uint8Array[] | null)[] = [];
+    masterIndex: Uint8Array | null = null;
 
-    store: RandomAccessFile;
-    masterIndex: Uint8Array;
-    groupPos: number[] = [];
-
-    static async create(file: string, archive: number): Promise<Js5> {
-        const store: RandomAccessFile = new RandomAccessFile(file, 'r');
-
-        const header: Packet = Packet.alloc(5);
-        store.read(header, 0, 5);
-
-        const compression: number = header.g1();
-        const length: number = header.g4();
-        let masterIndexLength: number = 5 + length;
-        if (compression > 0) {
-            masterIndexLength += 4;
-        }
-
-        const masterIndex: Packet = Packet.alloc(masterIndexLength);
-        store.seek(0);
-        store.read(masterIndex, 0, masterIndexLength);
-
-        const index: Js5Index = await Js5Index.from(masterIndex.data);
-        return new Js5(store, index, archive, masterIndex.data);
-    }
-
-    constructor(store: RandomAccessFile, index: Js5Index, archive: number, masterIndex: Uint8Array) {
-        this.store = store;
+    constructor(index: Js5Index, archive: number, store: DiskStore) {
         this.index = index;
         this.archive = archive;
-        this.masterIndex = masterIndex;
-
-        const bytesLen = this.index.size * 4;
-        const offsets = Packet.alloc(bytesLen);
-        this.store.seek(this.store.length - bytesLen);
-        this.store.read(offsets, 0, bytesLen);
-
-        if (this.index.groupIds) {
-            this.groupPos = new Array(this.index.capacity);
-
-            // generating pos
-            // const header = Packet.alloc(5);
-            // let offset: number = masterIndex.length;
-            // for (let i = 0; i < this.index.size; i++) {
-            //     this.groupPos[this.index.groupIds[i]] = offset;
-
-            //     this.store.seek(offset);
-            //     this.store.read(header, 0, 5);
-
-            //     const compression: number = header.g1();
-            //     let length: number = header.g4();
-            //     if (compression > 0) {
-            //         length += 4;
-            //     }
-            //     offset += 5 + length;
-            // }
-
-            // storing pos
-            // for (let i = 0; i < this.index.size; i++) {
-            //     this.groupPos[this.index.groupIds[i]] = Number(offsets.g8());
-            // }
-
-            // storing size
-            let offset: number = masterIndex.length;
-            for (let i = 0; i < this.index.size; i++) {
-                this.groupPos[this.index.groupIds[i]] = offset;
-                offset += offsets.g4();
-            }
-        }
+        this.store = store;
 
         this.packed = new Array(this.index.capacity).fill(null);
         this.unpacked = new Array(this.index.capacity).fill(null);
@@ -94,8 +42,8 @@ export default class Js5 {
         for (let i: number = 0; i < this.index.size; i++) {
             const id: number = this.index.groupIds[i];
             if (this.isGroupValid(id)) {
-                const data: Uint8Array | null = this.readRaw(id);
-                total += data ? data.length : 0;
+                const data: Uint8Array | null = this.store.read(id);
+                total += data ? data.length - 2 : 0;
             }
         }
 
@@ -112,16 +60,114 @@ export default class Js5 {
             return 0;
         }
 
-        const data: Uint8Array | null = this.readRaw(id);
+        const data: Uint8Array | null = this.store.read(id);
         if (!data) {
             return 0;
         }
 
-        return data.length;
+        return data.length - 2;
     }
 
     capacity(): number {
         return this.index.capacity;
+    }
+
+    discardUnpacked(group?: number): void {
+        if (typeof group === 'undefined') {
+            if (this.unpacked !== null) {
+                for (let i: number = 0; i < this.unpacked.length; i++) {
+                    this.unpacked[i] = null;
+                }
+            }
+        } else {
+            if (this.isGroupValid(group) && this.unpacked !== null) {
+                this.unpacked[group] = null;
+            }
+        }
+    }
+
+    discardNames(groups: boolean): void {
+        this.index.fileNameHashTables = null;
+        this.index.fileNameHashes = null;
+
+        if (groups) {
+            this.index.groupNameHashTable = null;
+            this.index.groupNameHashes = null;
+        }
+    }
+
+    fetchAll(): boolean {
+        if (this.index.groupIds == null) {
+            return false;
+        }
+
+        let success: boolean = true;
+        for (let i: number = 0; i < this.index.groupIds.length; i++) {
+            const groupId: number = this.index.groupIds[i];
+
+            if (this.packed[groupId] == null) {
+                this.fetchGroup(groupId);
+
+                if (this.packed[groupId] == null) {
+                    success = false;
+                }
+            }
+        }
+
+        return success;
+    }
+
+    fetchGroup(group: number): void {
+        this.packed[group] = this.store.read(group);
+    }
+
+    readGroup(group: number = 0, key: number[] | null = null): Uint8Array | null {
+        if (!this.isGroupValid(group) || !this.index.fileIds) {
+            return null;
+        }
+
+        const fileIds: Int32Array | null = this.index.fileIds[group];
+        let fileId: number = 0;
+        if (fileIds === null) {
+            fileId = 0;
+        } else {
+            fileId = fileIds[0];
+        }
+
+        if (this.unpacked[group] == null || this.unpacked[group]![fileId] == null) {
+            let success: boolean = this.unpackGroup(group, key);
+            if (!success) {
+                this.fetchGroup(group);
+
+                success = this.unpackGroup(group, key);
+                if (!success) {
+                    return null;
+                }
+            }
+        }
+
+        return this.unpacked[group]![fileId];
+    }
+
+    // preferred name is fetchFile but we can't overload in JS, and readGroup/readFile would be overloads...
+    readFile(file: number, group: number = 0, key: number[] | null = null): Uint8Array | null {
+        if (!this.isFileValid(group, file)) {
+            return null;
+        }
+
+        if (this.unpacked[group] == null || this.unpacked[group]![file] == null) {
+            let success: boolean = this.unpackGroup(group, key);
+            if (!success) {
+                this.fetchGroup(group);
+
+                success = this.unpackGroup(group, key);
+                if (!success) {
+                    return null;
+                }
+            }
+        }
+
+        return this.unpacked[group]![file];
     }
 
     getGroupId(group: string | number): number {
@@ -174,6 +220,8 @@ export default class Js5 {
 
         if (group >= 0 && group < this.index.groupCapacities.length && this.index.groupCapacities[group] !== 0) {
             return true;
+        } else if (ClientJs5.RAISE_EXCEPTIONS) {
+            throw new Error('IllegalArgumentException: ' + group);
         } else {
             return false;
         }
@@ -190,6 +238,17 @@ export default class Js5 {
         return typeof groupId !== 'undefined' && groupId >= 0;
     }
 
+    isGroupReady(group: number): boolean {
+        if (!this.isGroupValid(group)) {
+            return false;
+        } else if (this.packed[group] == null) {
+            this.fetchGroup(group);
+            return this.packed[group] != null;
+        } else {
+            return true;
+        }
+    }
+
     isFileValid(group: number, file: number): boolean {
         if (!this.index.groupCapacities) {
             return false;
@@ -197,105 +256,24 @@ export default class Js5 {
 
         if (group >= 0 && file >= 0 && group < this.index.groupCapacities.length && file < this.index.groupCapacities[group]) {
             return true;
+        } else if (ClientJs5.RAISE_EXCEPTIONS) {
+            throw new Error('IllegalArgumentException: ' + group + ',' + file);
         } else {
             return false;
         }
     }
 
-    readRaw(group: number): Uint8Array | null{
-        if (!this.isGroupValid(group)) {
-            return null;
-        }
-
-        const pos: number = this.groupPos[group];
-        const header = Packet.alloc(5);
-        this.store.seek(pos);
-        this.store.read(header, 0, 5);
-
-        const compression: number = header.g1();
-        const length: number = header.g4();
-        let totalLength: number = 5 + length;
-        if (compression > 0) {
-            totalLength += 4;
-        }
-
-        const data: Uint8Array = new Uint8Array(totalLength);
-        this.store.seek(pos);
-        this.store.read(data, 0, totalLength);
-        return data;
-    }
-
-    fetchAll(): boolean {
-        if (this.index.groupIds == null) {
-            return false;
-        }
-
-        let success: boolean = true;
-        for (let i: number = 0; i < this.index.groupIds.length; i++) {
-            const groupId: number = this.index.groupIds[i];
-
-            if (this.packed[groupId] == null) {
-                this.fetchGroup(groupId);
-
-                if (this.packed[groupId] == null) {
-                    success = false;
-                }
-            }
-        }
-
-        return success;
-    }
-
-    fetchGroup(group: number): void {
-        this.packed[group] = this.readRaw(group);
-    }
-
-    readGroup(group: number = 0, key: number[] | null = null): Uint8Array | null {
-        if (!this.isGroupValid(group) || !this.index.fileIds) {
-            return null;
-        }
-
-        const fileIds: Int32Array | null = this.index.fileIds[group];
-        let fileId: number = 0;
-        if (fileIds === null) {
-            fileId = 0;
-        } else {
-            fileId = fileIds[0];
-        }
-
-        if (this.unpacked[group] == null || this.unpacked[group]![fileId] == null) {
-            let success: boolean = this.unpackGroup(group, key);
-            if (!success) {
-                this.fetchGroup(group);
-
-                success = this.unpackGroup(group, key);
-                if (!success) {
-                    return null;
-                }
-            }
-        }
-
-        return this.unpacked[group]![fileId];
-    }
-
-    readFile(group: number, file: number, key: number[] | null = null): Uint8Array | null {
+    isFileReady(group: number, file: number): boolean {
         if (!this.isFileValid(group, file)) {
-            return null;
+            return false;
+        } else if (this.unpacked[group] != null && this.unpacked[group]![file] != null) {
+            return true;
+        } else if (this.packed[group] == null) {
+            this.fetchGroup(group);
+            return this.packed[group] != null;
+        } else {
+            return false;
         }
-
-        if (this.unpacked[group] == null || this.unpacked[group]![file] == null) {
-            let success: boolean = this.unpackGroup(group, key);
-            if (!success) {
-                this.fetchGroup(group);
-
-                success = this.unpackGroup(group, key);
-                if (!success) {
-                    return null;
-                }
-            }
-        }
-
-        return this.unpacked[group]![file];
     }
 
     unpackGroup(group: number, key: number[] | null = null): boolean {
