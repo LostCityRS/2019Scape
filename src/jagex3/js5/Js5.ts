@@ -135,15 +135,16 @@ export default class Js5 {
         return js5;
     }
 
-    static packArchive(inDir: string, outDir: string, name: string, archive: number, patch: boolean = false, regenerate: boolean = false): void {
-        if (!regenerate && fs.existsSync(`${outDir}/client.${name}${patch ? '.patch' : ''}.js5`)) {
+    static packArchive(inDir: string, outDir: string, name: string, archive: number, patch: boolean = false, regenerate: boolean = false, stripVersion: boolean = false): void {
+        const file: string = `client.${name}${patch ? '.patch' : ''}.js5`;
+        if (!regenerate && fs.existsSync(`${outDir}/${file}`)) {
             return;
         }
 
         const files: string[] = fs.readdirSync(`${inDir}/${archive}`);
         const groups: number[] = files.map((f: string): number => parseInt(f.replace('.dat', ''))).sort((a, b): number => a - b);
 
-        const js5: RandomAccessFile = new RandomAccessFile(`${outDir}/client.${name}${patch ? '.patch' : ''}.js5`, 'w');
+        const js5: RandomAccessFile = new RandomAccessFile(`${outDir}/${file}`, 'w');
         const info: Packet = Packet.alloc(groups.length * 8);
 
         const idx255: Uint8Array = fs.readFileSync(`${inDir}/255/${archive}.dat`);
@@ -151,8 +152,13 @@ export default class Js5 {
 
         for (const group of groups) {
             const data: Uint8Array = fs.readFileSync(`${inDir}/${archive}/${group}.dat`);
-            js5.write(data, 0, data.length - 2);
-            info.p4(data.length - 2);
+            if (stripVersion) {
+                js5.write(data, 0, data.length - 2);
+                info.p4(data.length - 2);
+            } else {
+                js5.write(data, 0, data.length);
+                info.p4(data.length);
+            }
         }
 
         js5.write(info.data, 0, info.pos);

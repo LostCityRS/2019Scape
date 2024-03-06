@@ -42,6 +42,3 @@ const packedIndex: Packet = Js5.packGroup(index.encode(), 2);
 packedIndex.save(`data/pack/patch/${Js5ArchiveType.ArchiveSet}/${Js5ArchiveType.Defaults}.dat`);
 
 Js5.packArchive('data/pack/patch', 'data/pack', 'defaults', Js5ArchiveType.Defaults, true, true);
-
-const test: Js5 = await Js5.load('data/pack/client.defaults.js5', Js5ArchiveType.Defaults);
-console.log(await test.readGroup(4));
