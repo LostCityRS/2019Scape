@@ -2,7 +2,7 @@
 
 import fastify from 'fastify';
 
-import Server from '#lostcity/server/Server.js';
+import Server from '#lostcity/network/Server.js';
 
 const app: fastify.FastifyInstance = fastify({ logger: true });
 

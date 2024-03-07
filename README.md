@@ -3,13 +3,6 @@
 The cache is 13.6GB. It's **highly** recommended to download the pre-processed cache from the link below if you don't want to wait for it to build.  
 Jump down to the [DIY Cache Setup](#diy-cache-setup) section if you understand and want to build it yourself.
 
-1. First and foremost - you need Node 20 or newer installed on your machine.
-2. Next you'll need the server repository (you are here). Clone it down.
-3. Download the cache and extract it to `data/` so you have a `data/pack/` folder inside.
-4. Start the server using `npm start`.
-5. Clone the client repository.
-6. Start the client using `./gradlew run`.
-
 ### Requirements
 
 - [Git](https://git-scm.com/downloads)
@@ -19,15 +12,24 @@ Jump down to the [DIY Cache Setup](#diy-cache-setup) section if you understand a
 
 ### Server Setup
 
+1. You'll need the server repository (you are here). Clone it down.
+2. Download the cache and extract it to `data/` so you have a `data/pack/` folder inside.
+3. Start the server using `npm start`.
+4. Build the cache patches using `npm run cache:build`.
+
 ```bash
 git clone https://github.com/LostCityRS/2019Scape
 cd 2019Scape
 npm ci
 # this line is not a command. go ahead and extract 2019Scape-Pack.7z to data/ now.
+npm run cache:build
 npm start
 ```
 
 ### Client Setup
+
+1. Clone the client repository.
+2. Start the client using `./gradlew run`.
 
 ```bash
 git clone https://github.com/LostCityRS/2019Scape-Client

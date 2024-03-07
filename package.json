@@ -1,19 +1,18 @@
 {
-  "name": "rt7-server",
+  "name": "2019scape",
   "version": "1.0.0",
   "description": "",
   "type": "module",
   "imports": {
-    "#jagex2/*": "./src/jagex2/*",
     "#jagex3/*": "./src/jagex3/*",
-    "#lostcity/*": "./src/lostcity/*",
     "#lostcity/*": "./src/lostcity/*"
   },
   "scripts": {
     "start": "nodemon src/lostcity/app.ts",
     "test": "jest",
     "ts-loader": "node --no-warnings --loader ts-node/esm",
-    "cache:download": "npm run ts-loader src/lostcity/tools/unpack/openrs2.ts"
+    "cache:download": "npm run ts-loader src/lostcity/tools/unpack/openrs2.ts",
+    "cache:build": "npm run ts-loader src/lostcity/tools/pack/all.ts"
   },
   "author": "Pazaz",
   "license": "MIT",

@@ -4,9 +4,10 @@ import { dirname } from 'path';
 
 export default class Packet {
     static bitmask: Uint32Array = new Uint32Array(33);
-
     static crctable: Int32Array = new Int32Array(256);
-    static CRC32_POLYNOMIAL: number = 0xedb88320;
+
+    static textDecoder = new TextDecoder('utf-8');
+    static textEncoder = new TextEncoder();
 
     static {
         for (let i: number = 0; i < 32; i++) {
@@ -39,8 +40,6 @@ export default class Packet {
         }
         return ~crc;
     }
-
-    static textDecoder = new TextDecoder('utf-8');
 
     static wrap(src: Uint8Array | Packet | Buffer | null, advance: boolean = true): Packet {
         if (src === null) {
@@ -313,6 +312,18 @@ export default class Packet {
         this.data[this.pos++] = value;
     }
 
+    p5(value: number): void {
+        this.ensure(5);
+        this.p1(value >> 32);
+        this.p4(value & 0xFFFFFFFF);
+    }
+
+    p6(value: number): void {
+        this.ensure(6);
+        this.p2(value >> 32);
+        this.p4(value & 0xFFFFFFFF);
+    }
+
     p8(value: bigint): void {
         this.ensure(8);
         this.p4(Number(value >> 32n));
@@ -361,6 +372,19 @@ export default class Packet {
         } else {
             this.p4(value | 0x80000000);
         }
+    }
+
+    pjstr(value: string): void {
+        const length: number = value.length;
+        this.ensure(length + 1);
+        this.data.set(Packet.textEncoder.encode(value), this.pos);
+        this.pos += length;
+        this.p1(0);
+    }
+
+    pjstr2(value: string): void {
+        this.p1(0);
+        this.pjstr(value);
     }
 
     // ----

@@ -1,10 +1,12 @@
 import fs from 'fs';
 
+import DefaultsAudio from '#jagex3/config/DefaultsAudio.js';
+
 import Js5 from '#jagex3/js5/Js5.js';
-import Packet from '#jagex3/io/Packet.js';
 import { Js5ArchiveType } from '#jagex3/js5/Js5Archive.js';
 import Js5Index from '#jagex3/js5/Js5Index.js';
-import DefaultsAudio from '#jagex3/config/DefaultsAudio.js';
+import Packet from '#jagex3/io/Packet.js';
+
 import { saveFile } from '#lostcity/util/FileUtils.js';
 
 const src: string[] = fs.readFileSync('data/src/defaults/audio.defaults', 'utf-8')
