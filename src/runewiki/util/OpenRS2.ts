@@ -1,4 +1,7 @@
-import { download, downloadJson } from '#runewiki/util/DownloadUtils.js';
+import fs from 'fs';
+import tar from 'tar';
+
+import { download, downloadJson, downloadStream } from '#runewiki/util/DownloadUtils.js';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unreachable code error
@@ -44,7 +47,7 @@ export class OpenRS2 {
     url: string;
 
     static async getLatest(): Promise<CacheInfo[]> {
-        return await downloadJson(`${OPENRS2_DOMAIN}/caches.json`, 'data/openrs2/caches.json') as CacheInfo[];
+        return await downloadJson(`${OPENRS2_DOMAIN}/caches.json`, 'data/cache/caches.json') as CacheInfo[];
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -119,10 +122,30 @@ export class OpenRS2 {
     }
 
     async getKeys(): Promise<unknown | null> {
-        return downloadJson(`${this.url}/keys.json`, `data/openrs2/${this.id}/keys.json`);
+        return downloadJson(`${this.url}/keys.json`, `data/cache/${this.id}/keys.json`);
     }
 
     async getGroup(archive: number, group: number): Promise<Uint8Array | null> {
-        return download(`${this.url}/archives/${archive}/groups/${group}.dat`, `data/openrs2/${this.id}/${archive}/${group}.dat`);
+        return download(`${this.url}/archives/${archive}/groups/${group}.dat`, `data/cache/${this.id}/${archive}/${group}.dat`);
+    }
+
+    async extractFlatFiles(): Promise<void> {
+        if (fs.existsSync(`data/cache/${this.id}`)) {
+            return;
+        }
+
+        console.log('Downloading, this will take a while...');
+        await downloadStream(`${this.url}/flat-file.tar.gz`, `data/cache/${this.id}/flat-file.tar.gz`);
+
+        console.log('Extracting, this will take a while...');
+        return new Promise((res, rej): void => {
+            const stream: fs.ReadStream = fs.createReadStream(`data/cache/${this.id}/flat-file.tar.gz`);
+            stream.pipe(tar.x({
+                C: `data/cache/${this.id}`,
+                strip: 1,
+                keep: true
+            }));
+            stream.on('end', (): void => res());
+        });
     }
 }

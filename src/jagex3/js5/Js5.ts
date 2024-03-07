@@ -10,7 +10,6 @@ import Whirlpool from '#jagex3/util/Whirlpool.js';
 
 export default class Js5 {
     index: Js5Index;
-    archive: number;
 
     packed: (Uint8Array | null)[] = [];
     unpacked: (Uint8Array[] | null)[] = [];
@@ -21,7 +20,7 @@ export default class Js5 {
 
     patch: Js5 | null = null;
 
-    static async load(file: string, archive: number, patch: boolean = true): Promise<Js5> {
+    static async load(file: string, patch: boolean = true): Promise<Js5> {
         const store: RandomAccessFile = new RandomAccessFile(file, 'r');
 
         const header: Packet = Packet.alloc(5);
@@ -39,11 +38,11 @@ export default class Js5 {
         store.read(masterIndex, 0, masterIndexLength);
 
         const index: Js5Index = await Js5Index.from(masterIndex.data);
-        const js5: Js5 = new Js5(store, index, archive, masterIndex.data);
+        const js5: Js5 = new Js5(store, index, masterIndex.data);
 
         if (patch && fs.existsSync(file.replace('.js5', '.patch.js5'))) {
             // merge the master indexes
-            js5.patch = await Js5.load(file.replace('.js5', '.patch.js5'), archive, false);
+            js5.patch = await Js5.load(file.replace('.js5', '.patch.js5'), false);
 
             if (js5.patch.index.groupIds) {
                 for (let i: number = 0; i < js5.patch.index.size; i++) {
@@ -192,10 +191,9 @@ export default class Js5 {
         return buf;
     }
 
-    constructor(store: RandomAccessFile, index: Js5Index, archive: number, masterIndex: Uint8Array) {
+    constructor(store: RandomAccessFile, index: Js5Index, masterIndex: Uint8Array) {
         this.store = store;
         this.index = index;
-        this.archive = archive;
         this.masterIndex = masterIndex;
 
         const bytesLen: number = this.index.size * 4;

@@ -12,7 +12,8 @@
   "scripts": {
     "start": "nodemon src/runewiki/app.ts",
     "test": "jest",
-    "ts-loader": "node --no-warnings --loader ts-node/esm"
+    "ts-loader": "node --no-warnings --loader ts-node/esm",
+    "cache:download": "npm run ts-loader src/runewiki/tools/unpack/openrs2.ts"
   },
   "author": "Pazaz",
   "license": "MIT",
@@ -23,13 +24,14 @@
     "hash-wasm": "^4.11.0",
     "kysely": "^0.27.2",
     "mysql2": "^3.9.2",
-    "seek-bzip": "^2.0.0"
+    "seek-bzip": "^2.0.0",
+    "tar": "^6.2.0"
   },
   "devDependencies": {
     "@swc/core": "^1.4.5",
     "@swc/helpers": "^0.5.6",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.11.24",
+    "@types/node": "^20.11.25",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
     "eslint": "^8.57.0",
@@ -39,6 +41,6 @@
     "prisma-kysely": "^1.8.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.2"
   }
 }
