@@ -1,7 +1,7 @@
 import fs from 'fs';
 import tar from 'tar';
 
-import { download, downloadJson, downloadStream } from '#runewiki/util/DownloadUtils.js';
+import { download, downloadJson, downloadStream } from '#lostcity/util/DownloadUtils.js';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unreachable code error

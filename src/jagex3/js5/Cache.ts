@@ -16,7 +16,7 @@ export default class Cache {
             const type: Js5Archive | null = Js5Archive.forId(archive);
 
             if (type !== null) {
-                this.js5[type.id] = await Js5.load(`${dir}/client.${type.name}.js5`, archive);
+                this.js5[type.id] = await Js5.load(`${dir}/client.${type.name}.js5`);
             }
         }
 

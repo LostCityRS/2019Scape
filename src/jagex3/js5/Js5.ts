@@ -124,7 +124,7 @@ export default class Js5 {
             // fs.writeFileSync('data/test1.bin', await Js5Compression.decompress(js5.masterIndex));
             // fs.writeFileSync('data/test2.bin', index.encode());
 
-            js5.masterIndex = Js5.packGroup(index.encode(), 2).data;
+            js5.masterIndex = Js5.packGroup(index.encode(), 2);
 
             index.checksum = Packet.getcrc(js5.masterIndex);
             index.digest = await Whirlpool.compute(js5.masterIndex);
@@ -163,7 +163,7 @@ export default class Js5 {
         js5.write(info.data, 0, info.pos);
     }
 
-    static packGroup(src: Uint8Array | Packet, compression: number = 0): Packet {
+    static packGroup(src: Uint8Array | Packet, compression: number = 0): Uint8Array {
         if (src instanceof Packet) {
             src = src.data;
         }
@@ -188,7 +188,7 @@ export default class Js5 {
             throw new Error(`Unsupported compression type ${compression}`);
         }
 
-        return buf;
+        return buf.data.subarray(0, buf.pos);
     }
 
     constructor(store: RandomAccessFile, index: Js5Index, masterIndex: Uint8Array) {

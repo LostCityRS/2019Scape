@@ -13,7 +13,7 @@
       "#jagex2/*": ["src/jagex2/*"],
       "#jagex3/*": ["src/jagex3/*"],
       "#lostcity/*": ["src/lostcity/*"],
-      "#runewiki/*": ["src/runewiki/*"]
+      "#lostcity/*": ["src/lostcity/*"]
     },
     "types": [
       "node",

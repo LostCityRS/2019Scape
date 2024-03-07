@@ -1,7 +1,7 @@
 import Js5 from '#jagex3/js5/Js5.js';
 import Js5Archive from '#jagex3/js5/Js5Archive.js';
 
-import { OpenRS2 } from '#runewiki/util/OpenRS2.js';
+import { OpenRS2 } from '#lostcity/util/OpenRS2.js';
 
 console.time('openrs2');
 const openrs2: OpenRS2 = await OpenRS2.find({ openrs2: 1730 });
