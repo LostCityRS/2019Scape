@@ -206,8 +206,9 @@ function runClientScript(client: ClientSocket, script: number, args: (string | n
     }
 
     reply.pjstr(descriptor);
+    console.log(descriptor);
 
-    for (let i: number = args.length - 1; i >= 0; i--) {
+    for (let i: number = 0; i < args.length; i++) {
         if (typeof args[i] === 'string') {
             reply.pjstr(args[i] as string);
         } else {
@@ -303,7 +304,11 @@ class LoginServer {
             updateVarc(client, 4359, 0); // runecoin
             updateVarcStr(client, 2508, 'Username');
 
-            runClientScript(client, 10931, [0, 0, 0, 0, 0, '', '', '', '']); // news
+            // news
+            runClientScript(client, 10931, [1, 0, 1, 0, 1, '02-Dec-2019', 'unk', 'This week we\'ve fixed a few cheeky bugs that had cropped up!', 'Game Update: Farming & Herblore 120 Fixes']);
+            runClientScript(client, 10931, [0, 0, 1, 0, 2, '09-Dec-2019', 'unk', 'While you\'ve been gliding about on the ice outside, we\'ve been working on some smooth moves of our own.', 'Game Update: Smooth Movement']);
+            runClientScript(client, 10931, [0, 0, 1, 0, 3, '09-Dec-2019', 'unk', 'The Patch Notes for December 9th!', 'Patch Notes - 9/12']);
+
             runClientScript(client, 10936);
             // runClientScript(client, 5953); // lobbyscreen_billing_login
             // runClientScript(client, 9345); // play music

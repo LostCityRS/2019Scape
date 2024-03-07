@@ -3,6 +3,7 @@ import Packet from '#jagex3/io/Packet.js';
 import ClientSocket from '#lostcity/network/ClientSocket.js';
 
 const ClientProtLengths: number[] = [];
+ClientProtLengths[22] = 4;
 ClientProtLengths[103] = 0;
 ClientProtLengths[117] = 3;
 ClientProtLengths[118] = 1;

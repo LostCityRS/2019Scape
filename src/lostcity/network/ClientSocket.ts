@@ -22,10 +22,6 @@ export default class ClientSocket {
             buf = buf.data.subarray(0, buf.pos);
         }
 
-        if (this.debug) {
-            console.log(`[CLIENT]: Sending ${buf[0]}`);
-        }
-
         this.socket.write(buf);
     }
 
