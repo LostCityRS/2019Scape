@@ -33,14 +33,17 @@ class Server {
                             break;
                         }
                         case ConnectionState.Js5: {
+                            client.debug = false;
                             Js5Server.decode(client, stream, opcode);
                             break;
                         }
                         case ConnectionState.Lobby: {
+                            client.debug = true;
                             LobbyServer.decode(client, stream, opcode);
                             break;
                         }
                         case ConnectionState.Game: {
+                            client.debug = true;
                             GameServer.decode(client, stream, opcode);
                             break;
                         }

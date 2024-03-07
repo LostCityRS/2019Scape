@@ -291,10 +291,43 @@ export default class Packet {
         this.data[this.pos++] = value;
     }
 
+    p1_alt1(value: number): void {
+        this.ensure(1);
+        this.data[this.pos++] = value + 128;
+    }
+
+    p1_alt2(value: number): void {
+        this.ensure(1);
+        this.data[this.pos++] = -value;
+    }
+
+    p1_alt3(value: number): void {
+        this.ensure(1);
+        this.data[this.pos++] = 128 - value;
+    }
+
     p2(value: number): void {
         this.ensure(2);
-        this.data[this.pos++] = value >> 8;
-        this.data[this.pos++] = value;
+        this.data[this.pos++] = (value >> 8) & 0xFF;
+        this.data[this.pos++] = value & 0xFF;
+    }
+
+    p2_alt1(value: number): void {
+        this.ensure(2);
+        this.data[this.pos++] = value & 0xFF;
+        this.data[this.pos++] = (value >> 8) & 0xFF;
+    }
+
+    p2_alt2(value: number): void {
+        this.ensure(2);
+        this.data[this.pos++] = (value >> 8) & 0xFF;
+        this.data[this.pos++] = (value + 128) & 0xFF;
+    }
+
+    p2_alt3(value: number): void {
+        this.ensure(2);
+        this.data[this.pos++] = (value + 128) & 0xFF;
+        this.data[this.pos++] = (value >> 8) & 0xFF;
     }
 
     p3(value: number): void {
@@ -306,10 +339,26 @@ export default class Packet {
 
     p4(value: number): void {
         this.ensure(4);
-        this.data[this.pos++] = value >> 24;
-        this.data[this.pos++] = value >> 16;
-        this.data[this.pos++] = value >> 8;
-        this.data[this.pos++] = value;
+        this.data[this.pos++] = (value >> 24) & 0xFF;
+        this.data[this.pos++] = (value >> 16) & 0xFF;
+        this.data[this.pos++] = (value >> 8) & 0xFF;
+        this.data[this.pos++] = value & 0xFF;
+    }
+
+    p4_alt1(value: number): void {
+        this.ensure(4);
+        this.data[this.pos++] = value & 0xFF;
+        this.data[this.pos++] = (value >> 8) & 0xFF;
+        this.data[this.pos++] = (value >> 16) & 0xFF;
+        this.data[this.pos++] = (value >> 24) & 0xFF;
+    }
+
+    p4_alt2(value: number): void {
+        this.ensure(4);
+        this.data[this.pos++] = (value >> 8) & 0xFF;
+        this.data[this.pos++] = value & 0xFF;
+        this.data[this.pos++] = (value >> 24) & 0xFF;
+        this.data[this.pos++] = (value >> 16) & 0xFF;
     }
 
     p5(value: number): void {

@@ -15,7 +15,7 @@ enum Js5Prot {
 
 class Js5Server {
     async decode(client: ClientSocket, stream: Packet, opcode: number): Promise<void> {
-        console.log('[JS5]: Received opcode', opcode);
+        // console.log('[JS5]: Received opcode', opcode);
 
         if (opcode === Js5Prot.RequestGroupPrefetch || opcode === Js5Prot.RequestGroupUrgent) {
             const archive: number = stream.g1();
