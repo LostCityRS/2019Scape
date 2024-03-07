@@ -15,7 +15,7 @@ Jump down to the [DIY Cache Setup](#diy-cache-setup) section if you understand a
 - [Git](https://git-scm.com/downloads)
 - [Node 20 or newer](https://nodejs.org/en/download/) (for the server)
 - [Java 8 or newer](https://adoptium.net/) (for the client)
-- [910 RS3 Java Cache](https://mega.nz/file/VXURDZ5J#CKKIPTt4WWO9OKikprD_KY_ZnnZQ3h33_DG7WOxHELM) (caches are paired to clients)
+- [910 RS3 Cache "2019Scape-Pack.7z" on mega.nz](https://mega.nz/file/VXURDZ5J#CKKIPTt4WWO9OKikprD_KY_ZnnZQ3h33_DG7WOxHELM) (caches are paired to clients)
 
 ### Server Setup
 
