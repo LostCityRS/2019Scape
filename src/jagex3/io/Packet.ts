@@ -405,6 +405,15 @@ export default class Packet {
         }
     }
 
+    pIsaac1or2(value: number): void {
+        if (value < 128) {
+            this.p1(value);
+        } else {
+            this.p1((value >> 8) + 128);
+            this.p1(value);
+        }
+    }
+
     pSmart2or4(value: number): void {
         if (value < 32768) {
             this.p2(value);

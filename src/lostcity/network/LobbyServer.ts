@@ -16,7 +16,7 @@ class LobbyServer {
     async decode(client: ClientSocket, stream: Packet, opcode: number): Promise<void> {
         if (typeof ClientProtLengths[opcode] === 'undefined') {
             console.log('[LOBBY]: Unknown opcode', opcode, stream);
-            client.end();
+            // client.end();
             return;
         }
 

@@ -75,7 +75,7 @@ function updateVar(client: ClientSocket, varp: number, value: number): void {
     const reply: Packet = new Packet();
 
     if (value <= 255) {
-        reply.p1(157);
+        reply.pIsaac1or2(157);
         reply.p1(value);
         reply.p2_alt2(varp);
     } else {
@@ -84,7 +84,6 @@ function updateVar(client: ClientSocket, varp: number, value: number): void {
         reply.p4(value);
     }
 
-    console.log(reply.data);
     client.write(reply);
 }
 
@@ -96,7 +95,7 @@ function updateVarbit(client: ClientSocket, varbit: number, value: number): void
         reply.p1_alt3(value);
         reply.p2_alt2(varbit);
     } else {
-        reply.p1(142);
+        reply.pIsaac1or2(142);
         reply.p2_alt2(varbit);
         reply.p4_alt1(value);
     }
@@ -108,11 +107,11 @@ function updateVarc(client: ClientSocket, varc: number, value: number): void {
     const reply: Packet = new Packet();
 
     if (value <= 255) {
-        reply.p1(149);
+        reply.pIsaac1or2(149);
         reply.p1_alt3(value);
         reply.p2(varc);
     } else {
-        reply.p1(128);
+        reply.pIsaac1or2(128);
         reply.p4_alt1(value);
         reply.p2_alt2(varc);
     }
@@ -176,13 +175,13 @@ function ifOpenTop(client: ClientSocket, toplevel: number): void {
     client.write(reply);
 }
 
-function ifOpenSub(client: ClientSocket, toplevel: number, com: number, child: number, overlay: boolean = false): void {
+function ifOpenSub(client: ClientSocket, toplevel: number, com: number, child: number, type: number = 0): void {
     const reply: Packet = new Packet();
     reply.p1(38);
 
     reply.p4_alt2(0); // xtea 3
     reply.p4_alt1((toplevel << 16) | com); // toplevel | component
-    reply.p1_alt2(overlay ? 1 : 0); // type (overlay or modal)
+    reply.p1_alt2(type); // type (overlay or modal)
     reply.p4(0); // xtea 4
     reply.p2(child); // id
     reply.p4_alt2(0); // xtea 2
@@ -193,7 +192,7 @@ function ifOpenSub(client: ClientSocket, toplevel: number, com: number, child: n
 
 function runClientScript(client: ClientSocket, script: number, args: (string | number)[] = []): void {
     const reply: Packet = new Packet();
-    reply.p1(156);
+    reply.pIsaac1or2(156);
     reply.p2(0);
     const start: number = reply.pos;
 
@@ -273,15 +272,23 @@ class LoginServer {
             client.debug = true;
 
             resetClientVarCache(client);
-            ifOpenTop(client, 930);
-            runClientScript(client, 5953); // lobbyscreen_billing_login
 
             updateVar(client, 1750, 5412518);
             updateVar(client, 1751, 5412518);
             updateVar(client, 1752, 9259915);
-
             updateVar(client, 1753, 110);
             updateVar(client, 1754, 41);
+
+            ifOpenTop(client, 906);
+            ifOpenSub(client, 906, 106, 907);
+            // ifOpenSub(client, 906, 107, 910);
+            // ifOpenSub(client, 906, 108, 909);
+            // ifOpenSub(client, 906, 110, 912);
+            // ifOpenSub(client, 906, 109, 589);
+            // ifOpenSub(client, 906, 111, 911);
+            // ifOpenSub(client, 906, 279, 914);
+            // ifOpenSub(client, 906, 297, 915);
+            // ifOpenSub(client, 906, 306, 913);
 
             updateVarbit(client, 16464, 1);
             updateVarbit(client, 16465, 0);
@@ -296,21 +303,11 @@ class LoginServer {
             updateVarc(client, 4359, 0); // runecoin
             updateVarcStr(client, 2508, 'Username');
 
-            // ifOpenTop(client, 906);
-            // ifOpenSub(client, 906, 106, 907);
-            // ifOpenSub(client, 906, 107, 910);
-            // ifOpenSub(client, 906, 108, 909);
-            // ifOpenSub(client, 906, 110, 912);
-            // ifOpenSub(client, 906, 109, 589);
-            // ifOpenSub(client, 906, 111, 911);
-            // ifOpenSub(client, 906, 279, 914);
-            // ifOpenSub(client, 906, 297, 915);
-            // ifOpenSub(client, 906, 306, 913);
-            // runClientScript(client, 10931); // news
-            // runClientScript(client, 10936);
-
+            runClientScript(client, 10931, [0, 0, 0, 0, 0, '', '', '', '']); // news
+            runClientScript(client, 10936);
+            // runClientScript(client, 5953); // lobbyscreen_billing_login
             // runClientScript(client, 9345); // play music
-            // runClientScript(client, 7486); // timer on component
+            // runClientScript(client, 7486, [906]); // timer on component
 
             client.state = ConnectionState.Lobby;
         }
