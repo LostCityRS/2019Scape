@@ -55,19 +55,41 @@ export default class DiskStore {
             }
 
             this.data.seek(block * 520);
-            
+
             let blockSize: number = len - off;
-            if (blockSize > 512) {
-                blockSize = 512;
+
+            let headerSize: number;
+            let actualGroup: number;
+            let actualBlockNum: number;
+            let nextBlock: number;
+            let archive: number;
+            if (group > 0xFFFF) {
+                if (blockSize > 510) {
+                    blockSize = 510;
+                }
+
+                headerSize = 10;
+                this.data.read(DiskStore.buffer, 0, blockSize + headerSize);
+                DiskStore.buffer.pos = 0;
+
+                actualGroup = DiskStore.buffer.g4();
+                actualBlockNum = DiskStore.buffer.g2();
+                nextBlock = DiskStore.buffer.g3();
+                archive = DiskStore.buffer.g1();
+            } else {
+                if (blockSize > 512) {
+                    blockSize = 512;
+                }
+
+                headerSize = 8;
+                this.data.read(DiskStore.buffer, 0, blockSize + headerSize);
+                DiskStore.buffer.pos = 0;
+
+                actualGroup = DiskStore.buffer.g2();
+                actualBlockNum = DiskStore.buffer.g2();
+                nextBlock = DiskStore.buffer.g3();
+                archive = DiskStore.buffer.g1();
             }
-
-            this.data.read(DiskStore.buffer, 0, blockSize + 8);
-            DiskStore.buffer.pos = 0;
-
-            const actualGroup: number = DiskStore.buffer.g2();
-            const actualBlockNum: number = DiskStore.buffer.g2();
-            const nextBlock: number = DiskStore.buffer.g3();
-            const archive: number = DiskStore.buffer.g1();
 
             if (actualGroup !== group || actualBlockNum !== blockNum || archive !== this.archive) {
                 return null;
