@@ -246,7 +246,7 @@ class LoginServer {
             const buildMajor: number = buf.g4();
             const buildMinor: number = buf.g4();
             const token: string = buf.gjstr();
-            const language: number = buf.g1();
+            const lang: number = buf.g1();
 
             if (buildMajor !== 910 && buildMinor !== 1) {
                 client.write(Uint8Array.from([6]));
@@ -269,6 +269,168 @@ class LoginServer {
             reply.p4(Math.random() * 0xFFFFFFFF);
             client.write(reply);
         } else if (opcode === LoginProt.LOBBYLOGIN) {
+            const buildMajor: number = buf.g4();
+            const buildMinor: number = buf.g4();
+
+            if (buildMajor !== 910 || buildMinor !== 1) {
+                client.write(Uint8Array.from([6]));
+                client.end();
+                return;
+            }
+
+            // start rsadec
+            if (buf.g1() !== 10) {
+                client.write(Uint8Array.from([11]));
+                client.end();
+                return;
+            }
+
+            const seed: number[] = [];
+            for (let i: number = 0; i < 4; i++) {
+                seed[i] = buf.g4();
+            }
+
+            const sessionId: bigint = buf.g8();
+
+            const authId: number = buf.g1();
+            if (authId === 0) {
+                const authValue: number = buf.g4();
+            } else if (authId === 1 || authId === 3) {
+                const authValue: number = buf.g3();
+                buf.pos += 1;
+            } else {
+                buf.pos += 4;
+            }
+
+            buf.pos += 1; // always false (0)
+            const password: string = buf.gjstr();
+            console.log(`password = ${password}`);
+            const ssoKey: bigint = buf.g8();
+            const ssoRandom: bigint = buf.g8();
+
+            // start tinydec
+            let username: bigint | string;
+            if (buf.gbool()) {
+                username = buf.gjstr();
+            } else {
+                username = buf.g8();
+            }
+            console.log(`username = ${username}`);
+
+            const game: number = buf.g1();
+            const lang: number = buf.g1();
+            const window: number = buf.g1();
+            const width: number = buf.g2();
+            const height: number = buf.g2();
+            const antialiasing: number = buf.g1();
+            buf.pos += 24; // TODO uid192
+            const settings: string = buf.gjstr();
+
+            // start client options
+            buf.pos += 1; // options length
+            buf.pos += 1; // always 38
+            const option1: number = buf.g1();
+            const option2: number = buf.g1();
+            const option3: number = buf.g1();
+            const option4: number = buf.g1();
+            const option5: number = buf.g1();
+            const option6: number = buf.g1();
+            const option7: number = buf.g1();
+            const option8: number = buf.g1();
+            const option9: number = buf.g1();
+            const option10: number = buf.g1();
+            const option11: number = buf.g1();
+            const option12: number = buf.g1();
+            const option13: number = buf.g1();
+            const option14: number = buf.g1();
+            const option15: number = buf.g1();
+            buf.pos += 1; // always 0
+            const option17: number = buf.g1();
+            const option18: number = buf.g1();
+            const option19: number = buf.g1();
+            const option20: number = buf.g1();
+            const option21: number = buf.g1();
+            const option22: number = buf.g1();
+            const option23: number = buf.g1();
+            const option24: number = buf.g1();
+            buf.pos += 1; // always 0
+            const option26: number = buf.g1();
+            const option27: number = buf.g1();
+            const option28: number = buf.g1();
+            const option29: number = buf.g1();
+            const option30: number = buf.g1();
+            const option31: number = buf.g1();
+            const option32: number = buf.g1();
+            const option33: number = buf.g1();
+            const option34: number = buf.g1();
+            const option35: number = buf.g1();
+            const option36: number = buf.g2();
+            const option37: number = buf.g2();
+            const option38: number = buf.g2();
+            const option39: number = buf.g2();
+            const option40: number = buf.g1();
+            const option41: number = buf.g1();
+            const option42: number = buf.g1();
+            const option43: number = buf.g1();
+            const option44: number = buf.g1();
+            const option45: number = buf.g1();
+            const option46: number = buf.g1();
+            const option47: number = buf.g1();
+            const option48: number = buf.g1();
+            const option49: number = buf.g1();
+            const option50: number = buf.g1();
+            const option51: number = buf.g1();
+            const option52: number = buf.g1();
+            const option53: number = buf.g1();
+            // end client options
+
+            // start hardware
+            buf.pos += 1; // always 8
+            const anInt2058: number = buf.g1();
+            const aBoolean362: boolean = buf.gbool();
+            const anInt2041: number = buf.g2();
+            const anInt2047: number = buf.g1();
+            const anInt2045: number = buf.g1();
+            const anInt2049: number = buf.g1();
+            const anInt2036: number = buf.g1();
+            const aBoolean363: boolean = buf.gbool();
+            const anInt2023: number = buf.g2();
+            const anInt2053: number = buf.g1();
+            const anInt2055: number = buf.g3();
+            const anInt2056: number = buf.g2();
+            const aString52: string = buf.gjstr2();
+            const aString57: string = buf.gjstr2();
+            const aString53: string = buf.gjstr2();
+            const aString54: string = buf.gjstr2();
+            const anInt2060: number = buf.g1();
+            const anInt2059: number = buf.g2();
+            const aString55: string = buf.gjstr2();
+            const aString56: string = buf.gjstr2();
+            const anInt2033: number = buf.g1();
+            const anInt2062: number = buf.g1();
+            const anIntArray199: number[] = [];
+            for (let index: number = 0; index < 3; index++) {
+                anIntArray199[index] = buf.g4();
+            }
+            const anInt2063: number = buf.g4();
+            const aString51: string = buf.gjstr2();
+            // end hardware
+
+            const verifyId: number = buf.g4();
+            const aString210: string = buf.gjstr();
+            const affiliate: number = buf.g4();
+            const anInt3434: number = buf.g4();
+            const clientToken: string = buf.gjstr();
+            const anInt4202: number = buf.g1();
+            buf.pos += 1; // always false (0)
+
+            // start crcs
+            const crcs: number[] = [];
+            for (let index: number = 0; index < 42; index++) {
+                const crc: number = buf.g4(); // TODO
+            }
+            // end crcs
+
             lobbyLoginReply(client);
             client.debug = true;
 
@@ -302,7 +464,7 @@ class LoginServer {
             updateVarc(client, 4365, -1); // second right banner
             updateVarc(client, 4360, 0); // loyalty points
             updateVarc(client, 4359, 0); // runecoin
-            updateVarcStr(client, 2508, 'Username');
+            updateVarcStr(client, 2508, username);
 
             // news
             runClientScript(client, 10931, [1, 0, 1, 0, 1, '02-Dec-2019', 'unk', 'This week we\'ve fixed a few cheeky bugs that had cropped up!', 'Game Update: Farming & Herblore 120 Fixes']);

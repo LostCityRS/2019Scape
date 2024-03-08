@@ -132,6 +132,10 @@ export default class Packet {
 
     // ----
 
+    gbool(): boolean {
+        return this.g1() === 1;
+    }
+
     g1(): number {
         return this.data[this.pos++] & 0xFF;
     }
