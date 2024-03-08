@@ -464,7 +464,11 @@ class LoginServer {
             updateVarc(client, 4365, -1); // second right banner
             updateVarc(client, 4360, 0); // loyalty points
             updateVarc(client, 4359, 0); // runecoin
-            updateVarcStr(client, 2508, username);
+            if (typeof username === 'string') {
+                updateVarcStr(client, 2508, username);
+            } else {
+                // TODO handle bigint type username
+            }
 
             // news
             runClientScript(client, 10931, [1, 0, 1, 0, 1, '02-Dec-2019', 'unk', 'This week we\'ve fixed a few cheeky bugs that had cropped up!', 'Game Update: Farming & Herblore 120 Fixes']);
