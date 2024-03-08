@@ -134,30 +134,46 @@ export default class Js5 {
         return js5;
     }
 
-    static packArchive(inDir: string, outDir: string, name: string, archive: number, patch: boolean = false, regenerate: boolean = false, stripVersion: boolean = false): void {
+    static async packArchive(inDir: string, outDir: string, name: string, archive: number, patch: boolean = false, regenerate: boolean = false, stripVersion: boolean = false, verifyChecksums: boolean = false): Promise<void> {
         const file: string = `client.${name}${patch ? '.patch' : ''}.js5`;
         if (!regenerate && fs.existsSync(`${outDir}/${file}`)) {
             return;
         }
 
-        const files: string[] = fs.readdirSync(`${inDir}/${archive}`);
-        const groups: number[] = files.map((f: string): number => parseInt(f.replace('.dat', ''))).sort((a, b): number => a - b);
-
-        const js5: RandomAccessFile = new RandomAccessFile(`${outDir}/${file}`, 'w');
-        const info: Packet = Packet.alloc(groups.length * 8);
-
         const idx255: Uint8Array = fs.readFileSync(`${inDir}/255/${archive}.dat`);
+        const index: Js5Index = await Js5Index.from(idx255);
+
+        fs.mkdirSync(`${outDir}`, { recursive: true });
+        const js5: RandomAccessFile = new RandomAccessFile(`${outDir}/${file}`, 'w');
         js5.write(idx255, 0, idx255.length);
 
-        for (const group of groups) {
-            const data: Uint8Array = fs.readFileSync(`${inDir}/${archive}/${group}.dat`);
-            if (stripVersion) {
-                js5.write(data, 0, data.length - 2);
-                info.p4(data.length - 2);
-            } else {
-                js5.write(data, 0, data.length);
-                info.p4(data.length);
+        const info: Packet = Packet.alloc(index.size * 4);
+        for (let i: number = 0; i < index.size; i++) {
+            const group: number = index.groupIds![i];
+            const expected: number = index.groupChecksums![group];
+
+            if (!fs.existsSync(`${inDir}/${archive}/${group}.dat`)) {
+                info.p4(0);
+                continue;
             }
+
+            let data: Uint8Array = fs.readFileSync(`${inDir}/${archive}/${group}.dat`);
+            if (stripVersion) {
+                data = data.subarray(0, data.length - 2);
+            }
+
+            if (verifyChecksums) {
+                const checksum: number = Packet.getcrc(data);
+
+                if (checksum !== expected) {
+                    console.log(`Bad checksum for: ${archive}/${group}.dat`);
+                    info.p4(0);
+                    continue;
+                }
+            }
+
+            info.p4(data.length);
+            js5.write(data, 0, data.length);
         }
 
         js5.write(info.data, 0, info.pos);

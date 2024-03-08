@@ -11,7 +11,10 @@
     "start": "nodemon src/lostcity/app.ts",
     "test": "jest",
     "ts-loader": "node --no-warnings --loader ts-node/esm",
-    "cache:download": "npm run ts-loader src/lostcity/tools/unpack/openrs2.ts",
+    "js5pack:openrs2": "npm run ts-loader src/lostcity/tools/js5pack/openrs2.ts",
+    "js5pack:dat2": "npm run ts-loader src/lostcity/tools/js5pack/dat2.ts",
+    "js5pack:dat2m": "npm run ts-loader src/lostcity/tools/js5pack/dat2m.ts",
+    "js5pack:dat2split": "npm run ts-loader src/lostcity/tools/js5pack/dat2split.ts",
     "cache:build": "npm run ts-loader src/lostcity/tools/pack/all.ts"
   },
   "author": "Pazaz",

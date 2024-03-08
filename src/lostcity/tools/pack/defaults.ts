@@ -30,4 +30,4 @@ index.addGroup(4, Packet.getcrc(packed), Packet.getcrc(buf), packed.length, buf.
 const packedIndex: Uint8Array = Js5.packGroup(index.encode(), 2);
 saveFile(`data/pack/patch/${Js5ArchiveType.ArchiveSet}/${Js5ArchiveType.Defaults}.dat`, packedIndex);
 
-Js5.packArchive('data/pack/patch', 'data/pack', 'defaults', Js5ArchiveType.Defaults, true, true);
+await Js5.packArchive('data/pack/patch', 'data/pack', 'defaults', Js5ArchiveType.Defaults, true, true);

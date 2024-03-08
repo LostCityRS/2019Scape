@@ -11,6 +11,6 @@ console.timeEnd('openrs2');
 console.time('js5');
 for (let i: number = 0; i < Js5Archive.values.length; i++) {
     const type: Js5Archive = Js5Archive.values[i];
-    Js5.packArchive(`data/cache/${openrs2.id}`, 'data/pack', type.name, type.id, false, false, true);
+    await Js5.packArchive(`data/cache/${openrs2.id}`, 'data/pack', type.name, type.id, false, false, true);
 }
 console.timeEnd('js5');

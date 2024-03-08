@@ -37,7 +37,9 @@ cd 2019Scape-Client
 ./gradlew run
 ```
 
-### DIY Cache Setup
+## DIY Cache Setup
+
+### OpenRS2 Cache
 
 This grabs a `flat-file.tar.gz` from OpenRS2, extracts it, and packs it into the .js5 format.
 
@@ -45,7 +47,18 @@ As a result it takes 3 times the disk space (download, extract, pack). You'll wa
 
 ```bash
 cd 2019Scape
-npm run cache:download
+npm run js5pack:openrs2
 ```
 
-If anything goes wrong with the download you can get the flat file cache manually from [OpenRS2](https://archive.openrs2.org/caches/runescape/1730).  Then move the file to `data/cache/1730/` and rename it to `flat-file.tar.gz`. Run `npm run cache:download` again and it will see the tar is downloaded, ready to extract.
+If anything goes wrong with the download you can get the flat file cache manually from [OpenRS2](https://archive.openrs2.org/caches/runescape/1730).  Then move the file to `data/cache/1730/` and rename it to `flat-file.tar.gz`. Run `npm run js5pack:openrs2` again and it will see the tar is downloaded, ready to extract.
+
+### Dat-per-Idx Cache
+
+Place your main_file_cache files inside `data/cache/`.
+
+```bash
+cd 2019Scape
+npm run js5pack:dat2split
+```
+
+Delete the `data/cache/dump/` folder afterwards to reclaim some space.

@@ -37,14 +37,11 @@ export default class DiskStore {
         this.index.seek(group * 6);
         this.index.read(DiskStore.buffer, 0, 6);
 
+        DiskStore.buffer.pos = 0;
         const len: number = DiskStore.buffer.g3();
         let block: number = DiskStore.buffer.g3();
 
-        if (len < 0 || len > 1_000_000_000) {
-            return null;
-        }
-
-        if (block <= 0 || block > this.data.length / 520) {
+        if (len <= 0 || len > 1_000_000_000) {
             return null;
         }
 
@@ -65,6 +62,8 @@ export default class DiskStore {
             }
 
             this.data.read(DiskStore.buffer, 0, blockSize + 8);
+            DiskStore.buffer.pos = 0;
+
             const actualGroup: number = DiskStore.buffer.g2();
             const actualBlockNum: number = DiskStore.buffer.g2();
             const nextBlock: number = DiskStore.buffer.g3();
