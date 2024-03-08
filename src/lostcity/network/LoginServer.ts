@@ -25,7 +25,7 @@ LoginProtLengths[LoginProt.INIT_GAME_CONNECTION] = 0;
 LoginProtLengths[LoginProt.GAMELOGIN] = -2;
 LoginProtLengths[LoginProt.LOBBYLOGIN] = -2;
 
-function lobbyLoginReply(client: ClientSocket): void {
+function lobbyLoginReply(client: ClientSocket, username: string): void {
     const reply: Packet = new Packet();
     reply.p1(2);
     reply.p1(0);
@@ -52,7 +52,7 @@ function lobbyLoginReply(client: ClientSocket): void {
     reply.p2(53791); // cc expiry
     reply.p2(53791); // grace expiry
     reply.p1(0); // dob requested
-    reply.pjstr2('Username'); // display name
+    reply.pjstr2(username); // display name
     reply.p1(0); // members stats
     reply.p4(1); // play age
     reply.p2(0); // world index
@@ -431,7 +431,7 @@ class LoginServer {
             }
             // end crcs
 
-            lobbyLoginReply(client);
+            lobbyLoginReply(client, username);
             client.debug = true;
 
             resetClientVarCache(client);
@@ -464,11 +464,6 @@ class LoginServer {
             updateVarc(client, 4365, -1); // second right banner
             updateVarc(client, 4360, 0); // loyalty points
             updateVarc(client, 4359, 0); // runecoin
-            if (typeof username === 'string') {
-                updateVarcStr(client, 2508, username);
-            } else {
-                // TODO handle bigint type username
-            }
 
             // news
             runClientScript(client, 10931, [1, 0, 1, 0, 1, '02-Dec-2019', 'unk', 'This week we\'ve fixed a few cheeky bugs that had cropped up!', 'Game Update: Farming & Herblore 120 Fixes']);
