@@ -326,94 +326,83 @@ class LoginServer {
             buf.pos += 24; // TODO uid192
             const settings: string = buf.gjstr();
 
-            // start client options
-            buf.pos += 1; // options length
-            buf.pos += 1; // always 38
-            const option1: number = buf.g1();
-            const option2: number = buf.g1();
-            const option3: number = buf.g1();
-            const option4: number = buf.g1();
-            const option5: number = buf.g1();
-            const option6: number = buf.g1();
-            const option7: number = buf.g1();
-            const option8: number = buf.g1();
-            const option9: number = buf.g1();
-            const option10: number = buf.g1();
-            const option11: number = buf.g1();
-            const option12: number = buf.g1();
-            const option13: number = buf.g1();
-            const option14: number = buf.g1();
-            const option15: number = buf.g1();
+            // start client preferences
+            buf.pos += 1; // preferences length
+            const version: number = buf.g1();
+            const unknown: number = buf.g1();
+            const unknown1: number = buf.g1();
+            buf.pos += 1; // unused
+            const bloom: number = buf.g1();
+            const brightness: number = buf.g1();
+            const buildArea: number = buf.g1();
+            const buildAreaSize: number = buf.g1();
+            const flickeringEffects: number = buf.g1();
+            const fog: number = buf.g1();
+            const groundBlending: number = buf.g1();
+            const groundDecoration: number = buf.g1();
+            const idleAnimations: number = buf.g1();
+            const lightingDetail: number = buf.g1();
+            const sceneryShadows: number = buf.g1();
+            const unknown3: number = buf.g1();
             buf.pos += 1; // always 0
-            const option17: number = buf.g1();
-            const option18: number = buf.g1();
-            const option19: number = buf.g1();
-            const option20: number = buf.g1();
-            const option21: number = buf.g1();
-            const option22: number = buf.g1();
-            const option23: number = buf.g1();
-            const option24: number = buf.g1();
+            const unknown4: number = buf.g1();
+            const particles: number = buf.g1();
+            const removeRoofs: number = buf.g1();
+            const screenSize: number = buf.g1();
+            const skyboxes: number = buf.g1();
+            const characterShadows: number = buf.g1();
+            const textures: number = buf.g1();
+            const displayMode: number = buf.g1();
             buf.pos += 1; // always 0
-            const option26: number = buf.g1();
-            const option27: number = buf.g1();
-            const option28: number = buf.g1();
-            const option29: number = buf.g1();
-            const option30: number = buf.g1();
-            const option31: number = buf.g1();
-            const option32: number = buf.g1();
-            const option33: number = buf.g1();
-            const option34: number = buf.g1();
-            const option35: number = buf.g1();
-            const option36: number = buf.g2();
-            const option37: number = buf.g2();
-            const option38: number = buf.g2();
-            const option39: number = buf.g2();
-            const option40: number = buf.g1();
-            const option41: number = buf.g1();
-            const option42: number = buf.g1();
-            const option43: number = buf.g1();
-            const option44: number = buf.g1();
-            const option45: number = buf.g1();
-            const option46: number = buf.g1();
-            const option47: number = buf.g1();
-            const option48: number = buf.g1();
-            const option49: number = buf.g1();
-            const option50: number = buf.g1();
-            const option51: number = buf.g1();
-            const option52: number = buf.g1();
-            const option53: number = buf.g1();
+            const waterDetail: number = buf.g1();
+            const maxScreenSize: number = buf.g1();
+            buf.pos += 16; // unused
+            const customCursors: number = buf.g1();
+            const preset: number = buf.g1();
+            const cpuUsage: number = buf.g1();
+            const unknown5: number = buf.g1();
+            const unknown6: number = buf.g1();
+            const unknown7: number = buf.g1();
+            buf.pos += 1; // unused
+            const unknown8: number = buf.g1();
+            const themeMusicVolume: number = buf.g1();
+            const themeMusicVolume1: number = buf.g1();
+            const themeMusicVolume2: number = buf.g1();
+            const themeMusicVolume3: number = buf.g1();
+            const themeMusicVolume4: number = buf.g1();
+            const unknown9: number = buf.g1();
             // end client options
 
             // start hardware
             buf.pos += 1; // always 8
-            const anInt2058: number = buf.g1();
-            const aBoolean362: boolean = buf.gbool();
-            const anInt2041: number = buf.g2();
-            const anInt2047: number = buf.g1();
-            const anInt2045: number = buf.g1();
-            const anInt2049: number = buf.g1();
-            const anInt2036: number = buf.g1();
-            const aBoolean363: boolean = buf.gbool();
-            const anInt2023: number = buf.g2();
-            const anInt2053: number = buf.g1();
-            const anInt2055: number = buf.g3();
-            const anInt2056: number = buf.g2();
-            const aString52: string = buf.gjstr2();
-            const aString57: string = buf.gjstr2();
-            const aString53: string = buf.gjstr2();
-            const aString54: string = buf.gjstr2();
-            const anInt2060: number = buf.g1();
-            const anInt2059: number = buf.g2();
-            const aString55: string = buf.gjstr2();
-            const aString56: string = buf.gjstr2();
-            const anInt2033: number = buf.g1();
-            const anInt2062: number = buf.g1();
-            const anIntArray199: number[] = [];
+            const operatingSystem: number = buf.g1();
+            const osArch64: boolean = buf.gbool();
+            const osVersion: number = buf.g2();
+            const javaVendor: number = buf.g1();
+            const javaVersionMajor: number = buf.g1();
+            const javaVersionMinor: number = buf.g1();
+            const javaVersionPatch: number = buf.g1();
+            buf.pos += 1; // unused
+            const maxMemory: number = buf.g2();
+            const availableProcessors: number = buf.g1();
+            const cpuInfoRam: number = buf.g3();
+            const cpuInfoSpeed: number = buf.g2();
+            const gpuInfoDescription: string = buf.gjstr2();
+            buf.gjstr2(); // unused
+            const dxDriverVersion: string = buf.gjstr2();
+            buf.gjstr2(); // unused
+            const dxDriverDateMonth: number = buf.g1();
+            const dxDriverDateYear: number = buf.g2();
+            const rawCpuInfoVendor: string = buf.gjstr2();
+            const rawCpuInfoDescription: string = buf.gjstr2();
+            const rawCpuInfoProcessors: number = buf.g1();
+            const rawCpuInfoProcessors2: number = buf.g1();
+            const rawCpuInfoUnknown: number[] = [];
             for (let index: number = 0; index < 3; index++) {
-                anIntArray199[index] = buf.g4();
+                rawCpuInfoUnknown[index] = buf.g4();
             }
-            const anInt2063: number = buf.g4();
-            const aString51: string = buf.gjstr2();
+            const rawCpuInfoUnknown1: number = buf.g4();
+            buf.gjstr2(); // unused
             // end hardware
 
             const verifyId: number = buf.g4();
@@ -427,7 +416,7 @@ class LoginServer {
             // start crcs
             const crcs: number[] = [];
             for (let index: number = 0; index < 42; index++) {
-                const crc: number = buf.g4(); // TODO
+                crcs[index] = buf.g4();
             }
             // end crcs
 
