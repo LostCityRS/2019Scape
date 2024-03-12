@@ -206,7 +206,6 @@ function runClientScript(client: ClientSocket, script: number, args: (string | n
     }
 
     reply.pjstr(descriptor);
-    console.log(descriptor);
 
     for (let i: number = 0; i < args.length; i++) {
         if (typeof args[i] === 'string') {
@@ -304,7 +303,6 @@ class LoginServer {
 
             buf.pos += 1; // always false (0)
             const password: string = buf.gjstr();
-            console.log(`password = ${password}`);
             const ssoKey: bigint = buf.g8();
             const ssoRandom: bigint = buf.g8();
 
@@ -315,7 +313,6 @@ class LoginServer {
             } else {
                 username = buf.g8();
             }
-            console.log(`username = ${username}`);
 
             const game: number = buf.g1();
             const lang: number = buf.g1();
@@ -420,8 +417,8 @@ class LoginServer {
             }
             // end crcs
 
-            lobbyLoginReply(client, username);
-            client.debug = true;
+            lobbyLoginReply(client, username as string);
+            client.state = ConnectionState.Lobby;
 
             resetClientVarCache(client);
 
@@ -463,8 +460,6 @@ class LoginServer {
             // runClientScript(client, 5953); // lobbyscreen_billing_login
             // runClientScript(client, 9345); // play music
             // runClientScript(client, 7486, [906]); // timer on component
-
-            client.state = ConnectionState.Lobby;
         }
     }
 }

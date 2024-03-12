@@ -1,39 +1,50 @@
 import Packet from '#jagex3/io/Packet.js';
 
 import ClientSocket from '#lostcity/network/ClientSocket.js';
-
-const ClientProtLengths: number[] = [];
-ClientProtLengths[22] = 4;
-ClientProtLengths[103] = 0;
-ClientProtLengths[117] = 3;
-ClientProtLengths[118] = 1;
-ClientProtLengths[119] - 9;
-ClientProtLengths[120] = -2;
-ClientProtLengths[121] = 7;
-ClientProtLengths[122] = 16;
-ClientProtLengths[123] = 6;
+import ClientProt from '#lostcity/network/ClientProt.js';
 
 class LobbyServer {
     async decode(client: ClientSocket, stream: Packet, opcode: number): Promise<void> {
-        if (typeof ClientProtLengths[opcode] === 'undefined') {
-            console.log('[LOBBY]: Unknown opcode', opcode, stream);
-            // client.end();
+        const packetType: ClientProt = ClientProt.values()[opcode];
+        if (typeof packetType === 'undefined') {
+            console.log(`[LOBBY]: Unknown packet ${opcode}`);
             return;
         }
 
-        const buf: Packet = stream.gPacket(ClientProtLengths[opcode]);
-        switch (opcode) {
-            case 123: {
+        let size: number = packetType.size;
+        if (size === -1) {
+            size = stream.g1();
+        } else if (size === -2) {
+            size = stream.g2();
+        }
+
+        console.log(`[LOBBY]: Received packet ${packetType.debugname} size=${size}`);
+
+        const buf: Packet = stream.gPacket(size);
+        switch (packetType) {
+            case ClientProt.WORLDLIST_FETCH: {
+                const reply: Packet = new Packet();
+                reply.pIsaac1or2(167);
+                reply.p2(0);
+                const start: number = reply.pos;
+
+                reply.p1(0);
+
+                reply.psize2(reply.pos - start);
+                client.write(reply);
+                break;
+            }
+            case ClientProt.WINDOW_STATUS: {
                 const windowMode: number = buf.g1();
                 const width: number = buf.g2();
                 const height: number = buf.g2();
                 const antialiasing: number = buf.g1();
                 break;
             }
-            case 103:
+            case ClientProt.NO_TIMEOUT:
                 break;
             default:
-                console.log('[LOBBY]: Unhandled opcode', opcode);
+                console.log(`[LOBBY]: Unhandled packet ${packetType.debugname}`);
                 break;        
         }
     }
