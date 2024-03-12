@@ -1,7 +1,8 @@
 import Packet from '#jagex/bytepacking/Packet.js';
 
 import ClientSocket from '#lostcity/network/ClientSocket.js';
-import Server from './Server.js';
+
+import CacheProvider from '#lostcity/server/CacheProvider.js';
 
 enum Js5Prot {
     RequestGroupPrefetch = 0,
@@ -21,7 +22,7 @@ class Js5Server {
             const archive: number = stream.g1();
             const group: number = stream.g4();
 
-            const data: Uint8Array | null = await Server.cache.getGroup(archive, group, true);
+            const data: Uint8Array | null = await CacheProvider.getGroup(archive, group, true);
             if (!data) {
                 return;
             }

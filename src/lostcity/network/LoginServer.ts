@@ -1,8 +1,9 @@
 import Packet from '#jagex/bytepacking/Packet.js';
 
 import ClientSocket from '#lostcity/network/ClientSocket.js';
-import ConnectionState from './ConnectionState.js';
-import Server from './Server.js';
+import ConnectionState from '#lostcity/network/ConnectionState.js';
+
+import CacheProvider from '#lostcity/server/CacheProvider.js';
 
 enum LoginProt {
     INIT_GAME_CONNECTION = 14,
@@ -253,10 +254,10 @@ class LoginServer {
                 return;
             }
 
-            const reply: Packet = Packet.alloc(1 + Server.cache.prefetches.length * 4);
+            const reply: Packet = Packet.alloc(1 + CacheProvider.prefetches.length * 4);
             reply.p1(0);
-            for (let i: number = 0; i < Server.cache.prefetches.length; i++) {
-                reply.p4(Server.cache.prefetches[i]);
+            for (let i: number = 0; i < CacheProvider.prefetches.length; i++) {
+                reply.p4(CacheProvider.prefetches[i]);
             }
             client.write(reply);
 

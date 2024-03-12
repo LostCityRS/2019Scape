@@ -1,7 +1,6 @@
 import net from 'net';
 
 import Packet from '#jagex/bytepacking/Packet.js';
-import Cache from '#jagex/js5/Cache.js';
 
 import ClientSocket from '#lostcity/network/ClientSocket.js';
 import ConnectionState from '#lostcity/network/ConnectionState.js';
@@ -10,18 +9,20 @@ import Js5Server from '#lostcity/network/Js5Server.js';
 import LobbyServer from '#lostcity/network/LobbyServer.js';
 import GameServer from '#lostcity/network/GameServer.js';
 
-class Server {
-    tcp: net.Server;
-
-    cache: Cache = new Cache();
+class Lobby {
+    tick: number = 0;
+    server: net.Server = net.createServer();
 
     constructor() {
-        this.tcp = net.createServer((socket): void => {
-            console.log('Client connected');
+        this.server.on('listening', (): void => {
+            console.log('[LOBBY]: Listening on port 43594');
+        });
+
+        this.server.on('connection', (socket: net.Socket): void => {
+            console.log(`[LOBBY]: Client connected from ${socket.remoteAddress}`);
 
             const client: ClientSocket = new ClientSocket(socket);
-
-            socket.on('data', async (data: Buffer): Promise<void> => {
+            socket.on('data', (data: Buffer): void => {
                 const stream: Packet = Packet.wrap(data, false);
 
                 while (stream.available > 0) {
@@ -52,22 +53,25 @@ class Server {
             });
 
             socket.on('end', (): void => {
-                console.log('Client disconnected');
+                console.log('[LOBBY]: Client disconnected');
             });
 
             socket.on('error', (): void => {
                 socket.destroy();
             });
         });
+
+        this.server.listen(43594, '0.0.0.0');
+
+        this.cycle();
     }
 
-    async start(): Promise<void> {
-        await this.cache.load('data/pack');
+    cycle(): void {
+        // console.log(`[LOBBY]: Tick ${this.tick}`);
 
-        this.tcp.listen(43594, '0.0.0.0', (): void => {
-            console.log('Server started');
-        });
+        this.tick++;
+        setTimeout(this.cycle.bind(this), 50);
     }
 }
 
-export default new Server();
+export default new Lobby();

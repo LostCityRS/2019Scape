@@ -1,5 +1,9 @@
-import Server from './network/Server.js';
-import startWeb from './web/app.js';
+import LobbyProvider from '#lostcity/server/LobbyProvider.js';
+import WorldProvider from '#lostcity/server/WorldProvider.js';
 
-await Server.start();
+import startWeb from '#lostcity/web/app.js';
+
+LobbyProvider.emit('start');
+WorldProvider.emit('start');
+
 startWeb();
