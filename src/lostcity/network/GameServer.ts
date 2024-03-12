@@ -1,4 +1,4 @@
-import Packet from '#jagex3/io/Packet.js';
+import Packet from '#jagex/bytepacking/Packet.js';
 
 import ClientSocket from '#lostcity/network/ClientSocket.js';
 

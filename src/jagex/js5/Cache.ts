@@ -1,9 +1,10 @@
-import Js5 from '#jagex3/js5/Js5.js';
-import Js5Archive, { Js5ArchiveType } from '#jagex3/js5/Js5Archive.js';
-import Js5Index from '#jagex3/js5/Js5Index.js';
-import Packet from '#jagex3/io/Packet.js';
+import Js5 from '#jagex/js5/Js5.js';
+import Js5Archive, { Js5ArchiveType } from '#jagex/config/Js5Archive.js';
+import Js5Index from '#jagex/js5/index/Js5Index.js';
 
-import Whirlpool from '#jagex3/util/Whirlpool.js';
+import Packet from '#jagex/bytepacking/Packet.js';
+
+import Whirlpool from '#jagex/encryption/Whirlpool.js';
 
 export default class Cache {
     js5: Js5[] = [];

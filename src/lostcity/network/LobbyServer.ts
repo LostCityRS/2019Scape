@@ -1,7 +1,7 @@
-import Packet from '#jagex3/io/Packet.js';
+import Packet from '#jagex/bytepacking/Packet.js';
 
 import ClientSocket from '#lostcity/network/ClientSocket.js';
-import ClientProt from '#lostcity/network/ClientProt.js';
+import ClientProt from '#jagex/network/protocol/ClientProt.js';
 
 class LobbyServer {
     async decode(client: ClientSocket, stream: Packet, opcode: number): Promise<void> {

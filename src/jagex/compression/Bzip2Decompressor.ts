@@ -1,6 +1,6 @@
 import Bunzip from 'seek-bzip';
 
-import Packet from '#jagex3/io/Packet.js';
+import Packet from '#jagex/bytepacking/Packet.js';
 
 export default class Bzip2Decompressor {
     static bunzip(src: Packet, dst: Uint8Array): void {

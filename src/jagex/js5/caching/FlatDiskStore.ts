@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import DiskStore from '#jagex3/io/DiskStore.js';
+import DiskStore from '#jagex/js5/caching/DiskStore.js';
 
 export default class FlatDiskStore extends DiskStore {
     dir: string;

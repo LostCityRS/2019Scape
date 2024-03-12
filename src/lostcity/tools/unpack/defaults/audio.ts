@@ -1,8 +1,8 @@
 import fs from 'fs';
 
-import Js5 from '#jagex3/js5/Js5.js';
-import Packet from '#jagex3/io/Packet.js';
-import DefaultsAudio from '#jagex3/config/DefaultsAudio.js';
+import Js5 from '#jagex/js5/Js5.js';
+import Packet from '#jagex/bytepacking/Packet.js';
+import DefaultsAudio from '#jagex/config/defaults/AudioDefaults.js';
 
 const js5: Js5 = await Js5.load('data/pack/client.defaults.js5');
 

@@ -1,7 +1,8 @@
-import Bzip2Decompressor from '#jagex3/io/Bzip2Decompressor.js';
-import GzipDecompressor from '#jagex3/io/GzipDecompressor.js';
-import LzmaDecompressor from '#jagex3/io/LzmaDecompressor.js';
-import Packet from '#jagex3/io/Packet.js';
+import Packet from '#jagex/bytepacking/Packet.js';
+
+import Bzip2Decompressor from '#jagex/compression/Bzip2Decompressor.js';
+import GzipDecompressor from '#jagex/compression/GzipDecompressor.js';
+import LzmaDecompressor from '#jagex/compression/LzmaDecompressor.js';
 
 export default class Js5Compression {
     static async decompress(src: Uint8Array): Promise<Uint8Array> {

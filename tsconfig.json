@@ -10,9 +10,7 @@
     "moduleResolution": "NodeNext",
     "baseUrl": ".",
     "paths": {
-      "#jagex2/*": ["src/jagex2/*"],
-      "#jagex3/*": ["src/jagex3/*"],
-      "#lostcity/*": ["src/lostcity/*"],
+      "#jagex/*": ["src/jagex/*"],
       "#lostcity/*": ["src/lostcity/*"]
     },
     "types": [

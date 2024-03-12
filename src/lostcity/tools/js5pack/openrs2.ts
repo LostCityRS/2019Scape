@@ -1,5 +1,5 @@
-import Js5 from '#jagex3/js5/Js5.js';
-import Js5Archive from '#jagex3/js5/Js5Archive.js';
+import Js5 from '#jagex/js5/Js5.js';
+import Js5Archive from '#jagex/config/Js5Archive.js';
 
 import { OpenRS2 } from '#lostcity/util/OpenRS2.js';
 

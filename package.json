@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "imports": {
-    "#jagex3/*": "./src/jagex3/*",
+    "#jagex/*": "./src/jagex/*",
     "#lostcity/*": "./src/lostcity/*"
   },
   "scripts": {

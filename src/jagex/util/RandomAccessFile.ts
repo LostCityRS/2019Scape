@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import Packet from '#jagex3/io/Packet.js';
+import Packet from '#jagex/bytepacking/Packet.js';
 
 export default class RandomAccessFile {
     fd: number;

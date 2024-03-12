@@ -1,6 +1,6 @@
 import { decompress } from '@napi-rs/lzma/lzma';
 
-import Packet from '#jagex3/io/Packet.js';
+import Packet from '#jagex/bytepacking/Packet.js';
 
 export default class LzmaDecompressor {
     static async unzip(src: Packet, dst: Uint8Array): Promise<void> {

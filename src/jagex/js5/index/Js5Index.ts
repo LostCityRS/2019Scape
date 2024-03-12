@@ -1,7 +1,8 @@
-import Packet from '#jagex3/io/Packet.js';
+import Packet from '#jagex/bytepacking/Packet.js';
 
-import Whirlpool from '#jagex3/util/Whirlpool.js';
-import Js5Compression from './Js5Compression.js';
+import Whirlpool from '#jagex/encryption/Whirlpool.js';
+
+import Js5Compression from '#jagex/js5//Js5Compression.js';
 
 export default class Js5Index {
     format: number = 0;

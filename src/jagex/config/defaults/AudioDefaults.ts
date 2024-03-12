@@ -1,6 +1,6 @@
-import Packet from '#jagex3/io/Packet.js';
+import Packet from '#jagex/bytepacking/Packet.js';
 
-export default class DefaultsAudio {
+export default class AudioDefaults {
     static encode(def: string[]): Uint8Array {
         const buf: Packet = Packet.alloc(4);
         for (let i: number = 0; i < def.length; i++) {

@@ -1,12 +1,16 @@
 import fs from 'fs';
 import zlib from 'zlib';
 
-import Js5Compression from '#jagex3/js5/Js5Compression.js';
-import Js5Index from '#jagex3/js5/Js5Index.js';
-import Packet from '#jagex3/io/Packet.js';
-import StringUtils from '#jagex3/util/StringUtils.js';
-import RandomAccessFile from '#jagex3/io/RandomAccessFile.js';
-import Whirlpool from '#jagex3/util/Whirlpool.js';
+import Packet from '#jagex/bytepacking/Packet.js';
+
+import Whirlpool from '#jagex/encryption/Whirlpool.js';
+
+import Js5Compression from '#jagex/js5/Js5Compression.js';
+
+import Js5Index from '#jagex/js5/index/Js5Index.js';
+
+import StringUtils from '#jagex/util/StringUtils.js';
+import RandomAccessFile from '#jagex/util/RandomAccessFile.js';
 
 export default class Js5 {
     index: Js5Index;

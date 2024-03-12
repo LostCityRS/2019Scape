@@ -1,9 +1,9 @@
 import fs from 'fs';
 
-import DiskStore from '#jagex3/io/DiskStore.js';
+import DiskStore from '#jagex/js5/caching/DiskStore.js';
 
-import Js5 from '#jagex3/js5/Js5.js';
-import Js5Archive from '#jagex3/js5/Js5Archive.js';
+import Js5 from '#jagex/js5/Js5.js';
+import Js5Archive from '#jagex/config/Js5Archive.js';
 
 console.time('dump');
 if (!fs.existsSync('data/cache/dump')) {

@@ -1,7 +1,7 @@
 import net from 'net';
 
-import Packet from '#jagex3/io/Packet.js';
-import Cache from '#jagex3/js5/Cache.js';
+import Packet from '#jagex/bytepacking/Packet.js';
+import Cache from '#jagex/js5/Cache.js';
 
 import ClientSocket from '#lostcity/network/ClientSocket.js';
 import ConnectionState from '#lostcity/network/ConnectionState.js';

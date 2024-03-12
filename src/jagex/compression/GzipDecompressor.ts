@@ -1,6 +1,6 @@
 import zlib from 'zlib';
 
-import Packet from '#jagex3/io/Packet.js';
+import Packet from '#jagex/bytepacking/Packet.js';
 
 export default class GzipDecompressor {
     static gunzip(src: Packet, dst: Uint8Array): void {

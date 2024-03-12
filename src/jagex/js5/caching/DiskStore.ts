@@ -1,5 +1,5 @@
-import Packet from '#jagex3/io/Packet.js';
-import RandomAccessFile from '#jagex3/io/RandomAccessFile.js';
+import Packet from '#jagex/bytepacking/Packet.js';
+import RandomAccessFile from '#jagex/util/RandomAccessFile.js';
 
 export default class DiskStore {
     static buffer: Packet = Packet.alloc(520);
