@@ -10,6 +10,9 @@ export default class ClientSocket {
     state: ConnectionState;
     debug: boolean = false;
 
+    netInQueue: Packet[] = [];
+    netOutQueue: ServerMessage[] = [];
+
     constructor(socket: net.Socket) {
         this.socket = socket;
         this.state = ConnectionState.Login;

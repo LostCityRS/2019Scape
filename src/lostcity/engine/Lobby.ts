@@ -7,136 +7,13 @@ import ConnectionState from '#lostcity/network/ConnectionState.js';
 import LoginProt from '#jagex/network/protocol/LoginProt.js';
 import CacheProvider from '#lostcity/server/CacheProvider.js';
 import ClientProt from '#jagex/network/protocol/ClientProt.js';
-import ServerMessage from '#jagex/network/ServerMessage.js';
-import ServerProt from '#jagex/network/protocol/ServerProt.js';
 
-function resetClientVarCache(client: ClientSocket): void {
-    const message: ServerMessage = ServerMessage.create(ServerProt.RESET_CLIENT_VARCACHE);
-    client.send(message);
-}
-
-function updateVar(client: ClientSocket, varp: number, value: number): void {
-    if (value <= 255) {
-        const message: ServerMessage = ServerMessage.create(ServerProt.VARP_SMALL);
-        message.buf.p1(value);
-        message.buf.p2_alt2(varp);
-        client.send(message);
-    } else {
-        const message: ServerMessage = ServerMessage.create(ServerProt.VARP_LARGE);
-        message.buf.p2_alt1(varp);
-        message.buf.p4(value);
-        client.send(message);
-    }
-}
-
-function updateVarbit(client: ClientSocket, varbit: number, value: number): void {
-    if (value <= 255) {
-        const message: ServerMessage = ServerMessage.create(ServerProt.VARBIT_SMALL);
-        message.buf.p1_alt3(value);
-        message.buf.p2_alt2(varbit);
-        client.send(message);
-    } else {
-        const message: ServerMessage = ServerMessage.create(ServerProt.VARBIT_LARGE);
-        message.buf.p2_alt2(varbit);
-        message.buf.p4_alt1(value);
-        client.send(message);
-    }
-}
-
-function updateVarc(client: ClientSocket, varc: number, value: number): void {
-    if (value <= 255) {
-        const message: ServerMessage = ServerMessage.create(ServerProt.CLIENT_SETVARC_SMALL);
-        message.buf.p1_alt3(value);
-        message.buf.p2(varc);
-        client.send(message);
-    } else {
-        const message: ServerMessage = ServerMessage.create(ServerProt.CLIENT_SETVARC_LARGE);
-        message.buf.p4_alt1(value);
-        message.buf.p2_alt2(varc);
-        client.send(message);
-    }
-}
-
-function updateVarcbit(client: ClientSocket, varc: number, value: number): void {
-    if (value <= 255) {
-        const message: ServerMessage = ServerMessage.create(ServerProt.CLIENT_SETVARCBIT_SMALL);
-        message.buf.p2(varc);
-        message.buf.p1_alt1(value);
-        client.send(message);
-    } else {
-        const message: ServerMessage = ServerMessage.create(ServerProt.CLIENT_SETVARCBIT_LARGE);
-        message.buf.p2_alt2(varc);
-        message.buf.p4_alt1(value);
-        client.send(message);
-    }
-}
-
-function updateVarcStr(client: ClientSocket, varc: number, value: string): void {
-    if (value.length < 250) {
-        const message: ServerMessage = ServerMessage.create(ServerProt.CLIENT_SETVARCSTR_SMALL);
-        message.buf.p2(varc);
-        message.buf.pjstr(value);
-        client.send(message);
-    } else {
-        const message: ServerMessage = ServerMessage.create(ServerProt.CLIENT_SETVARCSTR_LARGE);
-        message.buf.p2(varc);
-        message.buf.pjstr(value);
-        client.send(message);
-    }
-}
-
-function ifOpenTop(client: ClientSocket, toplevel: number): void {
-    const message: ServerMessage = ServerMessage.create(ServerProt.IF_OPENTOP);
-    message.buf.p4_alt2(0); // xtea 4
-    message.buf.p4_alt1(0); // xtea 3
-    message.buf.p4_alt2(0); // xtea 1
-    message.buf.p4(0); // xtea 2
-    message.buf.p1(0); // unused, maybe was type?
-    message.buf.p2_alt3(toplevel); // toplevel interface
-    client.send(message);
-}
-
-function ifOpenSub(client: ClientSocket, toplevel: number, com: number, child: number, type: number = 0): void {
-    const message: ServerMessage = ServerMessage.create(ServerProt.IF_OPENSUB);
-    message.buf.p4_alt2(0); // xtea 3
-    message.buf.p4_alt1((toplevel << 16) | com); // toplevel | component
-    message.buf.p1_alt2(type); // type (overlay or modal)
-    message.buf.p4(0); // xtea 4
-    message.buf.p2(child); // id
-    message.buf.p4_alt2(0); // xtea 2
-    message.buf.p4_alt2(0); // xtea 1
-    client.send(message);
-}
-
-function runClientScript(client: ClientSocket, script: number, args: (string | number)[] = []): void {
-    const message: ServerMessage = ServerMessage.create(ServerProt.RUNCLIENTSCRIPT);
-
-    let descriptor: string = '';
-    for (let i: number = args.length - 1; i >= 0; i--) {
-        if (typeof args[i] === 'string') {
-            descriptor += 's';
-        } else {
-            descriptor += 'i';
-        }
-    }
-
-    message.buf.pjstr(descriptor);
-
-    for (let i: number = 0; i < args.length; i++) {
-        if (typeof args[i] === 'string') {
-            message.buf.pjstr(args[i] as string);
-        } else {
-            message.buf.p4(args[i] as number);
-        }
-    }
-
-    message.buf.p4(script);
-    client.send(message);
-}
+import AllPackets from '#jagex/network/packetencoders/AllPackets.js';
 
 class Lobby {
     tick: number = 0;
     server: net.Server = net.createServer();
+    clients: ClientSocket[] = [];
 
     async loginDecode(client: ClientSocket, stream: Packet): Promise<void> {
         const opcode: number = stream.g1();
@@ -378,46 +255,39 @@ class Lobby {
                 reply.psize1(reply.pos - start);
                 client.write(reply);
 
-                resetClientVarCache(client);
+                AllPackets.resetClientVarCache(client);
 
-                updateVar(client, 1750, 5412518);
-                updateVar(client, 1751, 5412518);
-                updateVar(client, 1752, 9259915);
-                updateVar(client, 1753, 110);
-                updateVar(client, 1754, 41);
+                AllPackets.updateVar(client, 1750, 5412518);
+                AllPackets.updateVar(client, 1751, 5412518);
+                AllPackets.updateVar(client, 1752, 9259915);
+                AllPackets.updateVar(client, 1753, 110);
+                AllPackets.updateVar(client, 1754, 41);
 
-                ifOpenTop(client, 906);
-                ifOpenSub(client, 906, 106, 907);
-                // ifOpenSub(client, 906, 107, 910);
-                // ifOpenSub(client, 906, 108, 909);
-                // ifOpenSub(client, 906, 110, 912);
-                // ifOpenSub(client, 906, 109, 589);
-                // ifOpenSub(client, 906, 111, 911);
-                // ifOpenSub(client, 906, 279, 914);
-                // ifOpenSub(client, 906, 297, 915);
-                // ifOpenSub(client, 906, 306, 913);
+                AllPackets.ifOpenTop(client, 906);
+                AllPackets.ifOpenSub(client, 906, 106, 907);
 
-                updateVarbit(client, 16464, 1);
-                updateVarbit(client, 16465, 0);
+                AllPackets.updateVarbit(client, 16464, 1);
+                AllPackets.updateVarbit(client, 16465, 0);
 
-                updateVarc(client, 3905, 0); // enable banner
-                updateVarc(client, 4366, 0); // th keys
-                updateVarc(client, 4367, 0); // th chest hearts
-                updateVarc(client, 4368, -1); // th banner
-                updateVarc(client, 4364, -1); // boss pets
-                updateVarc(client, 4365, -1); // second right banner
-                updateVarc(client, 4360, 0); // loyalty points
-                updateVarc(client, 4359, 0); // runecoin
+                AllPackets.updateVarc(client, 3905, 0); // enable banner
+                AllPackets.updateVarc(client, 4366, 0); // th keys
+                AllPackets.updateVarc(client, 4367, 0); // th chest hearts
+                AllPackets.updateVarc(client, 4368, -1); // th banner
+                AllPackets.updateVarc(client, 4364, -1); // boss pets
+                AllPackets.updateVarc(client, 4365, -1); // second right banner
+                AllPackets.updateVarc(client, 4360, 0); // loyalty points
+                AllPackets.updateVarc(client, 4359, 0); // runecoin
 
                 // news
-                runClientScript(client, 10931, [1, 0, 1, 0, 1, '02-Dec-2019', 'unk', 'This week we\'ve fixed a few cheeky bugs that had cropped up!', 'Game Update: Farming & Herblore 120 Fixes']);
-                runClientScript(client, 10931, [0, 0, 1, 0, 2, '09-Dec-2019', 'unk', 'While you\'ve been gliding about on the ice outside, we\'ve been working on some smooth moves of our own.', 'Game Update: Smooth Movement']);
-                runClientScript(client, 10931, [0, 0, 1, 0, 3, '09-Dec-2019', 'unk', 'The Patch Notes for December 9th!', 'Patch Notes - 9/12']);
+                AllPackets.runClientScript(client, 10931, [1, 0, 1, 0, 1, '02-Dec-2019', 'unk', 'This week we\'ve fixed a few cheeky bugs that had cropped up!', 'Game Update: Farming & Herblore 120 Fixes']);
+                AllPackets.runClientScript(client, 10931, [0, 0, 1, 0, 2, '09-Dec-2019', 'unk', 'While you\'ve been gliding about on the ice outside, we\'ve been working on some smooth moves of our own.', 'Game Update: Smooth Movement']);
+                AllPackets.runClientScript(client, 10931, [0, 0, 1, 0, 3, '09-Dec-2019', 'unk', 'The Patch Notes for December 9th!', 'Patch Notes - 9/12']);
 
-                runClientScript(client, 10936);
-                // runClientScript(client, 5953); // lobbyscreen_billing_login
-                // runClientScript(client, 9345); // play music
-                // runClientScript(client, 7486, [906]); // timer on component
+                AllPackets.runClientScript(client, 10936);
+
+                AllPackets.updateRebootTimer(client, 5000);
+
+                this.clients.push(client);
                 break;
             }
         }
@@ -533,15 +403,35 @@ class Lobby {
                             break;
                         }
                         case ConnectionState.Lobby: {
-                            await this.lobbyDecode(client, stream);
+                            const start: number = stream.pos;
+
+                            const opcode: number = stream.g1();
+                            const packetType: ClientProt | undefined = ClientProt.values()[opcode];
+                            if (typeof packetType === 'undefined') {
+                                console.log(`[LOBBY]: Unknown packet ${opcode}`);
+                                return;
+                            }
+
+                            let size: number = packetType.size;
+                            if (size === -1) {
+                                size = stream.g1();
+                            } else if (size === -2) {
+                                size = stream.g2();
+                            }
+
+                            const headerSize: number = stream.pos - start;
+
+                            stream.pos = start;
+                            client.netInQueue.push(stream.gPacket(size + headerSize));
                             break;
                         }
-                    }8
+                    }
                 }
             });
 
             socket.on('end', (): void => {
                 console.log('[LOBBY]: Client disconnected');
+                this.clients.splice(this.clients.indexOf(client), 1);
             });
 
             socket.on('error', (): void => {
@@ -550,12 +440,30 @@ class Lobby {
         });
 
         this.server.listen(43594, '0.0.0.0');
-
-        this.cycle();
+        setImmediate(this.cycle.bind(this));
     }
 
-    cycle(): void {
+    async cycle(): Promise<void> {
         // console.log(`[LOBBY]: Tick ${this.tick}`);
+
+        for (let i: number = 0; i < this.clients.length; i++) {
+            const client: ClientSocket = this.clients[i];
+
+            // process incoming packets
+            for (let j: number = 0; j < client.netInQueue.length; j++) {
+                await this.lobbyDecode(client, client.netInQueue[j]);
+            }
+            client.netInQueue = [];
+
+            if (this.tick % 100 === 0) {
+                AllPackets.noTimeout(client);
+            }
+
+            // process outgoing packets
+            for (let j: number = 0; j < client.netOutQueue.length; j++) {
+                client.send(client.netOutQueue[j]);
+            }
+        }
 
         this.tick++;
         setTimeout(this.cycle.bind(this), 50);
