@@ -4,13 +4,15 @@ import Packet from '#jagex/bytepacking/Packet.js';
 
 import ConnectionState from '#lostcity/network/ConnectionState.js';
 import ServerMessage from '#jagex/network/ServerMessage.js';
+import ClientMessage from '#jagex/network/ClientMessage.js';
 
 export default class ClientSocket {
     socket: net.Socket;
     state: ConnectionState;
     debug: boolean = false;
+    lastResponse: number = 0;
 
-    netInQueue: Packet[] = [];
+    netInQueue: ClientMessage[] = [];
     netOutQueue: ServerMessage[] = [];
 
     constructor(socket: net.Socket) {
@@ -43,7 +45,7 @@ export default class ClientSocket {
             message.buf.psize2(length);
         }
 
-        console.log(`Sending packet ${message.packetType.debugname} size=${length}`);
+        console.log(`Sending packet ${message.packetType.debugname} opcode=${message.packetType.opcode} size=${length}`);
         this.write(message.buf);
         message.release();
     }

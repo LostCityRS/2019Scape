@@ -9,6 +9,7 @@ import CacheProvider from '#lostcity/server/CacheProvider.js';
 import ClientProt from '#jagex/network/protocol/ClientProt.js';
 
 import AllPackets from '#jagex/network/packetencoders/AllPackets.js';
+import ClientMessage from '#jagex/network/ClientMessage.js';
 
 class Lobby {
     tick: number = 0;
@@ -285,8 +286,6 @@ class Lobby {
 
                 AllPackets.runClientScript(client, 10936);
 
-                AllPackets.updateRebootTimer(client, 5000);
-
                 this.clients.push(client);
                 break;
             }
@@ -334,48 +333,25 @@ class Lobby {
         }
     }
 
-    async lobbyDecode(client: ClientSocket, stream: Packet): Promise<void> {
-        const opcode: number = stream.g1();
-        const packetType: ClientProt | undefined = ClientProt.values()[opcode];
-        if (typeof packetType === 'undefined') {
-            console.log(`[LOBBY]: Unknown packet ${opcode}`);
-            return;
-        }
+    async lobbyDecode(client: ClientSocket, message: ClientMessage): Promise<void> {
+        console.log(`[LOBBY]: Received packet ${message.packetType.debugname} opcode=${message.packetType.opcode} size=${message.buf.length}`);
 
-        let size: number = packetType.size;
-        if (size === -1) {
-            size = stream.g1();
-        } else if (size === -2) {
-            size = stream.g2();
-        }
-
-        console.log(`[LOBBY]: Received packet ${packetType.debugname} size=${size}`);
-
-        const buf: Packet = stream.gPacket(size);
-        switch (packetType) {
+        switch (message.packetType) {
             case ClientProt.WORLDLIST_FETCH: {
-                const reply: Packet = new Packet();
-                reply.pIsaac1or2(167);
-                reply.p2(0);
-                const start: number = reply.pos;
-
-                reply.p1(0);
-
-                reply.psize2(reply.pos - start);
-                client.write(reply);
+                AllPackets.worldlistFetchReply(client);
                 break;
             }
             case ClientProt.WINDOW_STATUS: {
-                const windowMode: number = buf.g1();
-                const width: number = buf.g2();
-                const height: number = buf.g2();
-                const antialiasing: number = buf.g1();
+                const windowMode: number = message.buf.g1();
+                const width: number = message.buf.g2();
+                const height: number = message.buf.g2();
+                const antialiasing: number = message.buf.g1();
                 break;
             }
             case ClientProt.NO_TIMEOUT:
                 break;
             default:
-                console.log(`[LOBBY]: Unhandled packet ${packetType.debugname}`);
+                console.log(`[LOBBY]: Unhandled packet ${message.packetType.debugname}`);
                 break;
         }
     }
@@ -387,6 +363,10 @@ class Lobby {
 
         this.server.on('connection', (socket: net.Socket): void => {
             console.log(`[LOBBY]: Client connected from ${socket.remoteAddress}`);
+
+            socket.setNoDelay(true);
+            socket.setKeepAlive(true, 5000);
+            socket.setTimeout(15000);
 
             const client: ClientSocket = new ClientSocket(socket);
             socket.on('data', async (data: Buffer): Promise<void> => {
@@ -403,8 +383,6 @@ class Lobby {
                             break;
                         }
                         case ConnectionState.Lobby: {
-                            const start: number = stream.pos;
-
                             const opcode: number = stream.g1();
                             const packetType: ClientProt | undefined = ClientProt.values()[opcode];
                             if (typeof packetType === 'undefined') {
@@ -419,19 +397,22 @@ class Lobby {
                                 size = stream.g2();
                             }
 
-                            const headerSize: number = stream.pos - start;
-
-                            stream.pos = start;
-                            client.netInQueue.push(stream.gPacket(size + headerSize));
+                            client.netInQueue.push(new ClientMessage(packetType, stream.gPacket(size)));
                             break;
                         }
                     }
                 }
+
+                client.lastResponse = this.tick;
             });
 
             socket.on('end', (): void => {
                 console.log('[LOBBY]: Client disconnected');
                 this.clients.splice(this.clients.indexOf(client), 1);
+            });
+
+            socket.on('timeout', (): void => {
+                socket.destroy();
             });
 
             socket.on('error', (): void => {
@@ -455,8 +436,16 @@ class Lobby {
             }
             client.netInQueue = [];
 
+            // keepalive every 5s
             if (this.tick % 100 === 0) {
                 AllPackets.noTimeout(client);
+            }
+
+            // logout after 15s of the socket being idle (15000ms / 50ms tick = 300 ticks)
+            if (this.tick - client.lastResponse > 300) {
+                client.end();
+                this.clients.splice(i--, 1);
+                continue;
             }
 
             // process outgoing packets

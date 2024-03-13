@@ -139,6 +139,12 @@ function noTimeout(client: ClientSocket): void {
     client.send(message);
 }
 
+function worldlistFetchReply(client: ClientSocket): void {
+    const message: ServerMessage = ServerMessage.create(ServerProt.WORLDLIST_FETCH_REPLY);
+    message.buf.p1(0);
+    client.send(message);
+}
+
 export default {
     resetClientVarCache,
     updateVar,
@@ -150,5 +156,6 @@ export default {
     ifOpenSub,
     runClientScript,
     updateRebootTimer,
-    noTimeout
+    noTimeout,
+    worldlistFetchReply
 }
