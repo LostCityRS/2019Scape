@@ -45,7 +45,7 @@ export default class ClientSocket {
             message.buf.psize2(length);
         }
 
-        console.log(`Sending packet ${message.packetType.debugname} opcode=${message.packetType.opcode} size=${length}`);
+        // console.log(`Sending packet ${message.packetType.debugname} opcode=${message.packetType.opcode} size=${length}`);
         this.write(message.buf);
         message.release();
     }

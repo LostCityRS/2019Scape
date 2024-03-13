@@ -33,7 +33,7 @@ class Lobby {
             size = stream.g2();
         }
 
-        console.log(`[LOBBY]: Received packet ${packetType.debugname} size=${size}`);
+        // console.log(`[LOBBY]: Received packet ${packetType.debugname} size=${size}`);
 
         const buf: Packet = stream.gPacket(size);
         switch (packetType) {
@@ -311,14 +311,16 @@ class Lobby {
                 const archive: number = buf.g1();
                 const group: number = buf.g4();
 
+                // console.log(`[JS5]: Requesting ${archive} ${group}`);
+
                 const data: Uint8Array | null = await CacheProvider.getGroup(archive, group, true);
                 if (!data) {
                     return;
                 }
 
-                const maxChunkSize: number = 102400 - 5;
+                const maxChunkSize: number = 102400;
                 for (let offset: number = 0; offset < data.length; offset += maxChunkSize) {
-                    const chunkSize: number = Math.min(maxChunkSize, data.length - offset);
+                    const chunkSize: number = Math.min(maxChunkSize - 5, data.length - offset);
                     const buf: Packet = new Packet();
                     buf.p1(archive);
                     buf.p4(opcode === 1 ? group : group | 0x80000000);
@@ -343,7 +345,7 @@ class Lobby {
     }
 
     async lobbyDecode(client: ClientSocket, message: ClientMessage): Promise<void> {
-        console.log(`[LOBBY]: Received packet ${message.packetType.debugname} opcode=${message.packetType.opcode} size=${message.buf.length}`);
+        // console.log(`[LOBBY]: Received packet ${message.packetType.debugname} opcode=${message.packetType.opcode} size=${message.buf.length}`);
 
         switch (message.packetType) {
             case ClientProt.WORLDLIST_FETCH: {

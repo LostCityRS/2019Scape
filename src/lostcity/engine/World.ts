@@ -38,7 +38,7 @@ class World {
             size = stream.g2();
         }
 
-        console.log(`[WORLD]: Received packet ${packetType.debugname} size=${size}`);
+        // console.log(`[WORLD]: Received packet ${packetType.debugname} size=${size}`);
 
         const buf: Packet = stream.gPacket(size);
         switch (packetType) {
@@ -127,13 +127,13 @@ class World {
 
                 AllPackets.ifOpenTop(client, 1477);
                 AllPackets.ifOpenSub(client, 1477, 22, 1482, 1); // gamescreen
-                // AllPackets.ifOpenSub(client, 1477, 34, 1680);
+                // AllPackets.ifOpenSub(client, 1477, 34, 1680, 1);
                 // AllPackets.ifOpenSub(client, 1477, 50, 1252, 1); // TH promo
                 AllPackets.ifOpenSub(client, 1477, 85, 1465, 1); // minimap
                 AllPackets.ifOpenSub(client, 1477, 86, 1919, 1); // compass
                 // AllPackets.ifOpenSub(client, 1477, 610, 635, 1); // system clock
-                // AllPackets.ifOpenSub(client, 1477, 633, 568);
-                // AllPackets.ifOpenSub(client, 1477, 838, 1847);
+                // AllPackets.ifOpenSub(client, 1477, 633, 568, 1);
+                // AllPackets.ifOpenSub(client, 1477, 838, 1847, 1);
 
                 // await this.ifOpenSubRedirect(client, 7716, 0, 3505, 1477, 1466);
                 // await this.ifOpenSubRedirect(client, 7716, 1, 3505, 1477, 930);
@@ -689,7 +689,7 @@ class World {
     }
 
     async gameDecode(client: ClientSocket, message: ClientMessage): Promise<void> {
-        console.log(`[WORLD]: Received packet ${message.packetType.debugname} opcode=${message.packetType.opcode} size=${message.buf.length}`);
+        // console.log(`[WORLD]: Received packet ${message.packetType.debugname} opcode=${message.packetType.opcode} size=${message.buf.length}`);
 
         switch (message.packetType) {
             case ClientProt.NO_TIMEOUT:
@@ -709,7 +709,7 @@ class World {
         const componentId: string | number | undefined = structLookup.params.get(structParam);
 
         if (typeof componentId !== 'undefined') {
-            AllPackets.ifOpenSub(client, toplevel, (componentId as number) & 0xFFF, child);
+            AllPackets.ifOpenSub(client, toplevel, (componentId as number) & 0xFFF, child, 1);
         }
     }
 
