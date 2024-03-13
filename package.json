@@ -15,7 +15,8 @@
     "js5pack:dat2": "npm run ts-loader src/lostcity/tools/js5pack/dat2.ts",
     "js5pack:dat2m": "npm run ts-loader src/lostcity/tools/js5pack/dat2m.ts",
     "js5pack:dat2split": "npm run ts-loader src/lostcity/tools/js5pack/dat2split.ts",
-    "cache:build": "npm run ts-loader src/lostcity/tools/pack/all.ts"
+    "cache:build": "npm run ts-loader src/lostcity/tools/pack/all.ts",
+    "cache:verify": "npm run ts-loader src/lostcity/tools/js5pack/verify.ts"
   },
   "author": "Pazaz",
   "license": "MIT",
