@@ -219,22 +219,9 @@ function playerInfo(client: ClientSocket, testing: boolean): void {
 
     // local players (active)
     message.buf.accessBits();
-    // if (!testing) {
-        message.buf.pBit(1, 0); // has update
-    // } else {
-    //     message.buf.pBit(1, 1); // has update
-    //     message.buf.pBit(1, 0); // has mask update
-    //     message.buf.pBit(2, 3); // type of update
-
-    //     const x: number = 3200;
-    //     const z: number = 3200;
-    //     const level: number = 0;
-    //     const movementType: number = 4;
-
-    //     message.buf.pBit(1, 1); // jump?
-    //     message.buf.pBit(3, movementType);
-    //     message.buf.pBit(30, ((level & 0x3) << 28) | ((x & 0x3FFF) << 14) | (z & 0x3FFF));
-    // }
+    if (!testing) {
+        message.buf.pBit(1, 0);
+    }
     message.buf.accessBytes();
 
     // local players (inactive)
@@ -244,10 +231,6 @@ function playerInfo(client: ClientSocket, testing: boolean): void {
     // external players (active)
     message.buf.accessBits();
     for (let i: number = 0; i < 2047; i++) {
-        if (i === 1) {
-            continue;
-        }
-
         message.buf.pBit(1, 0);
         message.buf.pBit(2, 0);
     }
@@ -258,15 +241,22 @@ function playerInfo(client: ClientSocket, testing: boolean): void {
     message.buf.accessBytes();
 
     // masks
-    for (let i: number = 0; i < 1; i++) {
-        //
-    }
 
     client.send(message);
 }
 
 function serverTickEnd(client: ClientSocket): void {
     const message: ServerMessage = ServerMessage.create(ServerProt.SERVER_TICK_END);
+    client.send(message);
+}
+
+// wrong args naming
+function ifSetEvents(client: ClientSocket, interfaceId: number, componentId: number, fromSlot: number, toSlot: number, settingsHash: number): void {
+    const message: ServerMessage = ServerMessage.create(ServerProt.IF_SETEVENTS);
+    message.buf.p2_alt1(fromSlot);
+    message.buf.p4(interfaceId << 16 | componentId);
+    message.buf.p2_alt3(toSlot);
+    message.buf.p4_alt1(settingsHash);
     client.send(message);
 }
 
@@ -286,5 +276,6 @@ export default {
     js5Reload,
     rebuildNormal,
     playerInfo,
-    serverTickEnd
+    serverTickEnd,
+    ifSetEvents
 }
