@@ -295,6 +295,10 @@ export default class Packet {
         this.data[this.pos++] = value;
     }
 
+    pbool(value: boolean): void {
+        this.p1(value ? 1 : 0);
+    }
+
     p1_alt1(value: number): void {
         this.ensure(1);
         this.data[this.pos++] = value + 128;

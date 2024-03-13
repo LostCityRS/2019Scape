@@ -6,9 +6,9 @@ import CacheProvider from '#lostcity/server/CacheProvider.js';
 
 const app: fastify.FastifyInstance = fastify({ logger: true });
 app.get('/clienterror.ws', (req: any, res: any): void => {
-    const { c: client, cs: clientSub, u: update, v1: version1, v2: version2, e: error } = req.query;
+    const { c: client, cs: clientSub, u: user, v1: version1, v2: version2, e: error } = req.query;
 
-    console.error(`${client}.${clientSub}.${update} - ${version1} ${version2}: ${error}`);
+    console.error(`${client}.${clientSub} - ${user} - ${version1} ${version2}: ${error}`);
     res.send('');
 });
 

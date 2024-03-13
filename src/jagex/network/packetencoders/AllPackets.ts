@@ -1,3 +1,4 @@
+import Packet from '#jagex/bytepacking/Packet.js';
 import ServerMessage from '#jagex/network/ServerMessage.js';
 
 import ServerProt from '#jagex/network/protocol/ServerProt.js';
@@ -141,7 +142,43 @@ function noTimeout(client: ClientSocket): void {
 
 function worldlistFetchReply(client: ClientSocket): void {
     const message: ServerMessage = ServerMessage.create(ServerProt.WORLDLIST_FETCH_REPLY);
-    message.buf.p1(0);
+
+    // has update
+    message.buf.pbool(true);
+
+    // status
+    message.buf.p1(2); // leftover from loginprot days?
+
+    // full update
+    /// world list
+    const worldList: Packet = new Packet();
+    worldList.pSmart1or2(1); // # of locations
+
+    /// location 1
+    worldList.pSmart1or2(0); // country code
+    worldList.pjstr2('United States');
+
+    worldList.pSmart1or2(1); // min ID
+    worldList.pSmart1or2(1); // max ID
+    worldList.pSmart1or2(1); // size
+
+    /// world 1
+    worldList.pSmart1or2(0); // world index
+    worldList.p1(0); // location
+    worldList.p4(0); // flags
+    worldList.pSmart1or2(0); // unknown, truthy = read string
+    worldList.pjstr2(''); // activity
+    worldList.pjstr2('localhost'); // hostname
+
+    message.buf.pbool(true);
+    message.buf.pdata(worldList);
+    message.buf.p4(Packet.getcrc(worldList));
+
+    // partial update
+    /// world 1
+    message.buf.pSmart1or2(0); // world index
+    message.buf.p2(0); // players
+
     client.send(message);
 }
 

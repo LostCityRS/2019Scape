@@ -265,7 +265,15 @@ class Lobby {
                 AllPackets.updateVar(client, 1754, 41);
 
                 AllPackets.ifOpenTop(client, 906);
-                AllPackets.ifOpenSub(client, 906, 106, 907);
+                AllPackets.ifOpenSub(client, 906, 107, 907);
+                AllPackets.ifOpenSub(client, 906, 108, 910);
+                AllPackets.ifOpenSub(client, 906, 109, 909);
+                AllPackets.ifOpenSub(client, 906, 110, 589);
+                AllPackets.ifOpenSub(client, 906, 111, 912);
+                AllPackets.ifOpenSub(client, 906, 112, 911);
+                AllPackets.ifOpenSub(client, 906, 280, 914);
+                AllPackets.ifOpenSub(client, 906, 298, 915);
+                AllPackets.ifOpenSub(client, 906, 307, 913);
 
                 AllPackets.updateVarbit(client, 16464, 1);
                 AllPackets.updateVarbit(client, 16465, 0);
