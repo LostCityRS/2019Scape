@@ -1,5 +1,4 @@
 import fs from 'fs';
-import net from 'net';
 import { dirname } from 'path';
 
 export default class Packet {
@@ -87,6 +86,7 @@ export default class Packet {
 
     data: Uint8Array;
     pos: number;
+    bitPos: number;
 
     constructor(src?: ArrayBuffer | Packet | null) {
         if (src instanceof Packet) {
@@ -98,6 +98,7 @@ export default class Packet {
         }
 
         this.pos = 0;
+        this.bitPos = 0;
     }
 
     get length(): number {
@@ -528,7 +529,63 @@ export default class Packet {
         this.pos = start;
     }
 
-    send(socket: net.Socket): void {
-        socket.write(this.data.subarray(0, this.pos));
+    // ----
+
+    accessBits(): void {
+        this.bitPos = this.pos * 8;
+    }
+
+    accessBytes(): void {
+        this.pos = ((this.bitPos + 7) / 8) >>> 0;
+    }
+
+    gBit(n: number): number {
+        let bytePos: number = this.bitPos >>> 3;
+        let remaining: number = 8 - (this.bitPos & 7);
+        let value: number = 0;
+        this.bitPos += n;
+
+        for (; n > remaining; remaining = 8) {
+            value += (this.data[bytePos++] & Packet.bitmask[remaining]) << (n - remaining);
+            n -= remaining;
+        }
+
+        if (n === remaining) {
+            value += this.data[bytePos] & Packet.bitmask[remaining];
+        } else {
+            value += (this.data[bytePos] >>> (remaining - n)) & Packet.bitmask[n];
+        }
+
+        return value;
+    }
+
+    pBit(n: number, value: number): void {
+        let bytePos: number = this.bitPos >>> 3;
+        let remaining: number = 8 - (this.bitPos & 7);
+        this.bitPos += n;
+
+        // grow if necessary
+        if (bytePos + 1 > this.length) {
+            this.resize(bytePos + 1);
+        }
+
+        for (; n > remaining; remaining = 8) {
+            this.data[bytePos] &= ~Packet.bitmask[remaining];
+            this.data[bytePos++] |= (value >>> (n - remaining)) & Packet.bitmask[remaining];
+            n -= remaining;
+
+            // grow if necessary
+            if (bytePos + 1 > this.length) {
+                this.resize(bytePos + 1);
+            }
+        }
+
+        if (n == remaining) {
+            this.data[bytePos] &= ~Packet.bitmask[remaining];
+            this.data[bytePos] |= value & Packet.bitmask[remaining];
+        } else {
+            this.data[bytePos] &= ~Packet.bitmask[n] << (remaining - n);
+            this.data[bytePos] |= (value & Packet.bitmask[n]) << (remaining - n);
+        }
     }
 }

@@ -40,6 +40,6 @@ export default class ServerMessage {
     }
 
     release(): void {
-        ServerMessage.pool[ServerMessage.poolSize++] = this;
+        // ServerMessage.pool[ServerMessage.poolSize++] = this;
     }
 }

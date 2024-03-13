@@ -187,6 +187,89 @@ function js5Reload(client: ClientSocket): void {
     client.send(message);
 }
 
+function rebuildNormal(client: ClientSocket, nearbyPlayers: boolean): void {
+    const message: ServerMessage = ServerMessage.create(ServerProt.REBUILD_NORMAL);
+
+    if (nearbyPlayers) {
+        message.buf.accessBits();
+
+        const highres: number = (0 << 28) | (3200 << 14) | 3200;
+        message.buf.pBit(30, highres);
+
+        // low-res player info
+        for (let i: number = 0; i < 2048; i++) {
+            // const lowres: number = (0 << 16) | (50 << 16) | 50;
+            message.buf.pBit(18, 0);
+        }
+
+        message.buf.accessBytes();
+    }
+
+    message.buf.p2_alt2(400); // x
+    message.buf.p1(0); // size-related
+    message.buf.p1_alt3(11); // npc-related, distance?
+    message.buf.p1(0); // build area size
+    message.buf.p2_alt2(400); // z
+    message.buf.p1_alt3(0); // more data?
+    client.send(message);
+}
+
+function playerInfo(client: ClientSocket, testing: boolean): void {
+    const message: ServerMessage = ServerMessage.create(ServerProt.PLAYER_INFO);
+
+    // local players (active)
+    message.buf.accessBits();
+    // if (!testing) {
+        message.buf.pBit(1, 0); // has update
+    // } else {
+    //     message.buf.pBit(1, 1); // has update
+    //     message.buf.pBit(1, 0); // has mask update
+    //     message.buf.pBit(2, 3); // type of update
+
+    //     const x: number = 3200;
+    //     const z: number = 3200;
+    //     const level: number = 0;
+    //     const movementType: number = 4;
+
+    //     message.buf.pBit(1, 1); // jump?
+    //     message.buf.pBit(3, movementType);
+    //     message.buf.pBit(30, ((level & 0x3) << 28) | ((x & 0x3FFF) << 14) | (z & 0x3FFF));
+    // }
+    message.buf.accessBytes();
+
+    // local players (inactive)
+    message.buf.accessBits();
+    message.buf.accessBytes();
+
+    // external players (active)
+    message.buf.accessBits();
+    for (let i: number = 0; i < 2047; i++) {
+        if (i === 1) {
+            continue;
+        }
+
+        message.buf.pBit(1, 0);
+        message.buf.pBit(2, 0);
+    }
+    message.buf.accessBytes();
+
+    // external players (inactive)
+    message.buf.accessBits();
+    message.buf.accessBytes();
+
+    // masks
+    for (let i: number = 0; i < 1; i++) {
+        //
+    }
+
+    client.send(message);
+}
+
+function serverTickEnd(client: ClientSocket): void {
+    const message: ServerMessage = ServerMessage.create(ServerProt.SERVER_TICK_END);
+    client.send(message);
+}
+
 export default {
     resetClientVarCache,
     updateVar,
@@ -200,5 +283,8 @@ export default {
     updateRebootTimer,
     noTimeout,
     worldlistFetchReply,
-    js5Reload
+    js5Reload,
+    rebuildNormal,
+    playerInfo,
+    serverTickEnd
 }

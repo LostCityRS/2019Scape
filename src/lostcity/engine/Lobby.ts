@@ -249,9 +249,9 @@ class Lobby {
                 reply.p4(1); // play age
                 reply.p2(0); // world index
                 reply.pjstr2('localhost'); // world ip
-                reply.p2(43594); // port 1
-                reply.p2(43594); // port 2
-                reply.p2(43594); // port 3
+                reply.p2(43595); // port 1
+                reply.p2(43595); // port 2
+                reply.p2(43595); // port 3
 
                 reply.psize1(reply.pos - start);
                 client.write(reply);
@@ -430,6 +430,9 @@ class Lobby {
                             client.netInQueue.push(new ClientMessage(packetType, stream.gPacket(size)));
                             break;
                         }
+                        case ConnectionState.Game: {
+                            break;
+                        }
                     }
                 }
 
@@ -457,14 +460,19 @@ class Lobby {
     async cycle(): Promise<void> {
         // console.log(`[LOBBY]: Tick ${this.tick}`);
 
+        // process incoming packets
         for (let i: number = 0; i < this.clients.length; i++) {
             const client: ClientSocket = this.clients[i];
 
-            // process incoming packets
             for (let j: number = 0; j < client.netInQueue.length; j++) {
                 await this.lobbyDecode(client, client.netInQueue[j]);
             }
             client.netInQueue = [];
+        }
+
+        // process outgoing packets
+        for (let i: number = 0; i < this.clients.length; i++) {
+            const client: ClientSocket = this.clients[i];
 
             // keepalive every 5s
             if (this.tick % 100 === 0) {
@@ -478,7 +486,6 @@ class Lobby {
                 continue;
             }
 
-            // process outgoing packets
             for (let j: number = 0; j < client.netOutQueue.length; j++) {
                 client.send(client.netOutQueue[j]);
             }
