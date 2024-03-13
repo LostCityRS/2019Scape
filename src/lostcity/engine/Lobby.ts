@@ -402,38 +402,43 @@ class Lobby {
             socket.on('data', async (data: Buffer): Promise<void> => {
                 const stream: Packet = Packet.wrap(data, false);
 
-                while (stream.available > 0) {
-                    switch (client.state) {
-                        case ConnectionState.Login: {
-                            await this.loginDecode(client, stream);
-                            break;
-                        }
-                        case ConnectionState.Js5: {
-                            await this.js5Decode(client, stream);
-                            break;
-                        }
-                        case ConnectionState.Lobby: {
-                            const opcode: number = stream.g1();
-                            const packetType: ClientProt | undefined = ClientProt.values()[opcode];
-                            if (typeof packetType === 'undefined') {
-                                console.log(`[LOBBY]: Unknown packet ${opcode}`);
-                                return;
+                try {
+                    while (stream.available > 0) {
+                        switch (client.state) {
+                            case ConnectionState.Login: {
+                                await this.loginDecode(client, stream);
+                                break;
                             }
-
-                            let size: number = packetType.size;
-                            if (size === -1) {
-                                size = stream.g1();
-                            } else if (size === -2) {
-                                size = stream.g2();
+                            case ConnectionState.Js5: {
+                                await this.js5Decode(client, stream);
+                                break;
                             }
+                            case ConnectionState.Lobby: {
+                                const opcode: number = stream.g1();
+                                const packetType: ClientProt | undefined = ClientProt.values()[opcode];
+                                if (typeof packetType === 'undefined') {
+                                    console.log(`[LOBBY]: Unknown packet ${opcode}`);
+                                    return;
+                                }
 
-                            client.netInQueue.push(new ClientMessage(packetType, stream.gPacket(size)));
-                            break;
-                        }
-                        case ConnectionState.Game: {
-                            break;
+                                let size: number = packetType.size;
+                                if (size === -1) {
+                                    size = stream.g1();
+                                } else if (size === -2) {
+                                    size = stream.g2();
+                                }
+
+                                client.netInQueue.push(new ClientMessage(packetType, stream.gPacket(size)));
+                                break;
+                            }
+                            case ConnectionState.Game: {
+                                break;
+                            }
                         }
                     }
+                } catch (err) {
+                    console.error(err);
+                    socket.end();
                 }
 
                 client.lastResponse = this.tick;

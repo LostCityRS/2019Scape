@@ -117,8 +117,30 @@ class World {
                 await this.ifOpenSubRedirect(client, 7716, 28, 3505, 1477, 1588);
                 await this.ifOpenSubRedirect(client, 7716, 29, 3505, 1477, 1678);
                 await this.ifOpenSubRedirect(client, 7716, 31, 3505, 1477, 1904);
-
-                // AllPackets.ifOpenSub(client, 1477, 30, 1422); // worldmap
+                await this.ifOpenSubRedirect(client, 7716, 32, 3505, 1477, 930); // task system
+                await this.ifOpenSubRedirect(client, 7716, 35, 3513, 1477, 1215);
+                await this.ifOpenSubRedirect(client, 7716, 1002, 3505, 1477, 1431);
+                AllPackets.ifOpenSub(client, 1477, 633, 568);
+                AllPackets.ifOpenSub(client, 1477, 85, 1465);
+                // AllPackets.ifOpenSub(client, 1465, 6, 1920, 1);
+                await this.ifOpenSubRedirect(client, 7716, 1003, 3505, 1477, 1430);
+                // AllPackets.ifOpenSub(client, 1430, 58, 1616, 1);
+                // AllPackets.ifOpenSub(client, 1477, 747, 1433);
+                await this.ifOpenSubRedirect(client, 7716, 1010, 3505, 1477, 1483);
+                await this.ifOpenSubRedirect(client, 7716, 1014, 3505, 1477, 745);
+                await this.ifOpenSubRedirect(client, 7716, 1009, 3505, 1477, 284);
+                await this.ifOpenSubRedirect(client, 7716, 1026, 3505, 1477, 1213);
+                await this.ifOpenSubRedirect(client, 7716, 1001, 3505, 1477, 1448);
+                await this.ifOpenSubRedirect(client, 7716, 1020, 3505, 1477, 557);
+                await this.ifOpenSubRedirect(client, 7716, 1038, 3505, 1477, 291);
+                await this.ifOpenSubRedirect(client, 7716, 1019, 3505, 1477, 182);
+                await this.ifOpenSubRedirect(client, 7716, 1032, 3505, 1477, 1670);
+                await this.ifOpenSubRedirect(client, 7716, 1033, 3505, 1477, 1671);
+                await this.ifOpenSubRedirect(client, 7716, 1034, 3505, 1477, 1672);
+                await this.ifOpenSubRedirect(client, 7716, 1035, 3505, 1477, 1673);
+                AllPackets.ifOpenSub(client, 1477, 86, 1919);
+                AllPackets.ifOpenSub(client, 1477, 838, 1847);
+                AllPackets.ifOpenSub(client, 1477, 34, 1680);
 
                 // unlock
                 await this.ifSetEventsRedirect(client, 7716, 1001, 3509, 1477, 0, 24, 2);
@@ -683,31 +705,36 @@ class World {
             socket.on('data', async (data: Buffer): Promise<void> => {
                 const stream: Packet = Packet.wrap(data, false);
 
-                while (stream.available > 0) {
-                    switch (client.state) {
-                        case ConnectionState.Login: {
-                            await this.loginDecode(client, stream);
-                            break;
-                        }
-                        case ConnectionState.Game: {
-                            const opcode: number = stream.g1();
-                            const packetType: ClientProt | undefined = ClientProt.values()[opcode];
-                            if (typeof packetType === 'undefined') {
-                                console.log(`[WORLD]: Unknown packet ${opcode}`);
-                                return;
+                try {
+                    while (stream.available > 0) {
+                        switch (client.state) {
+                            case ConnectionState.Login: {
+                                await this.loginDecode(client, stream);
+                                break;
                             }
+                            case ConnectionState.Game: {
+                                const opcode: number = stream.g1();
+                                const packetType: ClientProt | undefined = ClientProt.values()[opcode];
+                                if (typeof packetType === 'undefined') {
+                                    console.log(`[WORLD]: Unknown packet ${opcode}`);
+                                    return;
+                                }
 
-                            let size: number = packetType.size;
-                            if (size === -1) {
-                                size = stream.g1();
-                            } else if (size === -2) {
-                                size = stream.g2();
+                                let size: number = packetType.size;
+                                if (size === -1) {
+                                    size = stream.g1();
+                                } else if (size === -2) {
+                                    size = stream.g2();
+                                }
+
+                                client.netInQueue.push(new ClientMessage(packetType, stream.gPacket(size)));
+                                break;
                             }
-
-                            client.netInQueue.push(new ClientMessage(packetType, stream.gPacket(size)));
-                            break;
                         }
                     }
+                } catch (err) {
+                    console.error(err);
+                    socket.end();
                 }
 
                 client.lastResponse = this.tick;
