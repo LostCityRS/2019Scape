@@ -1,4 +1,5 @@
 import net from 'net';
+import { parentPort } from 'worker_threads';
 
 import Packet from '#jagex/bytepacking/Packet.js';
 
@@ -457,6 +458,10 @@ class Lobby {
                 socket.destroy();
             });
         });
+    }
+
+    async start(): Promise<void> {
+        await CacheProvider.load('data/pack');
 
         this.server.listen(43594, '0.0.0.0');
         setImmediate(this.cycle.bind(this));
@@ -501,4 +506,15 @@ class Lobby {
     }
 }
 
-export default new Lobby();
+if (!parentPort) {
+    console.error('Lobby.ts must be run as a worker thread');
+    process.exit(1);
+}
+
+const lobby: Lobby = new Lobby();
+
+parentPort.on('message', async (...args: unknown[]): Promise<void> => {
+    if (args[0] === 'start') {
+        await lobby.start();
+    }
+});

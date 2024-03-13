@@ -11,7 +11,6 @@ export default class ClientSocket {
     state: ConnectionState;
     debug: boolean = false;
     lastResponse: number = 0;
-    testing: boolean = false;
 
     netInQueue: ClientMessage[] = [];
     netOutQueue: ServerMessage[] = [];

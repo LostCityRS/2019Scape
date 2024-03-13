@@ -3,7 +3,7 @@ import WorldProvider from '#lostcity/server/WorldProvider.js';
 
 import startWeb from '#lostcity/web/app.js';
 
-LobbyProvider.emit('start');
-WorldProvider.emit('start');
+LobbyProvider.postMessage('start');
+WorldProvider.postMessage('start');
 
-startWeb();
+await startWeb();

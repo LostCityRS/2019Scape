@@ -26,7 +26,9 @@ app.get('/ms', async (req: any, res: any): Promise<void> => {
     res.send(data);
 });
 
-export default function startWeb(): void {
+export default async function startWeb(): Promise<void> {
+    await CacheProvider.load('data/pack');
+
     app.listen({
         port: 80,
         host: '0.0.0.0'

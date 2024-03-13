@@ -198,6 +198,11 @@ function rebuildNormal(client: ClientSocket, nearbyPlayers: boolean, forceRebuil
 
         // low-res player info
         for (let i: number = 1; i < 2048; i++) {
+            if (i === 1) {
+                // temp hardcoded player id
+                continue;
+            }
+
             // const lowres: number = (0 << 16) | (50 << 16) | 50;
             message.buf.pBit(18, 0);
         }
@@ -232,8 +237,10 @@ function playerInfo(client: ClientSocket, testing: boolean): void {
 
     // local players (active)
     message.buf.accessBits();
-    if (!testing) {
-        message.buf.pBit(1, 0);
+    for (let i: number = 1; i < 2048; i++) {
+        if (i !== 1) {
+            message.buf.pBit(1, 0);
+        }
     }
     message.buf.accessBytes();
 
@@ -243,7 +250,12 @@ function playerInfo(client: ClientSocket, testing: boolean): void {
 
     // external players (active)
     message.buf.accessBits();
-    for (let i: number = 0; i < 2047; i++) {
+    for (let i: number = 1; i < 2048; i++) {
+        if (i === 1) {
+            // temp hardcoded player id
+            continue;
+        }
+
         message.buf.pBit(1, 0);
         message.buf.pBit(2, 0);
     }
