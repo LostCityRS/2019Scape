@@ -217,9 +217,9 @@ export default class Js5 {
         this.masterIndex = masterIndex;
 
         const bytesLen: number = this.index.size * 4;
-        const offsets: Packet = Packet.alloc(bytesLen);
+        const lengths: Packet = Packet.alloc(bytesLen);
         this.store.seek(this.store.length - bytesLen);
-        this.store.read(offsets, 0, bytesLen);
+        this.store.read(lengths, 0, bytesLen);
 
         if (this.index.groupIds) {
             this.groupPos = new Array(this.index.capacity);
@@ -249,8 +249,13 @@ export default class Js5 {
             // storing size
             let offset: number = masterIndex.length;
             for (let i: number = 0; i < this.index.size; i++) {
-                this.groupPos[this.index.groupIds[i]] = offset;
-                offset += offsets.g4();
+                const length: number = lengths.g4();
+                if (length < 5) {
+                    delete this.groupPos[this.index.groupIds[i]];
+                } else {
+                    this.groupPos[this.index.groupIds[i]] = offset;
+                }
+                offset += length;
             }
         }
 
@@ -380,6 +385,10 @@ export default class Js5 {
 
         if (this.patch && typeof this.patch.groupPos[group] !== 'undefined') {
             return this.patch.readRaw(group);
+        }
+
+        if (typeof this.groupPos[group] === 'undefined') {
+            return null;
         }
 
         const pos: number = this.groupPos[group];
