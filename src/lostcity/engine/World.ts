@@ -88,6 +88,42 @@ class World {
 
                 AllPackets.rebuildNormal(client, true);
 
+                AllPackets.updateVarc(client, 3698, 1);
+                AllPackets.updateVarc(client, 987, 1);
+                AllPackets.updateVarc(client, 1701, 1);
+                AllPackets.updateVarc(client, 6042, 0);
+                AllPackets.updateVarc(client, 5187, 1);
+                AllPackets.updateVarc(client, 6503, 1);
+                AllPackets.updateVarc(client, 1240, 4);
+                AllPackets.updateVarc(client, 1277, 0);
+                AllPackets.updateVarc(client, 3684, 0);
+                AllPackets.updateVarc(client, 3708, 0);
+                AllPackets.updateVarc(client, 3681, 1);
+                AllPackets.updateVarc(client, 2771, 56495751);
+                AllPackets.updateVarc(client, 178, 0);
+                AllPackets.updateVarc(client, 6341, 1073741313);
+                AllPackets.updateVarc(client, 6348, 0);
+                AllPackets.updateVarc(client, 4738, 0);
+                AllPackets.updateVarc(client, 1787, 1);
+                AllPackets.updateVarc(client, 6040, 30);
+                AllPackets.updateVarc(client, 6041, 13);
+                AllPackets.updateVarcStr(client, 3683, 'test');
+                AllPackets.updateVarc(client, 1882, 0);
+                AllPackets.updateVarc(client, 1274, 102);
+                AllPackets.updateVarc(client, 1414, 1);
+                AllPackets.updateVarc(client, 1788, -37);
+                AllPackets.updateVarc(client, 1971, 5725);
+
+                AllPackets.updateVar(client, 1295, 1000);
+                AllPackets.updateVarbit(client, 20940, 120);
+                AllPackets.updateVarbit(client, 382, 1);
+                AllPackets.updateVarbit(client, 9513, 1);
+                AllPackets.updateVarbit(client, 14041, 200);
+                AllPackets.updateVarbit(client, 39917, 98);
+                AllPackets.updateVar(client, 425, 1);
+                AllPackets.updateVar(client, 8569, 1);
+                AllPackets.updateVar(client, 8571, 1);
+
                 AllPackets.ifOpenTop(client, 1477);
                 AllPackets.ifOpenSub(client, 1477, 23, 1482); // gamescreen
                 AllPackets.ifOpenSub(client, 1477, 50, 1252, 1); // TH promo

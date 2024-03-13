@@ -187,7 +187,7 @@ function js5Reload(client: ClientSocket): void {
     client.send(message);
 }
 
-function rebuildNormal(client: ClientSocket, nearbyPlayers: boolean): void {
+function rebuildNormal(client: ClientSocket, nearbyPlayers: boolean, forceRebuild: boolean = true): void {
     const message: ServerMessage = ServerMessage.create(ServerProt.REBUILD_NORMAL);
 
     if (nearbyPlayers) {
@@ -197,7 +197,7 @@ function rebuildNormal(client: ClientSocket, nearbyPlayers: boolean): void {
         message.buf.pBit(30, highres);
 
         // low-res player info
-        for (let i: number = 0; i < 2048; i++) {
+        for (let i: number = 1; i < 2048; i++) {
             // const lowres: number = (0 << 16) | (50 << 16) | 50;
             message.buf.pBit(18, 0);
         }
@@ -205,12 +205,25 @@ function rebuildNormal(client: ClientSocket, nearbyPlayers: boolean): void {
         message.buf.accessBytes();
     }
 
-    message.buf.p2_alt2(400); // x
-    message.buf.p1(0); // size-related
-    message.buf.p1_alt3(11); // npc-related, distance?
+    const x: number = 3200 >> 3;
+    const z: number = 3200 >> 3;
+
+    let count: number = 0;
+
+    const sizeZ: number = 104;
+    const sizeX: number = 104;
+    for (let zoneZ: number = (z - (sizeZ >> 4)) / 8; zoneZ <= ((sizeZ >> 4) + x) / 8; zoneZ++) {
+        for (let zoneX: number = (x - (sizeX >> 4)) / 8; zoneX <= ((sizeX >> 4) + x) / 8; zoneX++) {
+            count++;
+        }
+    }
+
+    message.buf.p2_alt2(z); // z
+    message.buf.p1(5); // npc distance (bits)
+    message.buf.p1_alt3(count); // # of regions
     message.buf.p1(0); // build area size
-    message.buf.p2_alt2(400); // z
-    message.buf.p1_alt3(0); // more data?
+    message.buf.p2_alt2(x); // x
+    message.buf.p1_alt3(forceRebuild ? 1 : 0);
     client.send(message);
 }
 
