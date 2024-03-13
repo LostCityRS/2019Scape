@@ -3,6 +3,7 @@ import net from 'net';
 import Packet from '#jagex/bytepacking/Packet.js';
 
 import ConnectionState from '#lostcity/network/ConnectionState.js';
+import ServerMessage from '#jagex/network/ServerMessage.js';
 
 export default class ClientSocket {
     socket: net.Socket;
@@ -28,5 +29,19 @@ export default class ClientSocket {
 
     end(): void {
         this.socket.end();
+    }
+
+    send(message: ServerMessage): void {
+        const length: number = message.buf.pos - message.start;
+
+        if (message.packetType.size === -1) {
+            message.buf.psize1(length);
+        } else if (message.packetType.size === -2) {
+            message.buf.psize2(length);
+        }
+
+        console.log(`Sending packet ${message.packetType.debugname} size=${length}`);
+        this.write(message.buf);
+        message.release();
     }
 }

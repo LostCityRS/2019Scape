@@ -7,137 +7,109 @@ import ConnectionState from '#lostcity/network/ConnectionState.js';
 import LoginProt from '#jagex/network/protocol/LoginProt.js';
 import CacheProvider from '#lostcity/server/CacheProvider.js';
 import ClientProt from '#jagex/network/protocol/ClientProt.js';
+import ServerMessage from '#jagex/network/ServerMessage.js';
+import ServerProt from '#jagex/network/protocol/ServerProt.js';
 
 function resetClientVarCache(client: ClientSocket): void {
-    const reply: Packet = new Packet();
-    reply.p1(99);
-    client.write(reply);
+    const message: ServerMessage = ServerMessage.create(ServerProt.RESET_CLIENT_VARCACHE);
+    client.send(message);
 }
 
 function updateVar(client: ClientSocket, varp: number, value: number): void {
-    const reply: Packet = new Packet();
-
     if (value <= 255) {
-        reply.pIsaac1or2(157);
-        reply.p1(value);
-        reply.p2_alt2(varp);
+        const message: ServerMessage = ServerMessage.create(ServerProt.VARP_SMALL);
+        message.buf.p1(value);
+        message.buf.p2_alt2(varp);
+        client.send(message);
     } else {
-        reply.p1(50);
-        reply.p2_alt1(varp);
-        reply.p4(value);
+        const message: ServerMessage = ServerMessage.create(ServerProt.VARP_LARGE);
+        message.buf.p2_alt1(varp);
+        message.buf.p4(value);
+        client.send(message);
     }
-
-    client.write(reply);
 }
 
 function updateVarbit(client: ClientSocket, varbit: number, value: number): void {
-    const reply: Packet = new Packet();
-
     if (value <= 255) {
-        reply.p1(44);
-        reply.p1_alt3(value);
-        reply.p2_alt2(varbit);
+        const message: ServerMessage = ServerMessage.create(ServerProt.VARBIT_SMALL);
+        message.buf.p1_alt3(value);
+        message.buf.p2_alt2(varbit);
+        client.send(message);
     } else {
-        reply.pIsaac1or2(142);
-        reply.p2_alt2(varbit);
-        reply.p4_alt1(value);
+        const message: ServerMessage = ServerMessage.create(ServerProt.VARBIT_LARGE);
+        message.buf.p2_alt2(varbit);
+        message.buf.p4_alt1(value);
+        client.send(message);
     }
-
-    client.write(reply);
 }
 
 function updateVarc(client: ClientSocket, varc: number, value: number): void {
-    const reply: Packet = new Packet();
-
     if (value <= 255) {
-        reply.pIsaac1or2(149);
-        reply.p1_alt3(value);
-        reply.p2(varc);
+        const message: ServerMessage = ServerMessage.create(ServerProt.CLIENT_SETVARC_SMALL);
+        message.buf.p1_alt3(value);
+        message.buf.p2(varc);
+        client.send(message);
     } else {
-        reply.pIsaac1or2(128);
-        reply.p4_alt1(value);
-        reply.p2_alt2(varc);
+        const message: ServerMessage = ServerMessage.create(ServerProt.CLIENT_SETVARC_LARGE);
+        message.buf.p4_alt1(value);
+        message.buf.p2_alt2(varc);
+        client.send(message);
     }
-
-    client.write(reply);
 }
 
 function updateVarcbit(client: ClientSocket, varc: number, value: number): void {
-    const reply: Packet = new Packet();
-
     if (value <= 255) {
-        reply.p1(54);
-        reply.p2(varc);
-        reply.p1_alt1(value);
+        const message: ServerMessage = ServerMessage.create(ServerProt.CLIENT_SETVARCBIT_SMALL);
+        message.buf.p2(varc);
+        message.buf.p1_alt1(value);
+        client.send(message);
     } else {
-        reply.p1(69);
-        reply.p2_alt2(varc);
-        reply.p4_alt1(value);
+        const message: ServerMessage = ServerMessage.create(ServerProt.CLIENT_SETVARCBIT_LARGE);
+        message.buf.p2_alt2(varc);
+        message.buf.p4_alt1(value);
+        client.send(message);
     }
-
-    client.write(reply);
 }
 
 function updateVarcStr(client: ClientSocket, varc: number, value: string): void {
-    const reply: Packet = new Packet();
-
     if (value.length < 250) {
-        reply.p1(30);
-        reply.p1(0);
-        const start: number = reply.pos;
-
-        reply.p2(varc);
-        reply.pjstr(value);
-
-        reply.psize1(reply.pos - start);
+        const message: ServerMessage = ServerMessage.create(ServerProt.CLIENT_SETVARCSTR_SMALL);
+        message.buf.p2(varc);
+        message.buf.pjstr(value);
+        client.send(message);
     } else {
-        reply.p1(21);
-        reply.p2(0);
-        const start: number = reply.pos;
-
-        reply.p2(varc);
-        reply.pjstr(value);
-
-        reply.psize2(reply.pos - start);
+        const message: ServerMessage = ServerMessage.create(ServerProt.CLIENT_SETVARCSTR_LARGE);
+        message.buf.p2(varc);
+        message.buf.pjstr(value);
+        client.send(message);
     }
-
-    client.write(reply);
 }
 
 function ifOpenTop(client: ClientSocket, toplevel: number): void {
-    const reply: Packet = new Packet();
-    reply.p1(35);
-
-    reply.p4_alt2(0); // xtea 4
-    reply.p4_alt1(0); // xtea 3
-    reply.p4_alt2(0); // xtea 1
-    reply.p4(0); // xtea 2
-    reply.p1(0); // unused, maybe was type?
-    reply.p2_alt3(toplevel); // toplevel interface
-
-    client.write(reply);
+    const message: ServerMessage = ServerMessage.create(ServerProt.IF_OPENTOP);
+    message.buf.p4_alt2(0); // xtea 4
+    message.buf.p4_alt1(0); // xtea 3
+    message.buf.p4_alt2(0); // xtea 1
+    message.buf.p4(0); // xtea 2
+    message.buf.p1(0); // unused, maybe was type?
+    message.buf.p2_alt3(toplevel); // toplevel interface
+    client.send(message);
 }
 
 function ifOpenSub(client: ClientSocket, toplevel: number, com: number, child: number, type: number = 0): void {
-    const reply: Packet = new Packet();
-    reply.p1(38);
-
-    reply.p4_alt2(0); // xtea 3
-    reply.p4_alt1((toplevel << 16) | com); // toplevel | component
-    reply.p1_alt2(type); // type (overlay or modal)
-    reply.p4(0); // xtea 4
-    reply.p2(child); // id
-    reply.p4_alt2(0); // xtea 2
-    reply.p4_alt2(0); // xtea 1
-
-    client.write(reply);
+    const message: ServerMessage = ServerMessage.create(ServerProt.IF_OPENSUB);
+    message.buf.p4_alt2(0); // xtea 3
+    message.buf.p4_alt1((toplevel << 16) | com); // toplevel | component
+    message.buf.p1_alt2(type); // type (overlay or modal)
+    message.buf.p4(0); // xtea 4
+    message.buf.p2(child); // id
+    message.buf.p4_alt2(0); // xtea 2
+    message.buf.p4_alt2(0); // xtea 1
+    client.send(message);
 }
 
 function runClientScript(client: ClientSocket, script: number, args: (string | number)[] = []): void {
-    const reply: Packet = new Packet();
-    reply.pIsaac1or2(156);
-    reply.p2(0);
-    const start: number = reply.pos;
+    const message: ServerMessage = ServerMessage.create(ServerProt.RUNCLIENTSCRIPT);
 
     let descriptor: string = '';
     for (let i: number = args.length - 1; i >= 0; i--) {
@@ -148,20 +120,18 @@ function runClientScript(client: ClientSocket, script: number, args: (string | n
         }
     }
 
-    reply.pjstr(descriptor);
+    message.buf.pjstr(descriptor);
 
     for (let i: number = 0; i < args.length; i++) {
         if (typeof args[i] === 'string') {
-            reply.pjstr(args[i] as string);
+            message.buf.pjstr(args[i] as string);
         } else {
-            reply.p4(args[i] as number);
+            message.buf.p4(args[i] as number);
         }
     }
 
-    reply.p4(script);
-
-    reply.psize2(reply.pos - start);
-    client.write(reply);
+    message.buf.p4(script);
+    client.send(message);
 }
 
 class Lobby {
