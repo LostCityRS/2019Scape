@@ -126,7 +126,7 @@ class World {
                 // AllPackets.updateVar(client, 8571, 1);
 
                 AllPackets.ifOpenTop(client, 1477);
-                AllPackets.ifOpenSub(client, 1477, 23, 1482, 1); // gamescreen
+                AllPackets.ifOpenSub(client, 1477, 22, 1482, 1); // gamescreen
                 // AllPackets.ifOpenSub(client, 1477, 34, 1680);
                 // AllPackets.ifOpenSub(client, 1477, 50, 1252, 1); // TH promo
                 AllPackets.ifOpenSub(client, 1477, 85, 1465, 1); // minimap
