@@ -349,6 +349,28 @@ class Lobby {
                 AllPackets.worldlistFetchReply(client);
                 break;
             }
+            case ClientProt.CLIENT_CHEAT: {
+                const scripted: boolean = message.buf.g1() == 1;
+                const suggest: boolean = message.buf.g1() == 1
+                const command: string = message.buf.gjstr();
+
+                switch (command) {
+                    case 'js5_reload': {
+                        AllPackets.js5Reload(client);
+                        break
+                    }
+                    case 'reboottimer': {
+                        AllPackets.updateRebootTimer(client, 1200);
+                        break
+                    }
+                    default: {
+                        console.log(`Unknown command: ${command}`)
+                        break;
+                    }
+                }
+
+                break;
+            }
             case ClientProt.WINDOW_STATUS: {
                 const windowMode: number = message.buf.g1();
                 const width: number = message.buf.g2();

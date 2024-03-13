@@ -182,6 +182,11 @@ function worldlistFetchReply(client: ClientSocket): void {
     client.send(message);
 }
 
+function js5Reload(client: ClientSocket): void {
+    const message: ServerMessage = ServerMessage.create(ServerProt.JS5_RELOAD);
+    client.send(message);
+}
+
 export default {
     resetClientVarCache,
     updateVar,
@@ -194,5 +199,6 @@ export default {
     runClientScript,
     updateRebootTimer,
     noTimeout,
-    worldlistFetchReply
+    worldlistFetchReply,
+    js5Reload
 }
