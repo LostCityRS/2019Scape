@@ -318,14 +318,23 @@ class Lobby {
                     return;
                 }
 
-                const maxChunkSize: number = 102400;
-                for (let offset: number = 0; offset < data.length; offset += maxChunkSize) {
-                    const chunkSize: number = Math.min(maxChunkSize - 5, data.length - offset);
-                    const buf: Packet = new Packet();
+                let sent: number = 0;
+                while (sent < data.length) {
+                    const length: number = data.length;
+
+                    const buf: Packet = Packet.alloc(Math.min(102400, length - sent) + 5);
                     buf.p1(archive);
                     buf.p4(opcode === 1 ? group : group | 0x80000000);
-                    buf.pdata(data.subarray(offset, offset + chunkSize));
-                    client.write(buf);
+
+                    for (let pos: number = sent; pos < length; pos++) {
+                        buf.p1(data[pos]);
+
+                        if (buf.pos == 102400 || pos == length - 1) {
+                            sent = pos + 1;
+                            client.write(buf);
+                            break;
+                        }
+                    }
                 }
 
                 break;
