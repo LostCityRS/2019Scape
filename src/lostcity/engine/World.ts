@@ -11,9 +11,9 @@ import ClientProt from '#jagex/network/protocol/ClientProt.js';
 
 import AllPackets from '#jagex/network/packetencoders/AllPackets.js';
 import ClientMessage from '#jagex/network/ClientMessage.js';
-import Js5Archive from '#jagex/config/Js5Archive.js';
 import EnumType from '#jagex/config/enumtype/EnumType.js';
 import StructType from '#jagex/config/enumtype/StructType.js';
+import CollisionManager from '#lostcity/engine/collision/CollisionManager.js';
 
 class World {
     id: number = 1;
@@ -21,6 +21,7 @@ class World {
     tick: number = 0;
     server: net.Server = net.createServer();
     clients: ClientSocket[] = [];
+    collision: CollisionManager = new CollisionManager();
 
     async loginDecode(client: ClientSocket, stream: Packet): Promise<void> {
         const opcode: number = stream.g1();
@@ -794,6 +795,7 @@ class World {
 
     async start(): Promise<void> {
         await CacheProvider.load('data/pack');
+        await this.collision.init();
 
         this.server.listen(43594 + this.id, '0.0.0.0');
         setImmediate(this.cycle.bind(this));
