@@ -15,7 +15,7 @@ import NpcCollider from '#lostcity/engine/collision/NpcCollider.js';
 import PlayerCollider from '#lostcity/engine/collision/PlayerCollider.js';
 
 export default class CollisionManager {
-    private static readonly SHIFT_23: number = Math.pow(2, 23);
+    private static readonly SHIFT_25: number = Math.pow(2, 25);
 
     readonly flags: CollisionFlagMap;
     readonly stepValidator: StepValidator;
@@ -252,16 +252,16 @@ export default class CollisionManager {
     }
 
     private packLoc = (id: number, shape: number, angle: number, coord: number): number => {
-        const lowBits: number = (id & 0xffff) | ((shape & 0x1f) << 16) | ((angle & 0x3) << 21);
+        const lowBits: number = (id & 0x3ffff) | ((shape & 0x1f) << 18) | ((angle & 0x3) << 23);
         const highBits: number = coord & 0x3fff;
-        return lowBits + highBits * CollisionManager.SHIFT_23;
+        return lowBits + highBits * CollisionManager.SHIFT_25;
     }
 
     private unpackLoc = (packed: number): { coord: number; shape: number; angle: number; id: number } => {
-        const id: number = packed & 0xffff;
-        const shape: number = (packed >> 16) & 0x1f;
-        const angle: number = (packed >> 21) & 0x3;
-        const coord: number = (packed / CollisionManager.SHIFT_23) & 0x3fff;
+        const id: number = packed & 0x3ffff;
+        const shape: number = (packed >> 18) & 0x1f;
+        const angle: number = (packed >> 23) & 0x3;
+        const coord: number = (packed / CollisionManager.SHIFT_25) & 0x3fff;
         return { id, shape, angle, coord };
     }
 }
