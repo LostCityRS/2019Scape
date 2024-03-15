@@ -8,3 +8,4 @@ node_modules
 .idea
 
 *.patch.js5
+RuneScriptCompiler.jar

@@ -1,0 +1,6 @@
+[login,_]
+if (map_lobby = true) {
+    @lobbylogin;
+} else {
+    @gamelogin;
+}

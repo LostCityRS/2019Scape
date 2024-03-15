@@ -1,0 +1,22 @@
+[label,lobbylogin]
+if_opentop(interface_906);
+
+if_opensub(interface_906, interface_906:107, interface_907, 1);
+if_opensub(interface_906, interface_906:108, interface_910, 1);
+if_opensub(interface_906, interface_906:109, interface_909, 1);
+if_opensub(interface_906, interface_906:110, interface_589, 1);
+if_opensub(interface_906, interface_906:111, interface_912, 1);
+if_opensub(interface_906, interface_906:112, interface_911, 1);
+if_opensub(interface_906, interface_906:280, interface_914, 1);
+if_opensub(interface_906, interface_906:298, interface_915, 1);
+if_opensub(interface_906, interface_906:307, interface_913, 1);
+
+%varp_1752 = 1;
+%varp_1754 = 1;
+
+// ~lobby_newspost(true, "02-Dec-2019", "slug1", "This week we've fixed a few cheeky bugs that had cropped up!", "Game Update: Farming & Herblore 120 Fixes", -1, 1, 0, 1);
+// ~lobby_newspost(false, "09-Dec-2019", "slug2", "While you've been gliding about on the ice outside, we've been working on some smooth moves of our own.", "Game Update: Smooth Movement", -1, 1, 0, 2);
+// ~lobby_newspost(false, "09-Dec-2019", "slug3", "The Patch Notes for December 9th!", "Patch Notes - 9/12", -1, 1, 0, 3);
+
+// [proc,lobby_newspost](boolean $pinned, string $date, string $slug, string $desc, string $title, int $unk1, int $category, int $id, int $index)
+// runclientscript("script_10931($pinned, $date, $slug, $desc, $title, $unk1, $category, $id, $index)");

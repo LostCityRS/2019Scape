@@ -1,0 +1,11 @@
+// Core language ops (0-99)
+[command,gosub](proc $proc)
+[command,jump](label $label)
+
+// Server ops (1000-1999)
+[command,map_lobby]()(boolean)
+
+// Player ops (2000-2499)
+[command,if_opentop](interface $interface)
+[command,if_opensub](interface $interface, component $com, interface $child, int $type)
+[command,runclientscript](hook $hook)
