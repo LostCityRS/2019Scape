@@ -12,12 +12,16 @@ export default class Cache {
     prefetches: number[] = [];
     masterIndexIndex: Uint8Array | null = null;
 
-    async load(dir: string): Promise<void> {
+    async load(dir: string, patch: boolean = true): Promise<void> {
+        if (this.masterIndexIndex !== null) {
+            return;
+        }
+
         for (let archive: number = 0; archive < Js5Archive.getMaxId(); archive++) {
             const type: Js5Archive | null = Js5Archive.forId(archive);
 
             if (type !== null) {
-                this.js5[type.id] = await Js5.load(`${dir}/client.${type.name}.js5`);
+                this.js5[type.id] = await Js5.load(`${dir}/client.${type.name}.js5`, patch);
             }
         }
 

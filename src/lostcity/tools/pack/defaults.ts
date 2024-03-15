@@ -8,25 +8,27 @@ import Packet from '#jagex/bytepacking/Packet.js';
 import { saveFile } from '#lostcity/util/FileUtils.js';
 import AudioDefaults from '#jagex/config/defaults/AudioDefaults.js';
 
-const src: string[] = fs.readFileSync('data/src/defaults/audio.defaults', 'utf-8')
-    .replaceAll('\r', '').split('\n')
-    .filter((x): boolean => x.length > 0 && !x.startsWith('//'));
+export default async function packDefaults(): Promise<void> {
+    const src: string[] = fs.readFileSync('data/src/defaults/audio.defaults', 'utf-8')
+        .replaceAll('\r', '').split('\n')
+        .filter((x): boolean => x.length > 0 && !x.startsWith('//'));
 
-const buf: Uint8Array = AudioDefaults.encode(src);
+    const buf: Uint8Array = AudioDefaults.encode(src);
 
-const packed: Uint8Array = Js5.packGroup(buf);
-saveFile(`data/pack/patch/${Js5ArchiveType.Defaults}/4.dat`, packed);
+    const packed: Uint8Array = Js5.packGroup(buf);
+    saveFile(`data/pack/patch/${Js5ArchiveType.Defaults}/4.dat`, packed);
 
-// ----
+    // ----
 
-const index: Js5Index = new Js5Index();
-index.format = 7;
-index.version = 1;
-index.addGroup(4, Packet.getcrc(packed), Packet.getcrc(buf), packed.length, buf.length, 1574159676);
+    const index: Js5Index = new Js5Index();
+    index.format = 7;
+    index.version = 1;
+    index.addGroup(4, Packet.getcrc(packed), Packet.getcrc(buf), packed.length, buf.length, 1574159676);
 
-// ----
+    // ----
 
-const packedIndex: Uint8Array = Js5.packGroup(index.encode(), 2);
-saveFile(`data/pack/patch/${Js5ArchiveType.ArchiveSet}/${Js5ArchiveType.Defaults}.dat`, packedIndex);
+    const packedIndex: Uint8Array = Js5.packGroup(index.encode(), 2);
+    saveFile(`data/pack/patch/${Js5ArchiveType.ArchiveSet}/${Js5ArchiveType.Defaults}.dat`, packedIndex);
 
-await Js5.packArchive('data/pack/patch', 'data/pack', 'defaults', Js5ArchiveType.Defaults, true, true);
+    await Js5.packArchive('data/pack/patch', 'data/pack', 'defaults', Js5ArchiveType.Defaults, true, true);
+}
