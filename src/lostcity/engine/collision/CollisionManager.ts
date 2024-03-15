@@ -161,7 +161,7 @@ export default class CollisionManager {
         return mx | mz << 7;
     }
 
-    private decodeLands(lands: Int8Array, packet: Packet): void {
+    private decodeLands = (lands: Int8Array, packet: Packet): void => {
         for (let level: number = 0; level < 4; level++) {
             for (let x: number = 0; x < 64; x++) {
                 for (let z: number = 0; z < 64; z++) {
@@ -171,7 +171,7 @@ export default class CollisionManager {
         }
     }
 
-    private decodeLand = (buf: Packet, underwater: boolean = false): number => {
+    private decodeLand = (buf: Packet): number => {
         const opcode: number = buf.g1();
         if ((opcode & 0x1) !== 0) {
             buf.g1();
@@ -179,11 +179,7 @@ export default class CollisionManager {
         }
         let collision: number = 0;
         if ((opcode & 0x2) !== 0) {
-            if (underwater) {
-                buf.pos++;
-            } else {
-                collision = buf.g1b();
-            }
+            collision = buf.g1b();
         }
         if ((opcode & 0x4) !== 0) {
             buf.gSmart1or2();
