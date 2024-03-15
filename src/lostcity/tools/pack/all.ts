@@ -24,22 +24,6 @@ function loadPack(path: string): Map<string, string> {
     return pack;
 }
 
-function generatePack(path: string, ext: string, pack: Map<string, string>): void {
-    fs.readdirSync(path).forEach((file: string): void => {
-        if (fs.statSync(`${path}/${file}`).isDirectory()) {
-            generatePack(`${path}/${file}`, ext, pack);
-        } else if (file.endsWith(ext)) {
-            const lines: string[] = fs.readFileSync(`${path}/${file}`, 'utf-8').replace(/\r/g, '').split('\n');
-
-            for (const line of lines) {
-                if (line.startsWith('[') && line.endsWith(']')) {
-                    pack.set(pack.size.toString(), line);
-                }
-            }
-        }
-    });
-}
-
 const interfacePack: Map<string, string> = loadPack('data/src/pack/interface.pack');
 const varbitPack: Map<string, string> = loadPack('data/src/pack/varbit.pack');
 const varcPack: Map<string, string> = loadPack('data/src/pack/varc.pack');
@@ -110,10 +94,30 @@ fs.writeFileSync('data/pack/symbols/commands.sym', commandsSym);
 
 // ----
 
+function generateScriptPack(path: string, ext: string, pack: Map<string, string>): void {
+    fs.readdirSync(path).forEach((file: string): void => {
+        if (fs.statSync(`${path}/${file}`).isDirectory()) {
+            generateScriptPack(`${path}/${file}`, ext, pack);
+        } else if (file.endsWith(ext)) {
+            const lines: string[] = fs.readFileSync(`${path}/${file}`, 'utf-8').replace(/\r/g, '').split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('[') && line.includes(']')) {
+                    const name: string = line.substring(0, line.indexOf(']') + 1);
+
+                    if (!name.startsWith('[command,')) {
+                        pack.set(pack.size.toString(), name);
+                    }
+                }
+            }
+        }
+    });
+}
+
 let runescriptSym: string = '';
 
 const runescriptPack: Map<string, string> = new Map();
-generatePack('data/src', '.rs2', runescriptPack);
+generateScriptPack('data/src', '.rs2', runescriptPack);
 
 for (const [key, value] of runescriptPack) {
     runescriptSym += `${key}\t${value}\n`;
