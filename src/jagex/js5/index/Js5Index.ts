@@ -2,7 +2,7 @@ import Packet from '#jagex/bytepacking/Packet.js';
 
 import Whirlpool from '#jagex/encryption/Whirlpool.js';
 
-import Js5Compression from '#jagex/js5//Js5Compression.js';
+import Js5 from '#jagex/js5/Js5.js';
 
 export default class Js5Index {
     format: number = 0;
@@ -39,7 +39,7 @@ export default class Js5Index {
 
     async decode(bytes: Uint8Array): Promise<void> {
         // console.time('buf');
-        const buf: Packet = new Packet(await Js5Compression.decompress(bytes));
+        const buf: Packet = new Packet(await Js5.decompress(bytes));
         // console.timeEnd('buf');
 
         // console.time('read');

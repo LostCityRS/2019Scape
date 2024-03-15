@@ -60,6 +60,7 @@ export enum Js5ArchiveType {
 }
 
 export default class Js5Archive {
+
     static Anims = new Js5Archive(Js5ArchiveType.Anims, 'anims');
     static Bases = new Js5Archive(Js5ArchiveType.Bases, 'bases');
     static Config = new Js5Archive(Js5ArchiveType.Config, 'config');
@@ -73,7 +74,7 @@ export default class Js5Archive {
     static Vorbis = new Js5Archive(Js5ArchiveType.Vorbis, 'vorbis');
     static ConfigLoc = new Js5Archive(Js5ArchiveType.ConfigLoc, 'loc.config');
     static ConfigEnum = new Js5Archive(Js5ArchiveType.ConfigEnum, 'enum.config');
-    static ConfigNpc = new Js5Archive(Js5ArchiveType.ConfigNpc, 'npc.confnig');
+    static ConfigNpc = new Js5Archive(Js5ArchiveType.ConfigNpc, 'npc.config');
     static ConfigObj = new Js5Archive(Js5ArchiveType.ConfigObj, 'obj.config');
     static ConfigSeq = new Js5Archive(Js5ArchiveType.ConfigSeq, 'seq.config');
     static ConfigSpot = new Js5Archive(Js5ArchiveType.ConfigSpot, 'spot.config');
@@ -102,6 +103,8 @@ export default class Js5Archive {
     static TexturesPngMipped = new Js5Archive(Js5ArchiveType.TexturesPngMipped, 'textures.png.mipped');
     static TexturesEtc = new Js5Archive(Js5ArchiveType.TexturesEtc, 'textures.etc');
     static AnimKeyframes = new Js5Archive(Js5ArchiveType.AnimKeyframes, 'anims.keyframes');
+
+    static ServerScripts = new Js5Archive(0, 'scripts');
 
     static values: Js5Archive[] = [ Js5Archive.Anims, Js5Archive.Bases, Js5Archive.Config, Js5Archive.Interfaces, Js5Archive.Maps, Js5Archive.Models, Js5Archive.Sprites, Js5Archive.Binary, Js5Archive.ClientScripts, Js5Archive.FontMetrics, Js5Archive.Vorbis, Js5Archive.ConfigLoc, Js5Archive.ConfigEnum, Js5Archive.ConfigNpc, Js5Archive.ConfigObj, Js5Archive.ConfigSeq, Js5Archive.ConfigSpot, Js5Archive.ConfigStruct, Js5Archive.WorldMapData, Js5Archive.QuickChat, Js5Archive.QuickChatGlobal, Js5Archive.Materials, Js5Archive.ConfigParticle, Js5Archive.Defaults, Js5Archive.ConfigBillboard, Js5Archive.Dlls, Js5Archive.Shaders, Js5Archive.LoadingSprites, Js5Archive.LoadingScreen, Js5Archive.LoadingSpritesRaw, Js5Archive.Cutscenes, Js5Archive.AudioStreams, Js5Archive.WorldMapAreas, Js5Archive.WorldMapLabels, Js5Archive.ModelsRT7, Js5Archive.AnimsRT7, Js5Archive.DbTableIndex, Js5Archive.TexturesDxt, Js5Archive.TexturesPng, Js5Archive.TexturesPngMipped, Js5Archive.TexturesEtc, Js5Archive.AnimKeyframes ];
     static forId(id: number): Js5Archive | null {

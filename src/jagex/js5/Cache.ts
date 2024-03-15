@@ -8,6 +8,7 @@ import Whirlpool from '#jagex/encryption/Whirlpool.js';
 
 export default class Cache {
     js5: Js5[] = [];
+    serverJs5: Js5[] = [];
 
     prefetches: number[] = [];
     masterIndexIndex: Uint8Array | null = null;
@@ -24,6 +25,8 @@ export default class Cache {
                 this.js5[type.id] = await Js5.load(`${dir}/client.${type.name}.js5`, patch);
             }
         }
+
+        this.serverJs5[Js5Archive.ServerScripts.id] = await Js5.load(`${dir}/server.scripts.js5`, false, false);
 
         await this.generateMasterIndexIndex();
         this.generatePrefetches();

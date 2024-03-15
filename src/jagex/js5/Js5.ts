@@ -3,9 +3,11 @@ import zlib from 'zlib';
 
 import Packet from '#jagex/bytepacking/Packet.js';
 
-import Whirlpool from '#jagex/encryption/Whirlpool.js';
+import Bzip2Decompressor from '#jagex/compression/Bzip2Decompressor.js';
+import GzipDecompressor from '#jagex/compression/GzipDecompressor.js';
+import LzmaDecompressor from '#jagex/compression/LzmaDecompressor.js';
 
-import Js5Compression from '#jagex/js5/Js5Compression.js';
+import Whirlpool from '#jagex/encryption/Whirlpool.js';
 
 import Js5Index from '#jagex/js5/index/Js5Index.js';
 
@@ -24,7 +26,7 @@ export default class Js5 {
 
     patch: Js5 | null = null;
 
-    static async load(file: string, patch: boolean = true): Promise<Js5> {
+    static async load(file: string, patch: boolean = true, readExtraInfo: boolean = true): Promise<Js5> {
         const store: RandomAccessFile = new RandomAccessFile(file, 'r');
 
         const header: Packet = Packet.alloc(5);
@@ -42,7 +44,7 @@ export default class Js5 {
         store.read(masterIndex, 0, masterIndexLength);
 
         const index: Js5Index = await Js5Index.from(masterIndex.data);
-        const js5: Js5 = new Js5(store, index, masterIndex.data);
+        const js5: Js5 = new Js5(store, index, masterIndex.data, readExtraInfo);
 
         if (patch && fs.existsSync(file.replace('.js5', '.patch.js5'))) {
             // merge the master indexes
@@ -124,9 +126,6 @@ export default class Js5 {
             }
 
             js5.index.version = 1;
-
-            // fs.writeFileSync('data/test1.bin', await Js5Compression.decompress(js5.masterIndex));
-            // fs.writeFileSync('data/test2.bin', index.encode());
 
             js5.masterIndex = Js5.packGroup(index.encode(), 2);
 
@@ -211,7 +210,7 @@ export default class Js5 {
         return buf.data.subarray(0, buf.pos);
     }
 
-    constructor(store: RandomAccessFile, index: Js5Index, masterIndex: Uint8Array) {
+    constructor(store: RandomAccessFile, index: Js5Index, masterIndex: Uint8Array, readExtraInfo: boolean = true) {
         this.store = store;
         this.index = index;
         this.masterIndex = masterIndex;
@@ -221,32 +220,9 @@ export default class Js5 {
         this.store.seek(this.store.length - bytesLen);
         this.store.read(lengths, 0, bytesLen);
 
-        if (this.index.groupIds) {
-            this.groupPos = new Array(this.index.capacity);
+        this.groupPos = new Array(this.index.capacity);
 
-            // generating pos
-            // const header = Packet.alloc(5);
-            // let offset: number = masterIndex.length;
-            // for (let i = 0; i < this.index.size; i++) {
-            //     this.groupPos[this.index.groupIds[i]] = offset;
-
-            //     this.store.seek(offset);
-            //     this.store.read(header, 0, 5);
-
-            //     const compression: number = header.g1();
-            //     let length: number = header.g4();
-            //     if (compression > 0) {
-            //         length += 4;
-            //     }
-            //     offset += 5 + length;
-            // }
-
-            // storing pos
-            // for (let i = 0; i < this.index.size; i++) {
-            //     this.groupPos[this.index.groupIds[i]] = Number(offsets.g8());
-            // }
-
-            // storing size
+        if (readExtraInfo && this.index.groupIds) {
             let offset: number = masterIndex.length;
             for (let i: number = 0; i < this.index.size; i++) {
                 const length: number = lengths.g4();
@@ -256,6 +232,23 @@ export default class Js5 {
                     this.groupPos[this.index.groupIds[i]] = offset;
                 }
                 offset += length;
+            }
+        } else if (!readExtraInfo && this.index.groupIds) {
+            const header: Packet = Packet.alloc(5);
+            let offset: number = masterIndex.length;
+            for (let i: number = 0; i < this.index.size; i++) {
+                this.groupPos[this.index.groupIds[i]] = offset;
+
+                this.store.seek(offset);
+                this.store.read(header, 0, 5);
+                header.pos = 0;
+
+                const compression: number = header.g1();
+                let length: number = header.g4();
+                if (compression > 0) {
+                    length += 4;
+                }
+                offset += 5 + length;
             }
         }
 
@@ -529,7 +522,7 @@ export default class Js5 {
 
         let uncompressed: Uint8Array = new Uint8Array();
         try {
-            uncompressed = await Js5Compression.decompress(compressed);
+            uncompressed = await Js5.decompress(compressed);
         } catch (err) {
             // console.error('T3 - ' + (key != null) + ',' + group + ',' + compressed.length);
             // console.error(err);
@@ -601,5 +594,37 @@ export default class Js5 {
         }
 
         return true;
+    }
+
+    static async decompress(src: Uint8Array): Promise<Uint8Array> {
+        const buf: Packet = new Packet(src);
+        const type: number = buf.g1();
+        const len: number = buf.g4();
+
+        if (len < 0) {
+            throw new Error('Js5Compression: invalid length');
+        } else if (type === 0) {
+            const out: Uint8Array = new Uint8Array(len);
+            out.set(src.subarray(buf.pos, buf.pos + len));
+            return out;
+        } else {
+            const uncompressedLen: number = buf.g4();
+            if (uncompressedLen < 0) {
+                throw new Error('Js5Compression: invalid uncompressed length');
+            }
+
+            const out: Uint8Array = new Uint8Array(uncompressedLen);
+            if (type === 1) {
+                Bzip2Decompressor.bunzip(buf, out);
+            } else if (type === 2) {
+                GzipDecompressor.gunzip(buf, out);
+            } else if (type === 3) {
+                await LzmaDecompressor.unzip(buf, out);
+            } else {
+                throw new Error(`Js5Compression: unsupported compression type ${type}`);
+            }
+
+            return out;
+        }
     }
 }

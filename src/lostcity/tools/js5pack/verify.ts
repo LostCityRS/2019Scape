@@ -1,7 +1,6 @@
 import Js5 from '#jagex/js5/Js5.js';
 import Js5Archive from '#jagex/config/Js5Archive.js';
 import Packet from '#jagex/bytepacking/Packet.js';
-import Js5Compression from '#jagex/js5/Js5Compression.js';
 
 for (let i: number = 0; i < Js5Archive.getMaxId(); i++) {
     const type: Js5Archive | null = Js5Archive.forId(i);
@@ -13,7 +12,7 @@ for (let i: number = 0; i < Js5Archive.getMaxId(); i++) {
 
     const js5: Js5 = await Js5.load(`data/pack/client.${type.name}.js5`, false);
 
-    const oldIndex: Uint8Array = await Js5Compression.decompress(js5.masterIndex);
+    const oldIndex: Uint8Array = await Js5.decompress(js5.masterIndex);
     const expected: number = Packet.getcrc(oldIndex);
 
     const newIndex: Uint8Array = js5.index.encode();

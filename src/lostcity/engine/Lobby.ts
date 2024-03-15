@@ -11,6 +11,11 @@ import ClientProt from '#jagex/network/protocol/ClientProt.js';
 
 import AllPackets from '#jagex/network/packetencoders/AllPackets.js';
 import ClientMessage from '#jagex/network/ClientMessage.js';
+import ServerScriptList from '#lostcity/script/ServerScriptList.js';
+import Js5Archive from '#jagex/config/Js5Archive.js';
+import ScriptRunner from '#lostcity/script/ScriptRunner.js';
+import ServerScriptState from '#lostcity/script/ServerScriptState.js';
+import ServerScript from '#lostcity/script/ServerScript.js';
 
 class Lobby {
     tick: number = 0;
@@ -259,42 +264,6 @@ class Lobby {
 
                 AllPackets.resetClientVarCache(client);
 
-                AllPackets.updateVar(client, 1750, 5412518);
-                AllPackets.updateVar(client, 1751, 5412518);
-                AllPackets.updateVar(client, 1752, 9259915);
-                AllPackets.updateVar(client, 1753, 110);
-                AllPackets.updateVar(client, 1754, 41);
-
-                AllPackets.ifOpenTop(client, 906);
-                AllPackets.ifOpenSub(client, 906, 107, 907);
-                AllPackets.ifOpenSub(client, 906, 108, 910);
-                AllPackets.ifOpenSub(client, 906, 109, 909);
-                AllPackets.ifOpenSub(client, 906, 110, 589);
-                AllPackets.ifOpenSub(client, 906, 111, 912);
-                AllPackets.ifOpenSub(client, 906, 112, 911);
-                AllPackets.ifOpenSub(client, 906, 280, 914);
-                AllPackets.ifOpenSub(client, 906, 298, 915);
-                AllPackets.ifOpenSub(client, 906, 307, 913);
-
-                AllPackets.updateVarbit(client, 16464, 1);
-                AllPackets.updateVarbit(client, 16465, 0);
-
-                AllPackets.updateVarc(client, 3905, 0); // enable banner
-                AllPackets.updateVarc(client, 4366, 0); // th keys
-                AllPackets.updateVarc(client, 4367, 0); // th chest hearts
-                AllPackets.updateVarc(client, 4368, -1); // th banner
-                AllPackets.updateVarc(client, 4364, -1); // boss pets
-                AllPackets.updateVarc(client, 4365, -1); // second right banner
-                AllPackets.updateVarc(client, 4360, 0); // loyalty points
-                AllPackets.updateVarc(client, 4359, 0); // runecoin
-
-                // news
-                AllPackets.runClientScript(client, 10931, [1, 0, 1, 0, 1, '02-Dec-2019', 'unk', 'This week we\'ve fixed a few cheeky bugs that had cropped up!', 'Game Update: Farming & Herblore 120 Fixes']);
-                AllPackets.runClientScript(client, 10931, [0, 0, 1, 0, 2, '09-Dec-2019', 'unk', 'While you\'ve been gliding about on the ice outside, we\'ve been working on some smooth moves of our own.', 'Game Update: Smooth Movement']);
-                AllPackets.runClientScript(client, 10931, [0, 0, 1, 0, 3, '09-Dec-2019', 'unk', 'The Patch Notes for December 9th!', 'Patch Notes - 9/12']);
-
-                AllPackets.runClientScript(client, 10936);
-
                 this.clients.push(client);
                 break;
             }
@@ -473,6 +442,13 @@ class Lobby {
 
     async start(): Promise<void> {
         await CacheProvider.load('data/pack');
+        await ServerScriptList.load(CacheProvider.serverJs5[Js5Archive.ServerScripts.id]);
+
+        const script: ServerScript | undefined = ServerScriptList.getByName('[login,_]');
+        if (script) {
+            const state: ServerScriptState = new ServerScriptState(script);
+            console.log(ScriptRunner.execute(state));
+        }
 
         this.server.listen(43594, '0.0.0.0');
         setImmediate(this.cycle.bind(this));

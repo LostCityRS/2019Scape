@@ -1,15 +1,7 @@
-# Array of source paths
 sources = ["data/src/scripts/"]
-
-# Array of symbol paths
 symbols = ["data/pack/symbols/"]
 
-# Whether to enable pointer checking. This adds additional safety but with a
-# compile time cost.
 check_pointers = false
 
-# Bianry file writer configuration
-[writer.binary]
-# The output path
-output = "data/pack"
- 
+[writer.pack]
+output = "data/pack/server.scripts.js5"

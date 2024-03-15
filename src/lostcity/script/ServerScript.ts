@@ -18,7 +18,7 @@ export type SwitchTable = {
 };
 
 // compiled bytecode representation
-export default class Script {
+export default class ServerScript {
     info: ScriptInfo = {
         scriptName: '<unknown>',
         sourceFilePath: '<unknown>',
@@ -39,7 +39,7 @@ export default class Script {
     stringOperands: string[] = [];
 
     // decodes the same binary format as clientscript2
-    static decode(id: number, stream: Packet): Script {
+    static decode(id: number, stream: Packet): ServerScript {
         if (stream.length < 16) {
             throw new Error('Invalid script file (minimum length)');
         }
@@ -55,7 +55,7 @@ export default class Script {
 
         stream.pos = trailerPos;
 
-        const script: Script = new Script(id);
+        const script: ServerScript = new ServerScript(id);
         const _instructions: number = stream.g4(); // we don't need to preallocate anything in JS, but still need to read it
         script.intLocalCount = stream.g2();
         script.stringLocalCount = stream.g2();
