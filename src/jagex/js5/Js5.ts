@@ -293,6 +293,10 @@ export default class Js5 {
         return this.index.capacity;
     }
 
+    getGroupIds(): Int32Array | null {
+        return this.index.groupIds;
+    }
+
     getGroupId(group: string | number): number {
         if (!this.index.groupNameHashes) {
             return -1;

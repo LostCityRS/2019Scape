@@ -13,6 +13,7 @@ import WallCollider from '#lostcity/engine/collision/WallCollider.js';
 import LocCollider from '#lostcity/engine/collision/LocCollider.js';
 import NpcCollider from '#lostcity/engine/collision/NpcCollider.js';
 import PlayerCollider from '#lostcity/engine/collision/PlayerCollider.js';
+import * as console from 'console';
 
 export default class CollisionManager {
     private static readonly SHIFT_25: number = Math.pow(2, 25);
@@ -48,27 +49,28 @@ export default class CollisionManager {
         console.time('Loading collision');
 
         const maps: Js5 = CacheProvider.js5[Js5ArchiveType.Maps];
-        for (let x: number = 0; x < 128; x++) {
-            for (let z: number = 0; z < 256; z++) {
-                const groupId: number = this.groupId(x, z);
-
-                // land is required for anything else.
-                if (!maps.isFileValid(groupId, Js5MapFile.LAND)) {
-                    continue;
-                }
-
-                const lands: Int8Array = new Int8Array(4 * 64 * 64); // 4 * 64 * 64 size is guaranteed for lands
-                const locs: number[] = []; // dynamically grow locs
-
-                this.decodeLands(lands, Packet.wrap(await maps.readFile(groupId, Js5MapFile.LAND), false));
-                this.decodeLocs(locs, Packet.wrap(await maps.readFile(groupId, Js5MapFile.LOC), false));
-
-                const mapsquareX: number = x << 6;
-                const mapsquareZ: number = z << 6;
-
-                this.applyLandCollision(mapsquareX, mapsquareZ, lands);
-                this.applyLocCollision(locs, mapsquareX, mapsquareZ, lands);
+        const groups: Int32Array | null = maps.getGroupIds();
+        if (groups === null) {
+            throw new Error('[CollisionManager] Unable to find Js5 Maps group ids.')
+        }
+        for (let index: number = 0; index < groups.length; index++) {
+            const groupId: number = groups[index];
+            // land is required for anything else.
+            if (!maps.isFileValid(groupId, Js5MapFile.LAND)) {
+                continue;
             }
+
+            const lands: Int8Array = new Int8Array(4 * 64 * 64); // 4 * 64 * 64 size is guaranteed for lands
+            const locs: number[] = []; // dynamically grow locs
+
+            this.decodeLands(lands, Packet.wrap(await maps.readFile(groupId, Js5MapFile.LAND), false));
+            this.decodeLocs(locs, Packet.wrap(await maps.readFile(groupId, Js5MapFile.LOC), false));
+
+            const mapsquareX: number = (groupId & 0x7f) << 6;
+            const mapsquareZ: number = (groupId >> 7) << 6;
+
+            this.applyLandCollision(mapsquareX, mapsquareZ, lands);
+            this.applyLocCollision(locs, mapsquareX, mapsquareZ, lands);
         }
 
         console.timeEnd('Loading collision');
@@ -161,11 +163,11 @@ export default class CollisionManager {
         return mx | mz << 7;
     }
 
-    private decodeLands = (lands: Int8Array, packet: Packet): void => {
+    private decodeLands = (lands: Int8Array, buf: Packet): void => {
         for (let level: number = 0; level < 4; level++) {
             for (let x: number = 0; x < 64; x++) {
                 for (let z: number = 0; z < 64; z++) {
-                    lands[this.packCoord(x, z, level)] = this.decodeLand(packet);
+                    lands[this.packCoord(x, z, level)] = this.decodeLand(buf);
                 }
             }
         }
@@ -190,53 +192,53 @@ export default class CollisionManager {
         return collision;
     }
 
-    private decodeLocs = (locs: number[], packet: Packet): void => {
+    private decodeLocs = (locs: number[], buf: Packet): void => {
         let locId: number = -1;
-        let locIdOffset: number = packet.gExtended1or2();
+        let locIdOffset: number = buf.gExtended1or2();
 
         while (locIdOffset !== 0) {
             locId += locIdOffset;
 
             let coord: number = 0;
-            let coordOffset: number = packet.gSmart1or2();
+            let coordOffset: number = buf.gSmart1or2();
 
             while (coordOffset !== 0) {
                 coord += coordOffset - 1;
 
-                const attributes: number = packet.g1();
+                const attributes: number = buf.g1();
                 if ((attributes & 0x80) !== 0) {
-                    const scalerottrans: number = packet.g1();
+                    const scalerottrans: number = buf.g1();
                     if ((scalerottrans & 0x1) !== 0) {
-                        packet.pos += 8;
+                        buf.pos += 8;
                     }
                     if ((scalerottrans & 0x2) !== 0) {
-                        packet.pos += 2;
+                        buf.pos += 2;
                     }
                     if ((scalerottrans & 0x4) !== 0) {
-                        packet.pos += 2;
+                        buf.pos += 2;
                     }
                     if ((scalerottrans & 0x8) !== 0) {
-                        packet.pos += 2;
+                        buf.pos += 2;
                     }
                     if ((scalerottrans & 0x10) === 0) {
                         if ((scalerottrans & 0x20) !== 0) {
-                            packet.pos += 2;
+                            buf.pos += 2;
                         }
                         if ((scalerottrans & 0x40) !== 0) {
-                            packet.pos += 2;
+                            buf.pos += 2;
                         }
                         if ((scalerottrans & 0x80) !== 0) {
-                            packet.pos += 2;
+                            buf.pos += 2;
                         }
                     } else {
-                        packet.pos += 2;
+                        buf.pos += 2;
                     }
                 }
                 locs.push(this.packLoc(locId, attributes >> 2, attributes & 0x3, coord));
 
-                coordOffset = packet.gSmart1or2();
+                coordOffset = buf.gSmart1or2();
             }
-            locIdOffset = packet.gExtended1or2();
+            locIdOffset = buf.gExtended1or2();
         }
     }
 
