@@ -1,6 +1,6 @@
 [label,gamelogin]
 if_opentop(interface_1477);
 
-if_opensub(interface_1477, interface_1477:22, interface_1482, 1);
-if_opensub(interface_1477, interface_1477:85, interface_1465, 1);
-if_opensub(interface_1477, interface_1477:86, interface_1919, 1);
+if_opensub(interface_1477:22, interface_1482, 1);
+if_opensub(interface_1477:85, interface_1465, 1);
+if_opensub(interface_1477:86, interface_1919, 1);

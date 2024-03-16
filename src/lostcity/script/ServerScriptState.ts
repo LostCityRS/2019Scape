@@ -1,3 +1,4 @@
+import Player from '#lostcity/entity/Player.js';
 import ServerScript from '#lostcity/script/ServerScript.js';
 import ServerTriggerType from '#lostcity/script/ServerTriggerType.js';
 
@@ -47,6 +48,9 @@ export default class ServerScriptState {
 
     intLocals: number[] = [];
     stringLocals: string[] = [];
+
+    _activePlayer: Player | null = null;
+    _activePlayer2: Player | null = null;
 
     constructor(script: ServerScript, args: (number | string)[] | null = []) {
         this.script = script;

@@ -7,5 +7,5 @@
 
 // Player ops (2000-2499)
 [command,if_opentop](interface $interface)
-[command,if_opensub](interface $interface, component $com, interface $child, int $type)
+[command,if_opensub](component $com, interface $child, int $type)
 [command,runclientscript](hook $hook)

@@ -5,6 +5,7 @@ import Packet from '#jagex/bytepacking/Packet.js';
 import ConnectionState from '#lostcity/network/ConnectionState.js';
 import ServerMessage from '#jagex/network/ServerMessage.js';
 import ClientMessage from '#jagex/network/ClientMessage.js';
+import Player from '#lostcity/entity/Player.js';
 
 export default class ClientSocket {
     socket: net.Socket;
@@ -14,6 +15,7 @@ export default class ClientSocket {
 
     netInQueue: ClientMessage[] = [];
     netOutQueue: ServerMessage[] = [];
+    player: Player | null = null;
 
     constructor(socket: net.Socket) {
         this.socket = socket;

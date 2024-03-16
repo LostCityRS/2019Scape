@@ -13,14 +13,15 @@ import AllPackets from '#jagex/network/packetencoders/AllPackets.js';
 import ClientMessage from '#jagex/network/ClientMessage.js';
 import ServerScriptList from '#lostcity/script/ServerScriptList.js';
 import Js5Archive from '#jagex/config/Js5Archive.js';
+
 import ScriptRunner from '#lostcity/script/ScriptRunner.js';
-import ServerScriptState from '#lostcity/script/ServerScriptState.js';
-import ServerScript from '#lostcity/script/ServerScript.js';
+
+import Player from '#lostcity/entity/Player.js';
 
 class Lobby {
     tick: number = 0;
     server: net.Server = net.createServer();
-    clients: ClientSocket[] = [];
+    players: Player[] = new Array(2048);
 
     async loginDecode(client: ClientSocket, stream: Packet): Promise<void> {
         const opcode: number = stream.g1();
@@ -262,9 +263,10 @@ class Lobby {
                 reply.psize1(reply.pos - start);
                 client.write(reply);
 
-                AllPackets.resetClientVarCache(client);
-
-                this.clients.push(client);
+                const player: Player = new Player();
+                player.client = client;
+                this.addPlayer(player);
+                player.login();
                 break;
             }
         }
@@ -427,7 +429,7 @@ class Lobby {
 
             socket.on('end', (): void => {
                 console.log('[LOBBY]: Client disconnected');
-                this.clients.splice(this.clients.indexOf(client), 1);
+                this.removeClient(client);
             });
 
             socket.on('timeout', (): void => {
@@ -443,12 +445,7 @@ class Lobby {
     async start(): Promise<void> {
         await CacheProvider.load('data/pack');
         await ServerScriptList.load(CacheProvider.serverJs5[Js5Archive.ServerScripts.id]);
-
-        const script: ServerScript | undefined = ServerScriptList.getByName('[login,_]');
-        if (script) {
-            const state: ServerScriptState = new ServerScriptState(script);
-            console.log(ScriptRunner.execute(state));
-        }
+        ScriptRunner.MAP_LOBBY = true;
 
         this.server.listen(43594, '0.0.0.0');
         setImmediate(this.cycle.bind(this));
@@ -458,18 +455,37 @@ class Lobby {
         // console.log(`[LOBBY]: Tick ${this.tick}`);
 
         // process incoming packets
-        for (let i: number = 0; i < this.clients.length; i++) {
-            const client: ClientSocket = this.clients[i];
+        for (let i: number = 0; i < this.players.length; i++) {
+            const player: Player = this.players[i];
+            if (typeof this.players[i] === 'undefined' || !player.client) {
+                continue;
+            }
 
+            const client: ClientSocket = player.client;
             for (let j: number = 0; j < client.netInQueue.length; j++) {
                 await this.lobbyDecode(client, client.netInQueue[j]);
             }
+
             client.netInQueue = [];
         }
 
+        for (let i: number = 0; i < this.players.length; i++) {
+            const player: Player = this.players[i];
+            if (typeof this.players[i] === 'undefined') {
+                continue;
+            }
+
+            player.cycle();
+        }
+
         // process outgoing packets
-        for (let i: number = 0; i < this.clients.length; i++) {
-            const client: ClientSocket = this.clients[i];
+        for (let i: number = 0; i < this.players.length; i++) {
+            const player: Player = this.players[i];
+            if (typeof this.players[i] === 'undefined' || !player.client) {
+                continue;
+            }
+
+            const client: ClientSocket = player.client;
 
             // keepalive every 5s
             if (this.tick % 100 === 0) {
@@ -478,8 +494,7 @@ class Lobby {
 
             // logout after 15s of the socket being idle (15000ms / 50ms tick = 300 ticks)
             if (this.tick - client.lastResponse > 300) {
-                client.end();
-                this.clients.splice(i--, 1);
+                this.removeClient(client);
                 continue;
             }
 
@@ -490,6 +505,22 @@ class Lobby {
 
         this.tick++;
         setTimeout(this.cycle.bind(this), 50);
+    }
+
+    addPlayer(player: Player): void {
+        const index: number = this.players.findIndex((p: Player): boolean => typeof p === 'undefined' || p === null);
+        if (index !== -1) {
+            this.players[index] = player;
+        }
+    }
+
+    removeClient(client: ClientSocket): void {
+        client.end();
+
+        const index: number = this.players.findIndex((player: Player): boolean => typeof player !== 'undefined' && player !== null && player.client === client);
+        if (index !== -1) {
+            this.players.splice(index, 1);
+        }
     }
 }
 

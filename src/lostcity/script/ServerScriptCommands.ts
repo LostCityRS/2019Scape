@@ -10,6 +10,7 @@ export default class ServerScriptCommand {
     static readonly BRANCH_NOT = new ServerScriptCommand(7, 'branch_not', true);
     static readonly BRANCH_EQUALS = new ServerScriptCommand(8, 'branch_equals', true);
     static readonly BRANCH_LESS_THAN = new ServerScriptCommand(9, 'branch_less_than', true);
+    static readonly BRANCH_GREATER_THAN = new ServerScriptCommand(10, 'branch_greater_than', true);
     static readonly PUSH_VARS = new ServerScriptCommand(11, 'push_vars', true);
     static readonly POP_VARS = new ServerScriptCommand(12, 'pop_vars', true);
     static readonly RETURN = new ServerScriptCommand(21, 'return');
