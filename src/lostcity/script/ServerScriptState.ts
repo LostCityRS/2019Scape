@@ -16,6 +16,8 @@ export interface JumpStackFrame {
 }
 
 export default class ServerScriptState {
+    static MAP_LOBBY: boolean = false;
+
     static ABORTED = -1;
     static RUNNING = 0;
     static FINISHED = 1;

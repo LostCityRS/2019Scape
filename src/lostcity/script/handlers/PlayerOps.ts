@@ -1,9 +1,6 @@
 import AllPackets from '#jagex/network/packetencoders/AllPackets.js';
-import ScriptRunner from '../ScriptRunner.js';
-import ServerScript, { SwitchTable } from '../ServerScript.js';
 import ServerScriptCommand from '../ServerScriptCommands.js';
-import ServerScriptList from '../ServerScriptList.js';
-import ServerScriptState, { GosubStackFrame } from '../ServerScriptState.js';
+import ServerScriptState from '../ServerScriptState.js';
 
 ServerScriptCommand.IF_OPENTOP.handler = (state: ServerScriptState): void => {
     const ifId: number = state.popInt();

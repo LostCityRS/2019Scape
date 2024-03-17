@@ -17,6 +17,7 @@ import Js5Archive from '#jagex/config/Js5Archive.js';
 import ScriptRunner from '#lostcity/script/ScriptRunner.js';
 
 import Player from '#lostcity/entity/Player.js';
+import ServerScriptState from '#lostcity/script/ServerScriptState.js';
 
 class Lobby {
     tick: number = 0;
@@ -445,7 +446,7 @@ class Lobby {
     async start(): Promise<void> {
         await CacheProvider.load('data/pack');
         await ServerScriptList.load(CacheProvider.serverJs5[Js5Archive.ServerScripts.id]);
-        ScriptRunner.MAP_LOBBY = true;
+        ServerScriptState.MAP_LOBBY = true;
 
         this.server.listen(43594, '0.0.0.0');
         setImmediate(this.cycle.bind(this));

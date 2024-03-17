@@ -5,9 +5,11 @@ import ServerScriptCommand from './ServerScriptCommands.js';
 import ServerScriptList from './ServerScriptList.js';
 import ServerScriptState, { GosubStackFrame } from './ServerScriptState.js';
 
-export default class ScriptRunner {
-    static MAP_LOBBY: boolean = false;
+import './handlers/CoreOps.js';
+import './handlers/ServerOps.js';
+import './handlers/PlayerOps.js';
 
+export default class ScriptRunner {
     static createState(script: ServerScript, self: Player | null = null, args: (number | string)[] = []): ServerScriptState {
         const state: ServerScriptState = new ServerScriptState(script);
         state._activePlayer = self;

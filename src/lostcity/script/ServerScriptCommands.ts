@@ -1,9 +1,5 @@
 import ServerScriptState from './ServerScriptState.js';
 
-import './handlers/CoreOps.js';
-import './handlers/ServerOps.js';
-import './handlers/PlayerOps.js';
-
 export default class ServerScriptCommand {
 
     static readonly PUSH_CONSTANT_INT = new ServerScriptCommand(0, 'push_constant_int', true);
