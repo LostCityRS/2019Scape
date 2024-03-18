@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 import Js5 from '#jagex/js5/Js5.js';
 import Js5Archive, { Js5ArchiveType } from '#jagex/config/Js5Archive.js';
 import Js5Index from '#jagex/js5/index/Js5Index.js';
@@ -13,8 +15,16 @@ export default class Cache {
     prefetches: number[] = [];
     masterIndexIndex: Uint8Array | null = null;
 
-    async load(dir: string, patch: boolean = true): Promise<void> {
-        if (this.masterIndexIndex !== null) {
+    reload: boolean = false;
+
+    watch(dir: string): void {
+        fs.watch(dir, { }, (event: string, filename: string | Buffer | null): void => {
+            this.reload = true;
+        });
+    }
+
+    async load(dir: string, patch: boolean = true, force: boolean = false): Promise<void> {
+        if (!force && this.masterIndexIndex !== null) {
             return;
         }
 

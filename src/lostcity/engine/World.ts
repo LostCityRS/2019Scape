@@ -212,6 +212,7 @@ class World {
         await CacheProvider.load('data/pack');
         // await this.collision.init();
         await ServerScriptList.load(CacheProvider.serverJs5[Js5Archive.ServerScripts.id]);
+        CacheProvider.watch('data/pack');
 
         this.server.listen(43594 + this.id, '0.0.0.0');
         setImmediate(this.cycle.bind(this));
@@ -219,6 +220,13 @@ class World {
 
     async cycle(): Promise<void> {
         // console.log(`[WORLD]: Tick ${this.tick}`);
+
+        if (CacheProvider.reload && this.tick % 8 === 0) {
+            await CacheProvider.load('data/pack', true, true);
+            await ServerScriptList.load(CacheProvider.serverJs5[Js5Archive.ServerScripts.id]);
+            CacheProvider.reload = false;
+            console.log('[WORLD]: Cache reloaded');
+        }
 
         // process incoming packets
         for (let i: number = 0; i < this.players.length; i++) {

@@ -448,6 +448,7 @@ class Lobby {
         await CacheProvider.load('data/pack');
         await ServerScriptList.load(CacheProvider.serverJs5[Js5Archive.ServerScripts.id]);
         ServerScriptState.MAP_LOBBY = true;
+        CacheProvider.watch('data/pack');
 
         this.server.listen(43594, '0.0.0.0');
         setImmediate(this.cycle.bind(this));
@@ -455,6 +456,13 @@ class Lobby {
 
     async cycle(): Promise<void> {
         // console.log(`[LOBBY]: Tick ${this.tick}`);
+
+        if (CacheProvider.reload && this.tick % 100 === 0) {
+            await CacheProvider.load('data/pack', true, true);
+            await ServerScriptList.load(CacheProvider.serverJs5[Js5Archive.ServerScripts.id]);
+            CacheProvider.reload = false;
+            console.log('[LOBBY]: Cache reloaded');
+        }
 
         // process incoming packets
         for (let i: number = 0; i < this.players.length; i++) {
