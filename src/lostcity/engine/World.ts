@@ -31,7 +31,7 @@ class World {
         const opcode: number = stream.g1();
         const packetType: LoginProt | undefined = LoginProt.BY_ID[opcode];
         if (typeof packetType === 'undefined') {
-            console.log(`[WORLD]: Received unknown packet ${opcode}`);
+            // console.log(`[WORLD]: Received unknown packet ${opcode}`);
             client.end();
             return;
         }
@@ -169,6 +169,7 @@ class World {
                                 const packetType: ClientProt | undefined = ClientProt.values()[opcode];
                                 if (typeof packetType === 'undefined') {
                                     console.log(`[WORLD]: Unknown packet ${opcode}`);
+                                    client.end();
                                     return;
                                 }
 

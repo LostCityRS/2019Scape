@@ -23,7 +23,7 @@ cd 2019Scape
 npm ci
 # this line is not a command. go ahead and extract 2019Scape-Pack.7z to data/ now.
 npm run cache:build
-npm start
+npm run dev
 ```
 
 ### Client Setup

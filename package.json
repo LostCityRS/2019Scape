@@ -8,7 +8,8 @@
     "#lostcity/*": "./src/lostcity/*"
   },
   "scripts": {
-    "start": "nodemon src/lostcity/app.ts",
+    "start": "npm run ts-loader src/lostcity/app.ts",
+    "dev": "concurrently \"nodemon src/lostcity/app.ts\" \"npm run cache:watch\"",
     "test": "jest",
     "ts-loader": "node --no-warnings --loader ts-node/esm",
     "js5pack:openrs2": "npm run ts-loader src/lostcity/tools/js5pack/openrs2.ts",
@@ -17,7 +18,8 @@
     "js5pack:dat2split": "npm run ts-loader src/lostcity/tools/js5pack/dat2split.ts",
     "js5pack:flat": "npm run ts-loader src/lostcity/tools/js5pack/flat.ts",
     "cache:build": "npm run ts-loader src/lostcity/tools/pack/all.ts",
-    "cache:verify": "npm run ts-loader src/lostcity/tools/js5pack/verify.ts"
+    "cache:verify": "npm run ts-loader src/lostcity/tools/js5pack/verify.ts",
+    "cache:watch": "watch \"npm run cache:build\" ./data/src/scripts ./src/lostcity/tools"
   },
   "author": "Pazaz",
   "license": "MIT",
@@ -39,6 +41,7 @@
     "@types/node": "^20.11.25",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
+    "concurrently": "^8.2.2",
     "eslint": "^8.57.0",
     "jest": "^29.7.0",
     "nodemon": "^3.1.0",
@@ -46,6 +49,7 @@
     "prisma-kysely": "^1.8.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.2"
+    "typescript": "^5.4.2",
+    "watch": "^1.0.2"
   }
 }
