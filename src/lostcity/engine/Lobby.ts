@@ -458,9 +458,8 @@ class Lobby {
         // console.log(`[LOBBY]: Tick ${this.tick}`);
 
         if (CacheProvider.reload && this.tick % 100 === 0) {
-            await CacheProvider.load('data/pack', true, true);
+            await CacheProvider.load('data/pack', true);
             await ServerScriptList.load(CacheProvider.serverJs5[Js5Archive.ServerScripts.id]);
-            CacheProvider.reload = false;
             console.log('[LOBBY]: Cache reloaded');
         }
 

@@ -1,6 +1,9 @@
 [label,gamelogin]
 if_opentop(interface_1477);
 
-if_opensub(interface_1477:22, interface_1482, 1);
-if_opensub(interface_1477:85, interface_1465, 1);
-if_opensub(interface_1477:86, interface_1919, 1);
+if_opensub(interface_1477:22, interface_1482, 1); // gamescreen
+// if_opensub(interface_1477:50, interface_1252, 1); // TH promo
+if_opensub(interface_1477:85, interface_1465, 1); // minimap
+if_opensub(interface_1477:86, interface_1919, 1); // compass
+if_opensub(interface_1477:610, interface_635, 1); // system clock
+// if_opensub(interface_1477:747, interface_1433, 1); // options menu

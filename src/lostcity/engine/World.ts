@@ -109,6 +109,32 @@ class World {
         switch (message.packetType) {
             case ClientProt.NO_TIMEOUT:
                 break;
+            case ClientProt.CLIENT_CHEAT: {
+                const scripted: boolean = message.buf.g1() == 1;
+                const suggest: boolean = message.buf.g1() == 1
+                const command: string = message.buf.gjstr();
+
+                switch (command) {
+                    case 'js5_reload': {
+                        AllPackets.js5Reload(client);
+                        break
+                    }
+                    case 'reboottimer': {
+                        AllPackets.updateRebootTimer(client, 1200);
+                        break
+                    }
+                    case 'logout': {
+                        AllPackets.logout(client);
+                        break;
+                    }
+                    default: {
+                        console.log(`Unknown command: ${command}`)
+                        break;
+                    }
+                }
+
+                break;
+            }
             default:
                 console.log(`[WORLD]: Unhandled packet ${message.packetType.debugname}`);
                 break;
@@ -222,9 +248,8 @@ class World {
         // console.log(`[WORLD]: Tick ${this.tick}`);
 
         if (CacheProvider.reload && this.tick % 8 === 0) {
-            await CacheProvider.load('data/pack', true, true);
+            await CacheProvider.load('data/pack', true);
             await ServerScriptList.load(CacheProvider.serverJs5[Js5Archive.ServerScripts.id]);
-            CacheProvider.reload = false;
             console.log('[WORLD]: Cache reloaded');
         }
 

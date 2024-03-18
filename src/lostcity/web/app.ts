@@ -226,6 +226,7 @@ app.get('/client', (req: any, res: any): void => {
 
 export default async function startWeb(): Promise<void> {
     await CacheProvider.load('data/pack');
+    CacheProvider.watch('data/pack');
 
     app.listen({
         port: 80,

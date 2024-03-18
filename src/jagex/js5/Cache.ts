@@ -16,30 +16,50 @@ export default class Cache {
     masterIndexIndex: Uint8Array | null = null;
 
     reload: boolean = false;
+    reloadClient: boolean = true;
+    reloadServer: boolean = true;
 
     watch(dir: string): void {
         fs.watch(dir, { }, (event: string, filename: string | Buffer | null): void => {
-            this.reload = true;
+            if (typeof filename === 'string' && filename.endsWith('.js5')) {
+                this.reload = true;
+
+                if (filename.startsWith('client')) {
+                    this.reloadClient = true;
+                } else if (filename.startsWith('server')) {
+                    this.reloadServer = true;
+                }
+            }
         });
     }
 
-    async load(dir: string, patch: boolean = true, force: boolean = false): Promise<void> {
-        if (!force && this.masterIndexIndex !== null) {
+    async load(dir: string, patch: boolean = true): Promise<void> {
+        if (!this.reload && this.masterIndexIndex !== null) {
             return;
         }
 
-        for (let archive: number = 0; archive < Js5Archive.getMaxId(); archive++) {
-            const type: Js5Archive | null = Js5Archive.forId(archive);
+        this.reload = false;
 
-            if (type !== null) {
-                this.js5[type.id] = await Js5.load(`${dir}/client.${type.name}.js5`, patch);
+        if (this.reloadClient) {
+            this.reloadClient = false;
+
+            for (let archive: number = 0; archive < Js5Archive.getMaxId(); archive++) {
+                const type: Js5Archive | null = Js5Archive.forId(archive);
+
+                if (type !== null) {
+                    this.js5[type.id] = await Js5.load(`${dir}/client.${type.name}.js5`, patch);
+                }
             }
+
+            await this.generateMasterIndexIndex();
+            this.generatePrefetches();
         }
 
-        this.serverJs5[Js5Archive.ServerScripts.id] = await Js5.load(`${dir}/server.scripts.js5`, false, false);
+        if (this.reloadServer) {
+            this.reloadServer = false;
 
-        await this.generateMasterIndexIndex();
-        this.generatePrefetches();
+            this.serverJs5[Js5Archive.ServerScripts.id] = await Js5.load(`${dir}/server.scripts.js5`, false, false);
+        }
     }
 
     async getGroup(archive: number, group: number, raw: boolean = false): Promise<Uint8Array | null> {

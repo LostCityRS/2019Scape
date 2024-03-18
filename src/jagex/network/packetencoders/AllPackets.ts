@@ -285,6 +285,11 @@ function ifSetEvents(client: ClientSocket, interfaceId: number, componentId: num
     client.send(message);
 }
 
+function logout(client: ClientSocket): void {
+    const message: ServerMessage = ServerMessage.create(ServerProt.LOGOUT);
+    client.send(message);
+}
+
 export default {
     resetClientVarCache,
     updateVar,
@@ -302,5 +307,6 @@ export default {
     rebuildNormal,
     playerInfo,
     serverTickEnd,
-    ifSetEvents
+    ifSetEvents,
+    logout
 }

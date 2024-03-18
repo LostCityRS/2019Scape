@@ -9,6 +9,12 @@ import { saveFile } from '#lostcity/util/FileUtils.js';
 import AudioDefaults from '#jagex/config/defaults/AudioDefaults.js';
 
 export default async function packDefaults(): Promise<void> {
+    if (fs.existsSync(`data/pack/patch/${Js5ArchiveType.Defaults}/4.dat`) &&
+        fs.statSync('data/src/defaults/audio.defaults').mtimeMs < fs.statSync(`data/pack/patch/${Js5ArchiveType.Defaults}/4.dat`).mtimeMs
+    ) {
+        return;
+    }
+
     const src: string[] = fs.readFileSync('data/src/defaults/audio.defaults', 'utf-8')
         .replaceAll('\r', '').split('\n')
         .filter((x): boolean => x.length > 0 && !x.startsWith('//'));
