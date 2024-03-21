@@ -1,3 +1,4 @@
+import BuildAreaSize from '#jagex/core/constants/BuidlAreaSize.js';
 import ServerProt from '#jagex/network/protocol/ServerProt.js';
 import ClientSocket from '#lostcity/network/ClientSocket.js';
 import ScriptRunner from '#lostcity/script/ScriptRunner.js';
@@ -11,8 +12,8 @@ export default class Player {
     username: bigint = 0n;
     displayname: string = '';
     level: number = 0;
-    x: number = 3200; // todo: CoordGrid
-    z: number = 3200;
+    x: number = 3232; // todo: CoordGrid
+    z: number = 3232;
     varp: (number | string | bigint)[] = new Array(10000);
     varc: (number | string | bigint)[] = new Array(10000);
     // todo: invs
@@ -25,6 +26,7 @@ export default class Player {
     client: ClientSocket | null = null;
     pid: number = -1;
     uid: number = -1;
+    buildAreaSize: BuildAreaSize = BuildAreaSize.SIZE_104;
     runweight: number = 0;
 
     delay: number = 0;
@@ -45,7 +47,7 @@ export default class Player {
     login(): void {
         if (this.client) {
             if (!ServerScriptState.MAP_LOBBY) {
-                ServerProt.REBUILD_NORMAL.send(this.client, this.level, this.x, this.z, true, true);
+                ServerProt.REBUILD_NORMAL.send(this.client, this.level, this.x, this.z, this.buildAreaSize, true, true);
             }
 
             ServerProt.RESET_CLIENT_VARCACHE.send(this.client);

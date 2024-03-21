@@ -1,4 +1,5 @@
 import Packet from '#jagex/bytepacking/Packet.js';
+import BuildAreaSize from '#jagex/core/constants/BuidlAreaSize.js';
 import ClientSocket from '#lostcity/network/ClientSocket.js';
 import ServerMessage from '../ServerMessage.js';
 
@@ -210,10 +211,12 @@ export default class ServerProt {
         this.debugname = debugname ?? opcode.toString();
     }
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	encode(...args: any): Packet {
 		return new Packet();
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	send(client: ClientSocket, ...args: any): void {
 		const message: ServerMessage = ServerMessage.create(this);
 		const buf: Packet = this.encode(...args);
@@ -395,7 +398,7 @@ ServerProt.WORLDLIST_FETCH_REPLY.encode = function(id: number, value: number): P
 	return buf;
 }
 
-ServerProt.REBUILD_NORMAL.encode = function(level: number, absX: number, absZ: number, forceRebuild: boolean = true, nearbyPlayers: boolean = false): Packet {
+ServerProt.REBUILD_NORMAL.encode = function(level: number, absX: number, absZ: number, buildAreaSize: BuildAreaSize, forceRebuild: boolean = true, nearbyPlayers: boolean = false): Packet {
 	const buf: Packet = new Packet();
     if (nearbyPlayers) {
         buf.accessBits();
@@ -419,20 +422,19 @@ ServerProt.REBUILD_NORMAL.encode = function(level: number, absX: number, absZ: n
 
     const zoneX: number = absX >> 3;
     const zoneZ: number = absZ >> 3;
-    const sizeX: number = 104;
-    const sizeZ: number = 104;
     let count: number = 9;
-    // for (let z: number = (zoneZ - (sizeZ >> 4)) / 8; zoneZ <= ((sizeZ >> 4) + zoneZ) / 8; z++) {
-    //     for (let x: number = (zoneX - (sizeX >> 4)) / 8; zoneX <= ((sizeX >> 4) + zoneX) / 8; x++) {
+    // for (let x: number = (zoneX - (buildAreaSize.size >> 4)) / 8; x <= ((buildAreaSize.size >> 4) + zoneX) / 8; x++) {
+    //     for (let z: number = (zoneZ - (buildAreaSize.size >> 4)) / 8; z <= ((buildAreaSize.size >> 4) + zoneZ) / 8; z++) {
+	// 		// todo: check if map is valid
     //         count++;
     //     }
     // }
 
-    buf.p2_alt2(zoneX); // z
+    buf.p2_alt2(zoneZ);
     buf.p1(5); // npc distance (bits)
-    buf.p1_alt3(count); // # of regions
-    buf.p1(0); // build area size
-    buf.p2_alt2(zoneZ); // x
+    buf.p1_alt3(count);
+    buf.p1(buildAreaSize.id);
+    buf.p2_alt2(zoneX);
     buf.p1_alt3(forceRebuild ? 1 : 0);
 	return buf;
 }
