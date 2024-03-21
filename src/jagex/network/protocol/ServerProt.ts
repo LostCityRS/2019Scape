@@ -1,3 +1,7 @@
+import Packet from '#jagex/bytepacking/Packet.js';
+import ClientSocket from '#lostcity/network/ClientSocket.js';
+import ServerMessage from '../ServerMessage.js';
+
 export default class ServerProt {
 
     static readonly TELEMETRY_GRID_ADD_GROUP = new ServerProt(0, 5, 'TELEMETRY_GRID_ADD_GROUP');
@@ -196,206 +200,6 @@ export default class ServerProt {
 	static readonly MAP_ANIM = new ServerProt(193, 10, 'MAP_ANIM');
 	static readonly JCOINS_UPDATE = new ServerProt(194, 4, 'JCOINS_UPDATE');
 
-    static values(): ServerProt[] {
-        return [
-			ServerProt.TELEMETRY_GRID_ADD_GROUP,
-			ServerProt.ENVIRONMENT_OVERRIDE,
-			ServerProt.UPDATE_FRIENDCHAT_CHANNEL_SINGLEUSER,
-			ServerProt.CREATE_CHECK_EMAIL_REPLY,
-			ServerProt.PROJANIM_SPECIFIC,
-			ServerProt.CAM_LOOKAT,
-			ServerProt.UPDATE_INV_FULL,
-			ServerProt.MESSAGE_PRIVATE_ECHO,
-			ServerProt.MESSAGE_PUBLIC,
-			ServerProt.REBUILD_REGION,
-			ServerProt.UPDATE_SITESETTINGS,
-			ServerProt.NPC_ANIM_SPECIFIC,
-			ServerProt.RESET_ANIMS,
-			ServerProt.MAP_PROJANIM,
-			ServerProt.SET_PLAYER_OP,
-			ServerProt.TELEMETRY_GRID_VALUES_DELTA,
-			ServerProt.UPDATE_INV_PARTIAL,
-			ServerProt.MIDI_SONG,
-			ServerProt.SET_MOVEACTION,
-			ServerProt.CREATE_SUGGEST_NAME_ERROR,
-			ServerProt.TELEMETRY_GRID_ADD_COLUMN,
-			ServerProt.CLIENT_SETVARCSTR_LARGE,
-			ServerProt.MESSAGE_CLANCHANNEL,
-			ServerProt.UPDATE_FRIENDCHAT_CHANNEL_FULL,
-			ServerProt.EXECUTE_CLIENT_CHEAT,
-			ServerProt.FRIENDLIST_LOADED,
-			ServerProt.IF_OPENSUB_ACTIVE_LOC,
-			ServerProt.CLEAR_PLAYER_SNAPSHOT,
-			ServerProt.UPDATE_STOCKMARKET_SLOT,
-			ServerProt.SONG_PRELOAD,
-			ServerProt.CLIENT_SETVARCSTR_SMALL,
-			ServerProt.IF_SETTEXTFONT,
-			ServerProt.TELEMETRY_GRID_REMOVE_COLUMN,
-			ServerProt.UPDATE_STAT,
-			ServerProt.LOC_CUSTOMISE,
-			ServerProt.IF_OPENTOP,
-			ServerProt.MESSAGE_FRIENDCHANNEL,
-			ServerProt.VORBIS_SOUND,
-			ServerProt.IF_OPENSUB,
-			ServerProt.TELEMETRY_GRID_MOVE_COLUMN,
-			ServerProt.PLAYER_GROUP_FULL,
-			ServerProt.MESSAGE_PLAYER_GROUP,
-			ServerProt.VORBIS_SOUND_GROUP,
-			ServerProt.IF_SETPLAYERHEAD,
-			ServerProt.VARBIT_SMALL,
-			ServerProt.LOC_DEL,
-			ServerProt.UPDATE_FRIENDLIST,
-			ServerProt.SHOW_FACE_HERE,
-			ServerProt.SEND_PING,
-			ServerProt.OBJ_DEL,
-			ServerProt.VARP_LARGE,
-			ServerProt.field3853,
-			ServerProt.DEBUG_SERVER_TRIGGERS,
-			ServerProt.UPDATE_UID192,
-			ServerProt.CLIENT_SETVARCBIT_SMALL,
-			ServerProt.MIDI_JINGLE,
-			ServerProt.UPDATE_ZONE_PARTIAL_FOLLOWS,
-			ServerProt.LOGOUT_TRANSFER,
-			ServerProt.UPDATE_ZONE_PARTIAL_ENCLOSED,
-			ServerProt.CLANCHANNEL_FULL,
-			ServerProt.URL_OPEN,
-			ServerProt.IF_OPENSUB_ACTIVE_PLAYER,
-			ServerProt.IF_SETPLAYERHEAD_OTHER,
-			ServerProt.IF_SETRECOL,
-			ServerProt.CAM_REMOVEROOF,
-			ServerProt.UPDATE_INV_STOP_TRANSMIT,
-			ServerProt.CREATE_SUGGEST_NAME_REPLY,
-			ServerProt.PLAYER_SNAPSHOT,
-			ServerProt.TELEMETRY_GRID_REMOVE_GROUP,
-			ServerProt.CLIENT_SETVARCBIT_LARGE,
-			ServerProt.SOUND_AREA,
-			ServerProt.MAP_PROJANIM_HALFSQ,
-			ServerProt.IF_SETPOSITION,
-			ServerProt.OBJ_COUNT,
-			ServerProt.CHAT_FILTER_SETTINGS_PRIVATECHAT,
-			ServerProt.TELEMETRY_GRID_FULL,
-			ServerProt.SETDRAWORDER,
-			ServerProt.SOCIAL_NETWORK_LOGOUT,
-			ServerProt.HINT_ARROW,
-			ServerProt.IF_SETSCROLLPOS,
-			ServerProt.MESSAGE_QUICKCHAT_PRIVATE,
-			ServerProt.CAM2_ENABLE,
-			ServerProt.MESSAGE_CLANCHANNEL_SYSTEM,
-			ServerProt.NO_TIMEOUT,
-			ServerProt.LOC_ANIM_SPECIFIC,
-			ServerProt.OBJ_ADD,
-			ServerProt.LOGOUT_FULL,
-			ServerProt.CAM_SMOOTHRESET,
-			ServerProt.REBUILD_NORMAL,
-			ServerProt.MESSAGE_QUICKCHAT_CLANCHANNEL,
-			ServerProt.MESSAGE_PRIVATE,
-			ServerProt.VARCLAN_DISABLE,
-			ServerProt.VORBIS_SOUND_GROUP_START,
-			ServerProt.MESSAGE_QUICKCHAT_PRIVATE_ECHO,
-			ServerProt.SET_MAP_FLAG,
-			ServerProt.VORBIS_SOUND_GROUP_STOP,
-			ServerProt.TELEMETRY_GRID_MOVE_ROW,
-			ServerProt.VORBIS_PRELOAD_SOUNDS,
-			ServerProt.CAM_MOVETO,
-			ServerProt.RESET_CLIENT_VARCACHE,
-			ServerProt.IF_SETPLAYERMODEL_OTHER,
-			ServerProt.CLANSETTINGS_FULL,
-			ServerProt.IF_OPENSUB_ACTIVE_NPC,
-			ServerProt.IF_SETANIM,
-			ServerProt.CAM_RESET,
-			ServerProt.LOBBY_APPEARANCE,
-			ServerProt.VARCLAN_ENABLE,
-			ServerProt.POINTLIGHT_COLOUR,
-			ServerProt.IF_SETRETEX,
-			ServerProt.IF_SETHIDE,
-			ServerProt.LAST_LOGIN_INFO,
-			ServerProt.REFLECTION_CHECKER,
-			ServerProt.IF_SETANGLE,
-			ServerProt.TEXT_COORD,
-			ServerProt.VORBIS_SPEECH_STOP,
-			ServerProt.VORBIS_PRELOAD_SOUND_GROUP,
-			ServerProt.IF_SETMODEL,
-			ServerProt.DO_CHEAT,
-			ServerProt.OBJ_REVEAL,
-			ServerProt.HINT_TRAIL,
-			ServerProt.MESSAGE_GAME,
-			ServerProt.IF_OPENSUB_ACTIVE_OBJ,
-			ServerProt.PLAYER_INFO,
-			ServerProt.SOUND_MIXBUSS_ADD,
-			ServerProt.LOC_PREFETCH,
-			ServerProt.NPC_HEADICON_SPECIFIC,
-			ServerProt.UPDATE_DOB,
-			ServerProt.MIDI_SONG_LOCATION,
-			ServerProt.CLIENT_SETVARC_LARGE,
-			ServerProt.SERVER_TICK_END,
-			ServerProt.IF_SETPLAYERHEAD_IGNOREWORN,
-			ServerProt.CREATE_ACCOUNT_REPLY,
-			ServerProt.CLANSETTINGS_DELTA,
-			ServerProt.TRIGGER_ONDIALOGABORT,
-			ServerProt.REDUCE_PLAYER_ATTACK_PRIORITY,
-			ServerProt.IF_SET_HTTP_IMAGE,
-			ServerProt.CUTSCENE,
-			ServerProt.MINIMAP_TOGGLE,
-			ServerProt.CHAT_FILTER_SETTINGS,
-			ServerProt.LOC_ADD_CHANGE,
-			ServerProt.IF_SETCOLOUR,
-			ServerProt.REDUCE_NPC_ATTACK_PRIORITY,
-			ServerProt.VARBIT_LARGE,
-			ServerProt.VORBIS_SPEECH_SOUND,
-			ServerProt.POINTLIGHT_INTENSITY,
-			ServerProt.MESSAGE_QUICKCHAT_FRIENDCHAT,
-			ServerProt.CLANCHANNEL_DELTA,
-			ServerProt.LOC_ANIM,
-			ServerProt.STORE_SERVERPERM_VARCS_ACK,
-			ServerProt.CLIENT_SETVARC_SMALL,
-			ServerProt.SET_TARGET,
-			ServerProt.IF_SETPLAYERMODEL_SELF,
-			ServerProt.CAMERA_UPDATE,
-			ServerProt.JS5_RELOAD,
-			ServerProt.CHANGE_LOBBY,
-			ServerProt.IF_SETEVENTS,
-			ServerProt.RUNCLIENTSCRIPT,
-			ServerProt.VARP_SMALL,
-			ServerProt.IF_SETOBJECT,
-			ServerProt.PLAYER_GROUP_VARPS,
-			ServerProt.TELEMETRY_GRID_REMOVE_ROW,
-			ServerProt.UPDATE_RUNENERGY,
-			ServerProt.SOUND_MIXBUSS_SETLEVEL,
-			ServerProt.CREATE_CHECK_NAME_REPLY,
-			ServerProt.CAM_FORCEANGLE,
-			ServerProt.IF_SETTEXTANTIMACRO,
-			ServerProt.IF_CLOSESUB,
-			ServerProt.WORLDLIST_FETCH_REPLY,
-			ServerProt.LOGOUT,
-			ServerProt.UPDATE_RUNWEIGHT,
-			ServerProt.field3996,
-			ServerProt.CAM_SHAKE,
-			ServerProt.VARCLAN,
-			ServerProt.TELEMETRY_GRID_SET_ROW_PINNED,
-			ServerProt.UPDATE_IGNORELIST,
-			ServerProt.UPDATE_ZONE_FULL_FOLLOWS,
-			ServerProt.MESSAGE_QUICKCHAT_PLAYER_GROUP,
-			ServerProt.UPDATE_REBOOT_TIMER,
-			ServerProt.SPOTANIM_SPECIFIC,
-			ServerProt.IF_SETTARGETPARAM,
-			ServerProt.IF_SETPLAYERMODEL_SNAPSHOT,
-			ServerProt.IF_SETTEXT,
-			ServerProt.SYNTH_SOUND,
-			ServerProt.IF_SETGRAPHIC,
-			ServerProt.IF_SETCLICKMASK,
-			ServerProt.TELEMETRY_GRID_ADD_ROW,
-			ServerProt.NPC_INFO,
-			ServerProt.PLAYER_GROUP_DELTA,
-			ServerProt.LOYALTY_UPDATE,
-			ServerProt.IF_SETNPCHEAD,
-			ServerProt.MIDI_SONG_STOP,
-			ServerProt.IF_MOVESUB,
-			ServerProt.TELEMETRY_CLEAR_GRID_VALUE,
-			ServerProt.MAP_ANIM,
-			ServerProt.JCOINS_UPDATE
-		]
-	}
-
 	readonly opcode: number;
     readonly size: number;
     readonly debugname: string;
@@ -405,4 +209,266 @@ export default class ServerProt {
         this.size = size;
         this.debugname = debugname ?? opcode.toString();
     }
+
+	encode(...args: any): Packet {
+		return new Packet();
+	}
+
+	send(client: ClientSocket, ...args: any): void {
+		const message: ServerMessage = ServerMessage.create(this);
+		const buf: Packet = this.encode(...args);
+		message.buf.pdata(buf);
+		client.send(message);
+	}
+}
+
+ServerProt.VARP_SMALL.encode = function(id: number, value: number): Packet {
+	const buf: Packet = new Packet();
+	buf.p1(value);
+	buf.p2_alt2(id);
+	return buf;
+}
+
+ServerProt.VARP_LARGE.encode = function(id: number, value: number): Packet {
+	const buf: Packet = new Packet();
+	buf.p2_alt1(id);
+	buf.p4(value);
+	return buf;
+}
+
+ServerProt.VARBIT_SMALL.encode = function(id: number, value: number): Packet {
+	const buf: Packet = new Packet();
+	buf.p1_alt3(value);
+	buf.p2_alt2(id);
+	return buf;
+}
+
+ServerProt.VARBIT_LARGE.encode = function(id: number, value: number): Packet {
+	const buf: Packet = new Packet();
+	buf.p2_alt2(id);
+	buf.p4_alt1(value);
+	return buf;
+}
+
+ServerProt.CLIENT_SETVARC_SMALL.encode = function(id: number, value: number): Packet {
+	const buf: Packet = new Packet();
+	buf.p1_alt3(value);
+	buf.p2(id);
+	return buf;
+}
+
+ServerProt.CLIENT_SETVARC_LARGE.encode = function(id: number, value: number): Packet {
+	const buf: Packet = new Packet();
+	buf.p4_alt1(value);
+	buf.p2_alt2(id);
+	return buf;
+}
+
+ServerProt.CLIENT_SETVARCBIT_SMALL.encode = function(id: number, value: number): Packet {
+	const buf: Packet = new Packet();
+	buf.p2(id);
+	buf.p1_alt1(value);
+	return buf;
+}
+
+ServerProt.CLIENT_SETVARCBIT_LARGE.encode = function(id: number, value: number): Packet {
+	const buf: Packet = new Packet();
+	buf.p2_alt2(id);
+	buf.p4_alt1(value);
+	return buf;
+}
+
+ServerProt.CLIENT_SETVARCSTR_SMALL.encode = function(id: number, value: string): Packet {
+	const buf: Packet = new Packet();
+	buf.p2(id);
+	buf.pjstr(value);
+	return buf;
+}
+
+ServerProt.CLIENT_SETVARCSTR_LARGE.encode = function(id: number, value: string): Packet {
+	const buf: Packet = new Packet();
+	buf.p2(id);
+	buf.pjstr(value);
+	return buf;
+}
+
+ServerProt.IF_OPENTOP.encode = function(topLevelInterfaceId: number, type: number = 0, key: number[] = [0, 0, 0, 0]): Packet {
+	const buf: Packet = new Packet();
+    buf.p4_alt2(key[3]);
+    buf.p4_alt1(key[2]);
+    buf.p4_alt2(key[0]);
+    buf.p4(key[1]);
+    buf.p1(type);
+    buf.p2_alt3(topLevelInterfaceId);
+	return buf;
+}
+
+ServerProt.IF_OPENSUB.encode = function(topLevelInterfaceId: number, component: number, subInterfaceId: number, type: number, key: number[] = [0, 0, 0, 0]): Packet {
+	const buf: Packet = new Packet();
+    buf.p4_alt2(key[2]);
+    buf.p4_alt1((topLevelInterfaceId << 16) | component);
+    buf.p1_alt2(type);
+    buf.p4(key[3]);
+    buf.p2(subInterfaceId);
+    buf.p4_alt2(key[1]);
+    buf.p4_alt2(key[0]);
+	return buf;
+}
+
+ServerProt.IF_SETEVENTS.encode = function(interfaceId: number, component: number, fromSlot: number, toSlot: number, settings: number): Packet {
+	const buf: Packet = new Packet();
+    buf.p2_alt1(fromSlot);
+    buf.p4(interfaceId << 16 | component);
+    buf.p2_alt3(toSlot);
+    buf.p4_alt1(settings);
+	return buf;
+}
+
+ServerProt.RUNCLIENTSCRIPT.encode = function(scriptId: number, args: (string | number)[]): Packet {
+	const buf: Packet = new Packet();
+    let descriptor: string = '';
+    for (let i: number = args.length - 1; i >= 0; i--) {
+        if (typeof args[i] === 'string') {
+            descriptor += 's';
+        } else {
+            descriptor += 'i';
+        }
+    }
+
+    buf.pjstr(descriptor);
+
+    for (let i: number = 0; i < args.length; i++) {
+        if (typeof args[i] === 'string') {
+            buf.pjstr(args[i] as string);
+        } else {
+            buf.p4(args[i] as number);
+        }
+    }
+
+    buf.p4(scriptId);
+	return buf;
+}
+
+ServerProt.UPDATE_REBOOT_TIMER.encode = function(ticks: number): Packet {
+	const buf: Packet = new Packet();
+	buf.p2(ticks);
+	return buf;
+}
+
+ServerProt.WORLDLIST_FETCH_REPLY.encode = function(id: number, value: number): Packet {
+	const buf: Packet = new Packet();
+    // has update
+    buf.pbool(true);
+
+    // status
+    buf.p1(2); // leftover from loginprot days?
+
+    // full update
+    /// world list
+    const worldList: Packet = new Packet();
+    worldList.pSmart1or2(1); // # of locations
+
+    /// location 1
+    worldList.pSmart1or2(0); // country code
+    worldList.pjstr2('United States');
+
+    worldList.pSmart1or2(1); // min ID
+    worldList.pSmart1or2(1); // max ID
+    worldList.pSmart1or2(1); // size
+
+    /// world 1
+    worldList.pSmart1or2(0); // world index
+    worldList.p1(0); // location
+    worldList.p4(0); // flags
+    worldList.pSmart1or2(0); // unknown, truthy = read string
+    worldList.pjstr2(''); // activity
+    worldList.pjstr2('localhost'); // hostname
+
+    buf.pbool(true);
+    buf.pdata(worldList);
+    buf.p4(Packet.getcrc(worldList));
+
+    // partial update
+    /// world 1
+    buf.pSmart1or2(0); // world index
+    buf.p2(0); // players
+	return buf;
+}
+
+ServerProt.REBUILD_NORMAL.encode = function(level: number, absX: number, absZ: number, forceRebuild: boolean = true, nearbyPlayers: boolean = false): Packet {
+	const buf: Packet = new Packet();
+    if (nearbyPlayers) {
+        buf.accessBits();
+
+        const highres: number = ((level & 0x3) << 28) | ((absX & 0x3FFF) << 14) | (absZ & 0x3FFF);
+        buf.pBit(30, highres);
+
+        // low-res player info
+        for (let i: number = 1; i < 2048; i++) {
+            if (i === 1) {
+                // temp hardcoded player id
+                continue;
+            }
+
+            // const lowres: number = (0 << 16) | (50 << 16) | 50;
+            buf.pBit(18, 0);
+        }
+
+        buf.accessBytes();
+    }
+
+    const zoneX: number = absX >> 3;
+    const zoneZ: number = absZ >> 3;
+    const sizeX: number = 104;
+    const sizeZ: number = 104;
+    let count: number = 9;
+    // for (let z: number = (zoneZ - (sizeZ >> 4)) / 8; zoneZ <= ((sizeZ >> 4) + zoneZ) / 8; z++) {
+    //     for (let x: number = (zoneX - (sizeX >> 4)) / 8; zoneX <= ((sizeX >> 4) + zoneX) / 8; x++) {
+    //         count++;
+    //     }
+    // }
+
+    buf.p2_alt2(zoneX); // z
+    buf.p1(5); // npc distance (bits)
+    buf.p1_alt3(count); // # of regions
+    buf.p1(0); // build area size
+    buf.p2_alt2(zoneZ); // x
+    buf.p1_alt3(forceRebuild ? 1 : 0);
+	return buf;
+}
+
+ServerProt.PLAYER_INFO.encode = function(id: number, value: number): Packet {
+	const buf: Packet = new Packet();
+    // local players (active)
+    buf.accessBits();
+    for (let i: number = 1; i < 2048; i++) {
+        if (i !== 1) {
+            buf.pBit(1, 0);
+        }
+    }
+    buf.accessBytes();
+
+    // local players (inactive)
+    buf.accessBits();
+    buf.accessBytes();
+
+    // external players (active)
+    buf.accessBits();
+    for (let i: number = 1; i < 2048; i++) {
+        if (i === 1) {
+            // temp hardcoded player id
+            continue;
+        }
+
+        buf.pBit(1, 0);
+        buf.pBit(2, 0);
+    }
+    buf.accessBytes();
+
+    // external players (inactive)
+    buf.accessBits();
+    buf.accessBytes();
+
+    // masks
+	return buf;
 }

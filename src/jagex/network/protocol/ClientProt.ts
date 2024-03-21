@@ -1,3 +1,5 @@
+import Packet from "#jagex/bytepacking/Packet.js";
+
 export default class ClientProt {
 
     static readonly MAP_BUILD_STUCK = new ClientProt(0, 15, 'MAP_BUILD_STUCK');
@@ -262,5 +264,11 @@ export default class ClientProt {
         this.opcode = opcode;
         this.size = size;
         this.debugname = debugname ?? opcode.toString();
+    }
+
+    decode(buf: Packet): any {
+    }
+
+    handle(...args: any): void {
     }
 }

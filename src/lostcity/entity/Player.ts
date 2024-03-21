@@ -1,4 +1,4 @@
-import AllPackets from '#jagex/network/packetencoders/AllPackets.js';
+import ServerProt from '#jagex/network/protocol/ServerProt.js';
 import ClientSocket from '#lostcity/network/ClientSocket.js';
 import ScriptRunner from '#lostcity/script/ScriptRunner.js';
 import ServerScript from '#lostcity/script/ServerScript.js';
@@ -10,9 +10,9 @@ export default class Player {
     // persistent data
     username: bigint = 0n;
     displayname: string = '';
-    x: number = 0; // todo: CoordGrid
-    z: number = 0;
     level: number = 0;
+    x: number = 3200; // todo: CoordGrid
+    z: number = 3200;
     varp: (number | string | bigint)[] = new Array(10000);
     varc: (number | string | bigint)[] = new Array(10000);
     // todo: invs
@@ -44,7 +44,11 @@ export default class Player {
 
     login(): void {
         if (this.client) {
-            AllPackets.resetClientVarCache(this.client);
+            if (!ServerScriptState.MAP_LOBBY) {
+                ServerProt.REBUILD_NORMAL.send(this.client, this.level, this.x, this.z, true, true);
+            }
+
+            ServerProt.RESET_CLIENT_VARCACHE.send(this.client);
         }
 
         this.executeScript(ServerScriptList.getByTrigger(ServerTriggerType.LOGIN));

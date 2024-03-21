@@ -9,15 +9,13 @@ import LoginProt from '#jagex/network/protocol/LoginProt.js';
 import CacheProvider from '#lostcity/server/CacheProvider.js';
 import ClientProt from '#jagex/network/protocol/ClientProt.js';
 
-import AllPackets from '#jagex/network/packetencoders/AllPackets.js';
 import ClientMessage from '#jagex/network/ClientMessage.js';
 import ServerScriptList from '#lostcity/script/ServerScriptList.js';
 import Js5Archive from '#jagex/config/Js5Archive.js';
 
-import ScriptRunner from '#lostcity/script/ScriptRunner.js';
-
 import Player from '#lostcity/entity/Player.js';
 import ServerScriptState from '#lostcity/script/ServerScriptState.js';
+import ServerProt from '#jagex/network/protocol/ServerProt.js';
 
 class Lobby {
     tick: number = 0;
@@ -330,7 +328,7 @@ class Lobby {
 
         switch (message.packetType) {
             case ClientProt.WORLDLIST_FETCH: {
-                AllPackets.worldlistFetchReply(client);
+                ServerProt.WORLDLIST_FETCH_REPLY.send(client);
                 break;
             }
             case ClientProt.CLIENT_CHEAT: {
@@ -340,11 +338,11 @@ class Lobby {
 
                 switch (command) {
                     case 'js5_reload': {
-                        AllPackets.js5Reload(client);
+                        ServerProt.JS5_RELOAD.send(client);
                         break
                     }
                     case 'reboottimer': {
-                        AllPackets.updateRebootTimer(client, 1200);
+                        ServerProt.UPDATE_REBOOT_TIMER.send(client, 1200);
                         break
                     }
                     default: {
@@ -498,7 +496,7 @@ class Lobby {
 
             // keepalive every 5s
             if (this.tick % 100 === 0) {
-                AllPackets.noTimeout(client);
+                ServerProt.NO_TIMEOUT.send(client);
             }
 
             // logout after 15s of the socket being idle (15000ms / 50ms tick = 300 ticks)

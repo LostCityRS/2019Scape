@@ -9,7 +9,6 @@ import LoginProt from '#jagex/network/protocol/LoginProt.js';
 import CacheProvider from '#lostcity/server/CacheProvider.js';
 import ClientProt from '#jagex/network/protocol/ClientProt.js';
 
-import AllPackets from '#jagex/network/packetencoders/AllPackets.js';
 import ClientMessage from '#jagex/network/ClientMessage.js';
 import EnumType from '#jagex/config/enumtype/EnumType.js';
 import StructType from '#jagex/config/enumtype/StructType.js';
@@ -17,6 +16,7 @@ import CollisionManager from '#lostcity/engine/collision/CollisionManager.js';
 import Player from '#lostcity/entity/Player.js';
 import ServerScriptList from '#lostcity/script/ServerScriptList.js';
 import Js5Archive from '#jagex/config/Js5Archive.js';
+import ServerProt from '#jagex/network/protocol/ServerProt.js';
 
 class World {
     id: number = 1;
@@ -92,8 +92,6 @@ class World {
                 reply.psize1(reply.pos - start);
                 client.write(reply);
 
-                AllPackets.rebuildNormal(client, true);
-
                 const player: Player = new Player();
                 player.client = client;
                 this.addPlayer(player);
@@ -112,19 +110,25 @@ class World {
             case ClientProt.CLIENT_CHEAT: {
                 const scripted: boolean = message.buf.g1() == 1;
                 const suggest: boolean = message.buf.g1() == 1
-                const command: string = message.buf.gjstr();
+                const cheat: string[] = message.buf.gjstr().toLowerCase().split(' ');
+                const command: string = cheat[0];
+                const args: string[] = cheat.slice(1);
 
                 switch (command) {
                     case 'js5_reload': {
-                        AllPackets.js5Reload(client);
+                        ServerProt.JS5_RELOAD.send(client);
                         break
                     }
                     case 'reboottimer': {
-                        AllPackets.updateRebootTimer(client, 1200);
+                        ServerProt.UPDATE_REBOOT_TIMER.send(client, 1200);
                         break
                     }
                     case 'logout': {
-                        AllPackets.logout(client);
+                        ServerProt.LOGOUT.send(client);
+                        break;
+                    }
+                    case 'tele': {
+                        ServerProt.REBUILD_NORMAL.send(client, 0, parseInt(args[0]), parseInt(args[1]));
                         break;
                     }
                     default: {
@@ -150,7 +154,7 @@ class World {
         const componentId: string | number | undefined = structLookup.params.get(structParam);
 
         if (typeof componentId !== 'undefined') {
-            AllPackets.ifOpenSub(client, toplevel, (componentId as number) & 0xFFF, child, 1);
+            ServerProt.IF_OPENSUB.send(client, toplevel, (componentId as number) & 0xFFF, child, 1);
         }
     }
 
@@ -163,7 +167,7 @@ class World {
         const componentId: string | number | undefined = structLookup.params.get(structParam);
 
         if (typeof componentId !== 'undefined') {
-            AllPackets.ifSetEvents(client, interfaceId, (componentId as number) & 0xFFF, fromSlot, toSlot, settingsHash);
+            ServerProt.IF_SETEVENTS.send(client, interfaceId, (componentId as number) & 0xFFF, fromSlot, toSlot, settingsHash);
         }
     }
 
@@ -286,7 +290,7 @@ class World {
 
             const client: ClientSocket = player.client;
 
-            AllPackets.serverTickEnd(client);
+            ServerProt.SERVER_TICK_END.send(client);
 
             // logout after 15 of the socket being idle (15000ms / 600 tick = 25 ticks)
             if (this.tick - client.lastResponse > 25) {

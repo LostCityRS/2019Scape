@@ -1,4 +1,4 @@
-import AllPackets from '#jagex/network/packetencoders/AllPackets.js';
+import ServerProt from '#jagex/network/protocol/ServerProt.js';
 import ServerScript, { SwitchTable } from '../ServerScript.js';
 import ServerScriptCommand from '../ServerScriptCommands.js';
 import ServerScriptList from '../ServerScriptList.js';
@@ -94,8 +94,8 @@ ServerScriptCommand.POP_VARP.handler = (state: ServerScriptState): void => {
 
     if (!secondary) {
         state._activePlayer!.varp[varpId] = state.popInt();
-        // temp
-        AllPackets.updateVar(state._activePlayer!.client!, varpId, state._activePlayer!.varp[varpId] as number);
+        // temp, should be in cycle
+        ServerProt.VARP_SMALL.send(state._activePlayer!.client!, varpId, state._activePlayer!.varp[varpId] as number);
     }
 }
 
