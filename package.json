@@ -9,7 +9,13 @@
   },
   "scripts": {
     "start": "npm run ts-loader src/lostcity/app.ts",
+    "web": "npm run ts-loader src/lostcity/web.ts",
+    "lobby": "npm run ts-loader src/lostcity/lobby.ts",
+    "world": "npm run ts-loader src/lostcity/world.ts",
     "dev": "concurrently \"nodemon src/lostcity/app.ts\" \"npm run cache:watch\"",
+    "web:dev": "nodemon src/lostcity/web.ts",
+    "lobby:dev": "nodemon src/lostcity/lobby.ts",
+    "world:dev": "nodemon src/lostcity/world.ts",
     "test": "jest",
     "ts-loader": "node --no-warnings --loader ts-node/esm",
     "js5pack:openrs2": "npm run ts-loader src/lostcity/tools/js5pack/openrs2.ts",
