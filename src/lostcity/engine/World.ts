@@ -11,7 +11,7 @@ import ClientProt from '#jagex/network/protocol/ClientProt.js';
 
 import ClientMessage from '#jagex/network/ClientMessage.js';
 import EnumType from '#jagex/config/enumtype/EnumType.js';
-import StructType from '#jagex/config/enumtype/StructType.js';
+import StructType from '#jagex/config/structtype/StructType.js';
 import CollisionManager from '#lostcity/engine/collision/CollisionManager.js';
 import Player from '#lostcity/entity/Player.js';
 import ServerScriptList from '#lostcity/script/ServerScriptList.js';
