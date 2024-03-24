@@ -240,7 +240,7 @@ class World {
 
     async start(): Promise<void> {
         await CacheProvider.load('data/pack');
-        // await this.collision.init();
+        await this.collision.init(CacheProvider.js5);
         await ServerScriptList.load(CacheProvider.serverJs5[Js5Archive.ServerScripts.id]);
         CacheProvider.watch('data/pack');
 

@@ -2,22 +2,20 @@ import Packet from '#jagex/bytepacking/Packet.js';
 
 import Js5 from '#jagex/js5/Js5.js';
 import Js5Archive from '../Js5Archive.js';
+import {ConfigType} from '#jagex/config/ConfigType.js';
 
-export default class EnumType {
+export default class EnumType extends ConfigType {
     static async list(id: number, js5: Js5[]): Promise<EnumType> {
-        const type: EnumType = new EnumType();
-        type.id = id;
+        const type: EnumType = new EnumType(id);
 
         const buf: Uint8Array | null = await js5[Js5Archive.ConfigEnum.id].readFile(id >>> 8, id & 0xFF);
         if (!buf) {
             return type;
         }
 
-        type.decode(new Packet(buf));
+        type.decodeType(new Packet(buf));
         return type;
     }
-
-    id: number = 0;
 
     inputtype: number = 0;
     outputtype: number = 0;
@@ -27,19 +25,7 @@ export default class EnumType {
     valuesArray: (string | number)[] = [];
     valuesCount: number = 0;
 
-    decode(buf: Packet): void {
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-            const code: number = buf.g1();
-            if (code === 0) {
-                return;
-            }
-
-            this.decodeInner(buf, code);
-        }
-    }
-
-    decodeInner(buf: Packet, code: number): void {
+    decode = (buf: Packet, code: number): void => {
         if (code === 1) {
             this.inputtype = buf.g1();
         } else if (code === 2) {

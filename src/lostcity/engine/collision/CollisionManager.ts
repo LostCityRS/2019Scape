@@ -1,5 +1,5 @@
 import {CollisionFlagMap, LineValidator, NaivePathFinder, PathFinder, StepValidator} from '@2004scape/rsmod-pathfinder';
-import {Js5ArchiveType} from '#jagex/config/Js5Archive.js';
+import Js5Archive, {Js5ArchiveType} from '#jagex/config/Js5Archive.js';
 import CacheProvider from '#lostcity/server/CacheProvider.js';
 import Js5 from '#jagex/js5/Js5.js';
 import Js5MapFile from '#jagex/js5/Js5MapFile.js';
@@ -14,6 +14,7 @@ import LocCollider from '#lostcity/engine/collision/LocCollider.js';
 import NpcCollider from '#lostcity/engine/collision/NpcCollider.js';
 import PlayerCollider from '#lostcity/engine/collision/PlayerCollider.js';
 import * as console from 'console';
+import LocType from '#jagex/config/loctype/LocType.js';
 
 export default class CollisionManager {
     private static readonly SHIFT_25: number = Math.pow(2, 25);
@@ -45,10 +46,10 @@ export default class CollisionManager {
         this.lineValidator = new LineValidator(this.flags);
     }
 
-    init = async (): Promise<void> => {
+    init = async (js5: Js5[]): Promise<void> => {
         console.time('Loading collision');
 
-        const maps: Js5 = CacheProvider.js5[Js5ArchiveType.Maps];
+        const maps: Js5 = js5[Js5ArchiveType.Maps];
         const groups: Int32Array | null = maps.getGroupIds();
         if (groups === null) {
             throw new Error('[CollisionManager] Unable to find Js5 Maps group ids.')
@@ -70,7 +71,7 @@ export default class CollisionManager {
             const mapsquareZ: number = (groupId >> 7) << 6;
 
             this.applyLandCollision(mapsquareX, mapsquareZ, lands);
-            this.applyLocCollision(locs, mapsquareX, mapsquareZ, lands);
+            await this.applyLocCollision(js5, locs, mapsquareX, mapsquareZ, lands);
         }
 
         console.timeEnd('Loading collision');
@@ -140,7 +141,7 @@ export default class CollisionManager {
         }
     }
 
-    private applyLocCollision = (locs: number[], mapsquareX: number, mapsquareZ: number, lands: Int8Array): void => {
+    private applyLocCollision = async (js5: Js5[], locs: number[], mapsquareX: number, mapsquareZ: number, lands: Int8Array): Promise<void> => {
         for (let index: number = 0; index < locs.length; index++) {
             const packed: number = locs[index];
             const {id, shape, coord, angle} = this.unpackLoc(packed);
@@ -154,8 +155,10 @@ export default class CollisionManager {
                 continue;
             }
 
-            // TODO LocType config
-            this.changeLocCollision(shape, angle, false, false, 1, 1, 1, absoluteX, absoluteZ, level, true);
+            const locType: LocType = await LocType.list(id, js5);
+            if (locType.blockwalk === 1) {
+                this.changeLocCollision(shape, angle, locType.blockrange, locType.breakroutefinding, locType.length, locType.width, locType.active, absoluteX, absoluteZ, level, true);
+            }
         }
     }
 
