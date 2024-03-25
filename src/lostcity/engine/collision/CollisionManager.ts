@@ -1,20 +1,18 @@
 import {CollisionFlagMap, LineValidator, NaivePathFinder, PathFinder, StepValidator} from '@2004scape/rsmod-pathfinder';
-import Js5Archive, {Js5ArchiveType} from '#jagex/config/Js5Archive.js';
-import CacheProvider from '#lostcity/server/CacheProvider.js';
+import {Js5ArchiveType} from '#jagex/config/Js5Archive.js';
 import Js5 from '#jagex/js5/Js5.js';
 import Js5MapFile from '#jagex/js5/Js5MapFile.js';
 import Packet from '#jagex/bytepacking/Packet.js';
 import RoofCollider from '#lostcity/engine/collision/RoofCollider.js';
 import FloorCollider from '#lostcity/engine/collision/FloorCollider.js';
-import {LocShapes} from '#lostcity/engine/collision/LocShape.js';
-import LocLayer from '#lostcity/engine/collision/LocLayer.js';
-import LocAngle from '#lostcity/engine/collision/LocAngle.js';
+import LocLayer from '#jagex/config/loctype/LocLayer.js';
+import LocAngle from '#jagex/config/loctype/LocAngle.js';
 import WallCollider from '#lostcity/engine/collision/WallCollider.js';
 import LocCollider from '#lostcity/engine/collision/LocCollider.js';
 import NpcCollider from '#lostcity/engine/collision/NpcCollider.js';
 import PlayerCollider from '#lostcity/engine/collision/PlayerCollider.js';
-import * as console from 'console';
 import LocType from '#jagex/config/loctype/LocType.js';
+import {LocShape} from '#jagex/config/loctype/LocShape.js';
 
 export default class CollisionManager {
     private static readonly SHIFT_25: number = Math.pow(2, 25);
@@ -81,17 +79,16 @@ export default class CollisionManager {
         this.floorCollider.change(x, z, level, add);
     }
 
-    changeLocCollision = (shape: number, angle: number, blockrange: boolean, breakroutefinding: boolean, length: number, width: number, active: number, x: number, z: number, level: number, add: boolean): void => {
-        const locLayer: LocLayer = LocShapes.layer(shape);
-        if (locLayer === LocLayer.WALL) {
-            this.wallCollider.change(x, z, level, angle, shape, blockrange, breakroutefinding, add);
-        } else if (locLayer === LocLayer.GROUND) {
+    changeLocCollision = (shape: LocShape, angle: number, blockrange: boolean, breakroutefinding: boolean, length: number, width: number, active: number, x: number, z: number, level: number, add: boolean): void => {
+        if (shape.layer === LocLayer.WALL) {
+            this.wallCollider.change(x, z, level, angle, shape.id, blockrange, breakroutefinding, add);
+        } else if (shape.layer === LocLayer.GROUND) {
             if (angle === LocAngle.NORTH || angle === LocAngle.SOUTH) {
                 this.locCollider.change(x, z, level, length, width, blockrange, breakroutefinding, add);
             } else {
                 this.locCollider.change(x, z, level, width, length, blockrange, breakroutefinding, add);
             }
-        } else if (locLayer === LocLayer.GROUND_DECOR) {
+        } else if (shape.layer === LocLayer.GROUND_DECOR) {
             if (active === 1) {
                 this.floorCollider.change(x, z, level, add);
             }
@@ -156,8 +153,9 @@ export default class CollisionManager {
             }
 
             const locType: LocType = await LocType.list(id, js5);
-            if (locType.blockwalk === 1) {
-                this.changeLocCollision(shape, angle, locType.blockrange, locType.breakroutefinding, locType.length, locType.width, locType.active, absoluteX, absoluteZ, level, true);
+            const locShape: LocShape | null = LocShape.of(id);
+            if (locType.blockwalk === 1 && locShape) {
+                this.changeLocCollision(locShape, angle, locType.blockrange, locType.breakroutefinding, locType.length, locType.width, locType.active, absoluteX, absoluteZ, level, true);
             }
         }
     }

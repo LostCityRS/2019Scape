@@ -1,6 +1,6 @@
 import { CollisionFlag, CollisionFlagMap } from '@2004scape/rsmod-pathfinder';
 
-import LocAngle from '#lostcity/engine/collision/LocAngle.js';
+import LocAngle from '#jagex/config/loctype/LocAngle.js';
 
 export default class WallCornerLCollider {
     private readonly flags: CollisionFlagMap;
