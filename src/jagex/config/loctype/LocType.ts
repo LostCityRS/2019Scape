@@ -59,6 +59,7 @@ export default class LocType extends ConfigType {
     resizex: number = 128;
     resizey: number = 128;
     resizez: number = 128;
+    forceapproach: number = 0;
     xoff: number = 0;
     yoff: number = 0;
     zoff: number = 0;
@@ -80,8 +81,12 @@ export default class LocType extends ConfigType {
     randseq: boolean = true;
     members: boolean = false;
     mapsceneiconrotate: boolean = false;
-    field7520: boolean = false;
-    field7488: number = 0;
+    code98: boolean = false;
+    code99_1: number = 0;
+    code99_2: number = 0;
+    code100_1: number = 0;
+    code100_2: number = 0;
+    code101: number = 0;
     mapsceneicon: number = -1;
     mapsceneiconmirror: boolean = false;
     mapelement: number = -1;
@@ -90,19 +95,21 @@ export default class LocType extends ConfigType {
     tint_saturation: number = 0;
     tint_lightness: number = 0;
     tint_amount: number = 0;
-    field7522: number = 0;
-    field7449: number = 0;
-    field7500: number = 0;
-    field7448: number = 0;
-    field7475: number = 960;
-    field7476: number = 0;
+    code164: number = 0;
+    code165: number = 0;
+    code166: number = 0;
+    code167: number = 0;
+    code170: number = 960;
+    code171: number = 0;
     bgsound_minrate: number = 256;
     bgsound_maxrate: number = 256;
-    field7524: boolean = false;
-    field7526: number = 1;
+    code177: boolean = false;
+    code186: number = 1;
+    code196: number = 0;
+    code197: number = 0;
     antimacro: boolean = false;
     cursor: Int32Array | null = null;
-    field7479: boolean = false;
+    code200: boolean = false;
     clickbox_minX: number = 0;
     clickbox_minY: number = 0;
     clickbox_minZ: number = 0;
@@ -223,7 +230,7 @@ export default class LocType extends ConfigType {
         } else if (code === 67) {
             this.resizez = buf.g2();
         } else if (code === 69) {
-            buf.g1();
+            this.forceapproach = buf.g1();
         } else if (code === 70) {
             this.xoff = buf.g2s() << 2;
         } else if (code === 71) {
@@ -289,12 +296,15 @@ export default class LocType extends ConfigType {
         } else if (code === 97) {
             this.mapsceneiconrotate = true;
         } else if (code === 98) {
-            this.field7520 = true;
-        } else if (code === 99 || code === 100) {
-            buf.g1();
-            buf.g2();
+            this.code98 = true;
+        } else if (code === 99) {
+            this.code99_1 = buf.g1();
+            this.code99_2 = buf.g2();
+        } else if (code === 100) {
+            this.code100_1 = buf.g1();
+            this.code100_2 = buf.g2();
         } else if (code === 101) {
-            this.field7488 = buf.g1();
+            this.code101 = buf.g1();
         } else if (code === 102) {
             this.mapsceneicon = buf.g2();
         } else if (code === 103) {
@@ -337,30 +347,30 @@ export default class LocType extends ConfigType {
             this.tint_lightness = buf.g1b();
             this.tint_amount = buf.g1b();
         } else if (code === 164) {
-            this.field7522 = buf.g2s();
+            this.code164 = buf.g2s();
         } else if (code === 165) {
-            this.field7449 = buf.g2s();
+            this.code165 = buf.g2s();
         } else if (code === 166) {
-            this.field7500 = buf.g2s();
+            this.code166 = buf.g2s();
         } else if (code === 167) {
-            this.field7448 = buf.g2();
+            this.code167 = buf.g2();
         } else if (code === 168) {
             /* empty */
         } else if (code === 169) {
             /* empty */
         } else if (code === 170) {
-            this.field7475 = buf.gSmart1or2();
+            this.code170 = buf.gSmart1or2();
         } else if (code === 171) {
-            this.field7476 = buf.gSmart1or2();
+            this.code171 = buf.gSmart1or2();
         } else if (code === 173) {
             this.bgsound_minrate = buf.g2();
             this.bgsound_maxrate = buf.g2();
         } else if (code === 177) {
-            this.field7524 = true;
+            this.code177 = true;
         } else if (code === 178) {
             this.bgsound_size = buf.g1();
         } else if (code === 186) {
-            this.field7526 = buf.g1();
+            this.code186 = buf.g1();
         } else if (code === 188) {
             /* empty */
         } else if (code === 189) {
@@ -371,15 +381,15 @@ export default class LocType extends ConfigType {
             }
             this.cursor[code - 190] = buf.g2();
         } else if (code === 196) {
-            buf.g1();
+            this.code196 = buf.g1();
         } else if (code === 197) {
-            buf.g1();
+            this.code197 = buf.g1();
         } else if (code === 198) {
             /* empty */
         } else if (code === 199) {
             /* empty */
         } else if (code === 200) {
-            this.field7479 = true;
+            this.code200 = true;
         } else if (code === 201) {
             this.clickbox_minX = buf.gSmart1or2s();
             this.clickbox_minY = buf.gSmart1or2s();
@@ -419,10 +429,10 @@ export default class LocType extends ConfigType {
         if (this.raiseobject === -1) {
             this.raiseobject = this.blockwalk === 0 ? 0 : 1;
         }
-        if (this.hasAnim() || this.field7520 || this.multiloc) {
-            this.field7524 = true;
+        if (this.hasAnim() || this.code98 || this.multiloc) {
+            this.code177 = true;
         }
-        if (this.active <= 0 && 0 === this.field7526) { /* empty */ }
+        if (this.active <= 0 && this.code186 === 0) { /* empty */ }
     }
     
     private hasAnim = (): boolean => {
