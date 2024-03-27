@@ -37,8 +37,8 @@ export default class LocType extends ConfigType {
     blockwalk: number = 2;
     blockrange: boolean = true;
     active: number = -1;
-    hillskew_mode: number = 0;
-    hillskew_value: number = -1;
+    hillchange: number = 0;
+    hillchange_value: number = -1;
     sharelight: boolean = false;
     occlude: number = -1;
     anim: Int32Array | null = null;
@@ -93,11 +93,11 @@ export default class LocType extends ConfigType {
     quests: Uint16Array | null = null;
     tint_hue: number = 0;
     tint_saturation: number = 0;
-    tint_lightness: number = 0;
-    tint_amount: number = 0;
-    code164: number = 0;
-    code165: number = 0;
-    code166: number = 0;
+    tint_luminence: number = 0;
+    tint_weight: number = 0;
+    post_xoff: number = 0;
+    post_yoff: number = 0;
+    post_zoff: number = 0;
     code167: number = 0;
     code170: number = 960;
     code171: number = 0;
@@ -147,7 +147,7 @@ export default class LocType extends ConfigType {
         } else if (code === 19) {
             this.active = buf.g1();
         } else if (code === 21) {
-            this.hillskew_mode = 1;
+            this.hillchange = 1;
         } else if (code === 22) {
             this.sharelight = true;
         } else if (code === 23) {
@@ -275,8 +275,8 @@ export default class LocType extends ConfigType {
                 this.bgsound_random[index] = buf.g2();
             }
         } else if (code === 81) {
-            this.hillskew_mode = 2;
-            this.hillskew_value = buf.g1() * 256;
+            this.hillchange = 2;
+            this.hillchange_value = buf.g1() * 256;
         } else if (code === 82) {
             this.istexture = true;
         } else if (code === 88) {
@@ -286,13 +286,13 @@ export default class LocType extends ConfigType {
         } else if (code === 91) {
             this.members = true;
         } else if (code === 93) {
-            this.hillskew_mode = 3;
-            this.hillskew_value = buf.g2();
+            this.hillchange = 3;
+            this.hillchange_value = buf.g2();
         } else if (code === 94) {
-            this.hillskew_mode = 4;
+            this.hillchange = 4;
         } else if (code === 95) {
-            this.hillskew_mode = 5;
-            this.hillskew_value = buf.g2s();
+            this.hillchange = 5;
+            this.hillchange_value = buf.g2s();
         } else if (code === 97) {
             this.mapsceneiconrotate = true;
         } else if (code === 98) {
@@ -339,25 +339,21 @@ export default class LocType extends ConfigType {
                 this.quests[index] = buf.g2();
             }
         } else if (code === 162) {
-            this.hillskew_mode = 3;
-            this.hillskew_value = buf.g4();
+            this.hillchange = 3;
+            this.hillchange_value = buf.g4();
         } else if (code === 163) {
             this.tint_hue = buf.g1b();
             this.tint_saturation = buf.g1b();
-            this.tint_lightness = buf.g1b();
-            this.tint_amount = buf.g1b();
+            this.tint_luminence = buf.g1b();
+            this.tint_weight = buf.g1b();
         } else if (code === 164) {
-            this.code164 = buf.g2s();
+            this.post_xoff = buf.g2s();
         } else if (code === 165) {
-            this.code165 = buf.g2s();
+            this.post_yoff = buf.g2s();
         } else if (code === 166) {
-            this.code166 = buf.g2s();
+            this.post_zoff = buf.g2s();
         } else if (code === 167) {
             this.code167 = buf.g2();
-        } else if (code === 168) {
-            /* empty */
-        } else if (code === 169) {
-            /* empty */
         } else if (code === 170) {
             this.code170 = buf.gSmart1or2();
         } else if (code === 171) {
@@ -371,8 +367,6 @@ export default class LocType extends ConfigType {
             this.bgsound_size = buf.g1();
         } else if (code === 186) {
             this.code186 = buf.g1();
-        } else if (code === 188) {
-            /* empty */
         } else if (code === 189) {
             this.antimacro = true;
         } else if (code >= 190 && code < 196) {
@@ -384,10 +378,6 @@ export default class LocType extends ConfigType {
             this.code196 = buf.g1();
         } else if (code === 197) {
             this.code197 = buf.g1();
-        } else if (code === 198) {
-            /* empty */
-        } else if (code === 199) {
-            /* empty */
         } else if (code === 200) {
             this.code200 = true;
         } else if (code === 201) {
