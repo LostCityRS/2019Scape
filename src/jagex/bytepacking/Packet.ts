@@ -258,7 +258,12 @@ export default class Packet {
     }
 
     gSmart2or4null(): number {
-        return this.data[this.pos] >= 128 ? this.g4() & 0x7FFFFFFF : this.g2() === 32767 ? -1 : this.g2();
+        if (this.data[this.pos] >= 128) {
+            return this.g4() & 0x7FFFFFFF;
+        } else {
+            const val: number = this.g2();
+            return val === 32767 ? -1 : val;
+        }
     }
 
     gVarInt(): number {
