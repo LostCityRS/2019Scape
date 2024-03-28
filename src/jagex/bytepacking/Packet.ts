@@ -278,6 +278,18 @@ export default class Packet {
         return value | remainder;
     }
 
+    gVarInt2(): number {
+        let value: number = 0;
+        let bits: number = 0;
+        let read: number = 0;
+        do {
+            read = this.g1();
+            value |= (read & 0x7F) << bits;
+            bits += 7;
+        } while (read > 127);
+        return value;
+    }
+
     gVarLong(bytes: number): bigint {
         const read: number = bytes - 1;
         if (read < 0 || read > 7) {
