@@ -78,7 +78,7 @@ export default class LocType extends ConfigType {
     bgsound_random: Uint16Array | null = null;
     istexture: boolean = false;
     hardshadow: boolean = true;
-    randseq: boolean = true;
+    randomanimframe: boolean = true;
     members: boolean = false;
     mapsceneiconrotate: boolean = false;
     code98: boolean = false;
@@ -282,7 +282,7 @@ export default class LocType extends ConfigType {
         } else if (code === 88) {
             this.hardshadow = false;
         } else if (code === 89) {
-            this.randseq = false;
+            this.randomanimframe = false;
         } else if (code === 91) {
             this.members = true;
         } else if (code === 93) {
