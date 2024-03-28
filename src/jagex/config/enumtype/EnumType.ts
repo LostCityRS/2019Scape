@@ -2,7 +2,8 @@ import Packet from '#jagex/bytepacking/Packet.js';
 
 import Js5 from '#jagex/js5/Js5.js';
 import Js5Archive from '../Js5Archive.js';
-import {ConfigType} from '#jagex/config/ConfigType.js';
+import { ConfigType } from '#jagex/config/ConfigType.js';
+import ScriptVarType from '#jagex/config/vartype/constants/ScriptVarType.js';
 
 export default class EnumType extends ConfigType {
     static async list(id: number, js5: Js5[]): Promise<EnumType> {
@@ -17,8 +18,8 @@ export default class EnumType extends ConfigType {
         return type;
     }
 
-    inputtype: number = 0;
-    outputtype: number = 0;
+    inputtype: ScriptVarType | null = null;
+    outputtype: ScriptVarType | null = null;
     defaultString: string = '';
     defaultInt: number = 0;
     valuesMap: Map<number, string | number> = new Map();
@@ -27,9 +28,9 @@ export default class EnumType extends ConfigType {
 
     decode = (buf: Packet, code: number): void => {
         if (code === 1) {
-            this.inputtype = buf.g1();
+            this.inputtype = ScriptVarType.getByLegacyChar(buf.g1b());
         } else if (code === 2) {
-            this.outputtype = buf.g1();
+            this.outputtype = ScriptVarType.getByLegacyChar(buf.g1b());
         } else if (code === 3) {
             this.defaultString = buf.gjstr();
         } else if (code === 4) {
@@ -69,9 +70,9 @@ export default class EnumType extends ConfigType {
                 this.valuesArray[index] = value;
             }
         } else if (code === 101) {
-            this.inputtype = buf.gSmart1or2();
+            this.inputtype = ScriptVarType.of(buf.gSmart1or2());
         } else if (code === 102) {
-            this.outputtype = buf.gSmart1or2();
+            this.outputtype = ScriptVarType.of(buf.gSmart1or2());
         }
     }
 }
