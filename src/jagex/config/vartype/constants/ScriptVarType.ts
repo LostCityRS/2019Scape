@@ -1,8 +1,11 @@
 import {BaseVarType} from '#jagex/config/vartype/constants/BaseVarType.js';
 
 export default class ScriptVarType {
+    private static readonly varByLegacyChar: ScriptVarType[] = [];
+
     public static readonly INT = new ScriptVarType(0, 'int', 'i', BaseVarType.INTEGER, 0);
     public static readonly BOOLEAN = new ScriptVarType(1, 'boolean', '1', BaseVarType.INTEGER, 0);
+    public static readonly TYPE_2 = new ScriptVarType(2, 'type_2', '2', BaseVarType.INTEGER, -1);
     public static readonly QUEST = new ScriptVarType(3, 'quest', ':', BaseVarType.INTEGER, -1);
     public static readonly QUESTHELP = new ScriptVarType(4, 'questhelp', ';', BaseVarType.INTEGER, -1);
     public static readonly CURSOR = new ScriptVarType(5, 'cursor', '@', BaseVarType.INTEGER, -1);
@@ -33,6 +36,7 @@ export default class ScriptVarType {
     public static readonly NPC = new ScriptVarType(32, 'npc', 'n', BaseVarType.INTEGER, -1);
     public static readonly OBJ = new ScriptVarType(33, 'obj', 'o', BaseVarType.INTEGER, -1);
     public static readonly PLAYER_UID = new ScriptVarType(34, 'player_uid', 'p', BaseVarType.INTEGER, -1);
+    public static readonly TYPE_35 = new ScriptVarType(35, 'type_35', 'r', BaseVarType.LONG, -1n);
     public static readonly STRING = new ScriptVarType(36, 'string', 's', BaseVarType.STRING, '');
     public static readonly SPOTANIM = new ScriptVarType(37, 'spotanim', 't', BaseVarType.INTEGER, -1);
     public static readonly NPC_UID = new ScriptVarType(38, 'npc_uid', 'u', BaseVarType.INTEGER, -1);
@@ -42,6 +46,7 @@ export default class ScriptVarType {
     public static readonly CHAR = new ScriptVarType(42, 'char', 'z', BaseVarType.INTEGER, -1);
     public static readonly LASER = new ScriptVarType(43, 'laser', '|', BaseVarType.INTEGER, -1);
     public static readonly BAS = new ScriptVarType(44, 'bas', '¬', BaseVarType.INTEGER, -1);
+    public static readonly TYPE_45 = new ScriptVarType(45, 'type_45', 'ƒ', BaseVarType.INTEGER, -1);
     public static readonly COLLISION_GEOMETRY = new ScriptVarType(46, 'collision_geometry', '!', BaseVarType.INTEGER, -1);
     public static readonly PHYSICS_MODEL = new ScriptVarType(47, 'physics_model', '0', BaseVarType.INTEGER, -1);
     public static readonly PHYSICS_CONTROL_MODIFIER = new ScriptVarType(48, 'physics_control_modifier', '`', BaseVarType.INTEGER, -1);
@@ -59,6 +64,7 @@ export default class ScriptVarType {
     public static readonly HITMARK = new ScriptVarType(62, 'hitmark', '×', BaseVarType.INTEGER, -1);
     public static readonly PACKAGE = new ScriptVarType(63, 'package', 'Þ', BaseVarType.INTEGER, -1);
     public static readonly PARTICLE_EFFECTOR = new ScriptVarType(64, 'pef', 'á', BaseVarType.INTEGER, -1);
+    public static readonly TYPE_65 = new ScriptVarType(65, 'type_65', 'æ', BaseVarType.INTEGER, -1);
     public static readonly PARTICLE_EMITTER = new ScriptVarType(66, 'pem', 'é', BaseVarType.INTEGER, -1);
     public static readonly PLOGTYPE = new ScriptVarType(67, 'plog', 'í', BaseVarType.INTEGER, -1);
     public static readonly UNSIGNED_INT = new ScriptVarType(68, 'unsigned_int', 'î', BaseVarType.INTEGER, -1);
@@ -92,6 +98,8 @@ export default class ScriptVarType {
     public static readonly HTTP_IMAGE = new ScriptVarType(112, 'http_image', 'É', BaseVarType.INTEGER, -1);
     public static readonly POP_UP_DISPLAY_BEHAVIOUR = new ScriptVarType(113, 'popupdisplaybehaviour', 'Ê', BaseVarType.INTEGER, -1);
     public static readonly POLL = new ScriptVarType(114, 'poll', '÷', BaseVarType.INTEGER, -1);
+    public static readonly TYPE_115 = new ScriptVarType(115, 'type_115', '¼', BaseVarType.LONG, -1n);
+    public static readonly TYPE_116 = new ScriptVarType(116, 'type_116', '½', BaseVarType.LONG, -1n);
     public static readonly POINTLIGHT = new ScriptVarType(117, 'pointlight', '"', BaseVarType.INTEGER, -1);
     public static readonly PLAYER_GROUP = new ScriptVarType(118, 'player_group', 'Â', BaseVarType.LONG, -1n);
     public static readonly PLAYER_GROUP_STATUS = new ScriptVarType(119, 'player_group_status', 'Ã', BaseVarType.INTEGER, -1);
@@ -102,8 +110,6 @@ export default class ScriptVarType {
     public static readonly PLAYER_GROUP_DELTA_TYPE = new ScriptVarType(124, 'player_group_delta_type', '²', BaseVarType.INTEGER, -1);
     public static readonly CLIENT_TYPE = new ScriptVarType(125, 'client_type', 'ª', BaseVarType.INTEGER, -1);
     public static readonly TELEMETRY_INTERVAL = new ScriptVarType(126, 'telemetry_interval', null, BaseVarType.INTEGER, 0);
-
-    private static varByLegacyChar: ScriptVarType[] = [];
 
     public readonly id: number;
 
@@ -122,16 +128,13 @@ export default class ScriptVarType {
         this.baseType = baseType;
         this.defaultValue = defaultValue;
         if (this.legacyChar !== 0) {
-            if (ScriptVarType.varByLegacyChar === undefined) {
-                ScriptVarType.varByLegacyChar = [];
-            }
             ScriptVarType.varByLegacyChar[this.legacyChar] = this;
         }
     }
 
     static of(id: number): ScriptVarType {
         for (const value of this.values()) {
-            if (value.id == id) {
+            if (value.id === id) {
                 return value;
             }
         }
@@ -139,9 +142,9 @@ export default class ScriptVarType {
     }
 
     static getByLegacyChar(char: number): ScriptVarType | null {
-        const type: ScriptVarType = this.varByLegacyChar[char & 0xFF];
+        const type: ScriptVarType = ScriptVarType.varByLegacyChar[char & 0xFF];
         if (type === undefined) {
-            throw new Error(`Unknown legacy char code: ${char}`);
+            throw new Error(`Unknown legacy char code: ${char}: ${ScriptVarType.varByLegacyChar}`);
         }
         return type;
     }
@@ -150,6 +153,7 @@ export default class ScriptVarType {
         return [
             this.INT,
             this.BOOLEAN,
+            this.TYPE_2,
             this.QUEST,
             this.QUESTHELP,
             this.CURSOR,
@@ -180,6 +184,7 @@ export default class ScriptVarType {
             this.NPC,
             this.OBJ,
             this.PLAYER_UID,
+            this.TYPE_35,
             this.STRING,
             this.SPOTANIM,
             this.NPC_UID,
@@ -189,6 +194,7 @@ export default class ScriptVarType {
             this.CHAR,
             this.LASER,
             this.BAS,
+            this.TYPE_45,
             this.COLLISION_GEOMETRY,
             this.PHYSICS_MODEL,
             this.PHYSICS_CONTROL_MODIFIER,
@@ -206,6 +212,7 @@ export default class ScriptVarType {
             this.HITMARK,
             this.PACKAGE,
             this.PARTICLE_EFFECTOR,
+            this.TYPE_65,
             this.PARTICLE_EMITTER,
             this.PLOGTYPE,
             this.UNSIGNED_INT,
@@ -239,6 +246,8 @@ export default class ScriptVarType {
             this.HTTP_IMAGE,
             this.POP_UP_DISPLAY_BEHAVIOUR,
             this.POLL,
+            this.TYPE_115,
+            this.TYPE_116,
             this.POINTLIGHT,
             this.PLAYER_GROUP,
             this.PLAYER_GROUP_STATUS,
