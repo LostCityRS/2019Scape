@@ -43,7 +43,7 @@ export default class ParamType extends ConfigType {
                 this.type = ScriptVarType.of(buf.gSmart1or2());
                 break;
             default:
-                throw new Error(`Unrecognised .enum config code: ${code}`);
+                throw new Error(`Unrecognised .param config code: ${code}`);
         }
     }
 }
