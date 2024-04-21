@@ -2,9 +2,9 @@ import Js5 from '#jagex/js5/Js5.js';
 import Js5Archive from '#jagex/config/Js5Archive.js';
 import Packet from '#jagex/bytepacking/Packet.js';
 import Js5ConfigGroup from '#jagex/config/Js5ConfigGroup.js';
-import {LocShape} from '#jagex/config/loctype/LocShape.js';
 import {ConfigType} from '#jagex/config/ConfigType.js';
 import {ParamHelper, ParamMap} from '#jagex/config/ParamHelper.js';
+import {LocShape} from '@2004scape/rsmod-pathfinder';
 
 export default class LocType extends ConfigType {
     private static readonly cached: Map<number, LocType> = new Map();
@@ -406,7 +406,7 @@ export default class LocType extends ConfigType {
     private postDecodeActive = (): void => {
         if (this.active === -1) {
             this.active = 0;
-            if (this.shapes && this.shapes.length === 1 && LocShape.CENTREPIECE_STRAIGHT.id === this.shapes[0]) {
+            if (this.shapes && this.shapes.length === 1 && LocShape.CENTREPIECE_STRAIGHT === this.shapes[0]) {
                 this.active = 1;
             }
             for (let index: number = 0; index < 5; index++) {
