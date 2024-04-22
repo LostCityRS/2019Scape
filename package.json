@@ -17,7 +17,7 @@
     "lobby:dev": "nodemon src/lostcity/lobby.ts",
     "world:dev": "nodemon src/lostcity/world.ts",
     "test": "jest",
-    "ts-loader": "node --no-warnings --loader ts-node/esm",
+    "ts-loader": "node --enable-source-maps --no-warnings --loader ts-node/esm",
     "js5pack:openrs2": "npm run ts-loader src/lostcity/tools/js5pack/openrs2.ts",
     "js5pack:dat2": "npm run ts-loader src/lostcity/tools/js5pack/dat2.ts",
     "js5pack:dat2m": "npm run ts-loader src/lostcity/tools/js5pack/dat2m.ts",

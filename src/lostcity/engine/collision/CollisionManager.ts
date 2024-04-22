@@ -113,6 +113,10 @@ export default class CollisionManager {
     }
 
     private decodeLands = (lands: Int8Array, buf: Packet, mapsquareX: number, mapsquareZ: number): void => {
+        if (!buf.length) {
+            return;
+        }
+
         for (let level: number = 0; level < 4; level++) {
             for (let x: number = 0; x < 64; x++) {
                 for (let z: number = 0; z < 64; z++) {
@@ -143,6 +147,10 @@ export default class CollisionManager {
     }
 
     private decodeLocs = async (js5: Js5[], lands: Int8Array, buf: Packet, mapsquareX: number, mapsquareZ: number): Promise<void> => {
+        if (!buf.length) {
+            return;
+        }
+
         let locId: number = -1;
         let locIdOffset: number = buf.gExtended1or2();
 
