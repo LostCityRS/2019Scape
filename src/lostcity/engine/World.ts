@@ -130,7 +130,7 @@ class World {
                         break;
                     }
                     case 'tele': {
-                        ServerProt.REBUILD_NORMAL.send(client, 0, parseInt(args[0]), parseInt(args[1]), client.player!.buildAreaSize);
+                        ServerProt.REBUILD_NORMAL.send(client, client.player, 0, parseInt(args[0]), parseInt(args[1]), client.player!.buildAreaSize);
                         break;
                     }
                     default: {
@@ -275,6 +275,10 @@ class World {
 
         for (const player of this.players) {
             player.cycle();
+        }
+
+        for (const player of this.players) {
+            player.updatePlayers();
         }
 
         // process outgoing packets

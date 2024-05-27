@@ -2,6 +2,8 @@ import Packet from '#jagex/bytepacking/Packet.js';
 import BuildAreaSize from '#jagex/core/constants/BuidlAreaSize.js';
 import ClientSocket from '#lostcity/network/ClientSocket.js';
 import ServerMessage from '../ServerMessage.js';
+import Viewport from '#lostcity/entity/Viewport.js';
+import Player from '#lostcity/entity/Player.js';
 
 export default class ServerProt {
 
@@ -398,7 +400,7 @@ ServerProt.WORLDLIST_FETCH_REPLY.encode = function(id: number, value: number): P
 	return buf;
 }
 
-ServerProt.REBUILD_NORMAL.encode = function(level: number, absX: number, absZ: number, buildAreaSize: BuildAreaSize, forceRebuild: boolean = true, nearbyPlayers: boolean = false): Packet {
+ServerProt.REBUILD_NORMAL.encode = function(player: Player, level: number, absX: number, absZ: number, buildAreaSize: BuildAreaSize, forceRebuild: boolean = true, nearbyPlayers: boolean = false): Packet {
 	const buf: Packet = new Packet();
     if (nearbyPlayers) {
         buf.accessBits();
@@ -406,15 +408,20 @@ ServerProt.REBUILD_NORMAL.encode = function(level: number, absX: number, absZ: n
         const highres: number = ((level & 0x3) << 28) | ((absX & 0x3FFF) << 14) | (absZ & 0x3FFF);
         buf.pBit(30, highres);
 
+		const viewport: Viewport = player.viewport;
+		viewport.players[player.pid] = player;
+		viewport.high[viewport.highCount++] = player.pid;
+
         // low-res player info
         for (let i: number = 1; i < 2048; i++) {
-            if (i === 1) {
-                // temp hardcoded player id
+            if (i === player.pid) {
                 continue;
             }
 
             // const lowres: number = (0 << 16) | (50 << 16) | 50;
             buf.pBit(18, 0);
+			viewport.positions[i] = 0;
+			viewport.low[viewport.lowCount++] = i;
         }
 
         buf.accessBytes();
@@ -439,38 +446,94 @@ ServerProt.REBUILD_NORMAL.encode = function(level: number, absX: number, absZ: n
 	return buf;
 }
 
-ServerProt.PLAYER_INFO.encode = function(id: number, value: number): Packet {
+ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
+	function putSkip(buf: Packet, amount: number): number {
+		if (amount === -1) {
+			return amount;
+		}
+		buf.pBit(1, 0); // has no update
+		if (amount === 0) {
+			buf.pBit(2, 0);
+		} else if (amount < 32) {
+			buf.pBit(2, 1);
+			buf.pBit(5, amount);
+		} else if (amount < 256) {
+			buf.pBit(2, 2);
+			buf.pBit(8, amount);
+		} else if (amount < 2048) {
+			buf.pBit(2, 3);
+			buf.pBit(11, amount);
+		}
+		return -1;
+	}
+
+	function high(buf: Packet, viewport: Viewport, nsn: boolean = true): void {
+		buf.accessBits();
+		let skip: number = -1;
+		for (let i: number = 0; i < viewport.highCount; i++) {
+			const index: number = viewport.high[i];
+			if (nsn === ((0x1 & viewport.nsnFlags[index]) !== 0)) {
+				continue;
+			}
+			const other: Player | undefined = viewport.players[index];
+			if (!other) {
+				viewport.nsnFlags[index] |= 0x2;
+				skip++;
+				continue;
+			}
+			const updating: boolean = false;
+			if (!updating) {
+				viewport.nsnFlags[index] |= 0x2;
+				skip++;
+				continue;
+			}
+			skip = putSkip(buf, skip);
+			buf.pBit(1, 1); // has update
+		}
+		putSkip(buf, skip);
+		buf.accessBytes();
+		if (nsn) {
+			high(buf, viewport, false);
+		}
+	}
+
+	function low(buf: Packet, viewport: Viewport, nsn: boolean = true): void {
+		buf.accessBits();
+		let skip: number = -1;
+		for (let i: number = 0; i < viewport.lowCount; i++) {
+			const index: number = viewport.low[i];
+			if (nsn === ((0x1 & viewport.nsnFlags[index]) === 0)) {
+				continue;
+			}
+			const other: Player | undefined = viewport.players[index];
+			if (!other) {
+				viewport.nsnFlags[index] |= 0x2;
+				skip++;
+				continue;
+			}
+			const updating: boolean = false;
+			if (!updating) {
+				viewport.nsnFlags[index] |= 0x2;
+				skip++;
+				continue;
+			}
+			skip = putSkip(buf, skip);
+			buf.pBit(1, 1); // has update
+		}
+		putSkip(buf, skip);
+		buf.accessBytes();
+		if (nsn) {
+			low(buf, viewport, false);
+		}
+	}
+
+	const viewport: Viewport = player.viewport;
 	const buf: Packet = new Packet();
-    // local players (active)
-    buf.accessBits();
-    for (let i: number = 1; i < 2048; i++) {
-        if (i !== 1) {
-            buf.pBit(1, 0);
-        }
-    }
-    buf.accessBytes();
 
-    // local players (inactive)
-    buf.accessBits();
-    buf.accessBytes();
-
-    // external players (active)
-    buf.accessBits();
-    for (let i: number = 1; i < 2048; i++) {
-        if (i === 1) {
-            // temp hardcoded player id
-            continue;
-        }
-
-        buf.pBit(1, 0);
-        buf.pBit(2, 0);
-    }
-    buf.accessBytes();
-
-    // external players (inactive)
-    buf.accessBits();
-    buf.accessBytes();
+	high(buf, viewport);
+	low(buf, viewport);
 
     // masks
+	viewport.reset();
 	return buf;
 }

@@ -7,6 +7,7 @@ import ServerScriptList from '#lostcity/script/ServerScriptList.js';
 import ServerScriptState from '#lostcity/script/ServerScriptState.js';
 import ServerTriggerType from '#lostcity/script/ServerTriggerType.js';
 import Entity from '#lostcity/entity/Entity.js';
+import Viewport from '#lostcity/entity/Viewport.js';
 
 export default class Player extends Entity {
     // persistent data
@@ -25,6 +26,7 @@ export default class Player extends Entity {
     pid: number = -1;
     uid: number = -1;
     buildAreaSize: BuildAreaSize = BuildAreaSize.SIZE_104;
+    viewport: Viewport = new Viewport();
     runweight: number = 0;
 
     delay: number = 0;
@@ -52,7 +54,7 @@ export default class Player extends Entity {
     login(): void {
         if (this.client) {
             if (!ServerScriptState.MAP_LOBBY) {
-                ServerProt.REBUILD_NORMAL.send(this.client, this.level, this.x, this.z, this.buildAreaSize, true, true);
+                ServerProt.REBUILD_NORMAL.send(this.client, this, this.level, this.x, this.z, this.buildAreaSize, true, true);
             }
 
             ServerProt.RESET_CLIENT_VARCACHE.send(this.client);
@@ -62,6 +64,12 @@ export default class Player extends Entity {
     }
 
     cycle(): void {
+    }
+
+    updatePlayers(): void {
+        if (this.client) {
+            ServerProt.PLAYER_INFO.send(this.client, this);
+        }
     }
 
     executeScript(script?: ServerScript): void {
