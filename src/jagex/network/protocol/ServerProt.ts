@@ -470,7 +470,7 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
     function position(buf: Packet, viewport: Viewport, other: Player, index: number): void {
         const current: number = viewport.positions[index];
         const next: number = 0 << 18 | (other.level << 16) | (other.x >> 6 << 8) | other.x >> 6; // TODO
-        const update = current !== next;
+        const update: boolean = current !== next;
         buf.pBit(1, update ? 1 : 0);
         if (update) {
             const cs: number = current >> 18;
@@ -516,6 +516,7 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
                 buf.pBit(2, 3);
                 buf.pBit(20, ((ds & 0x3) << 18) | ((dl & 0x3) << 16) | ((dx & 0xff) << 8) | (dz & 0xff));
             }
+            viewport.positions[index] = next;
         }
     }
 
