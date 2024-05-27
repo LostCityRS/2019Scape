@@ -48,11 +48,11 @@ export default class CollisionManager {
         console.timeEnd('Loading collision');
     }
 
-    changeLandCollision = (x: number, z: number, level: number, add: boolean): void => {
+    changeLandCollision(x: number, z: number, level: number, add: boolean): void {
         changeFloor(x, z, level, add);
     }
 
-    changeLocCollision = (shape: LocShape, angle: number, blockrange: boolean, breakroutefinding: boolean, length: number, width: number, active: number, x: number, z: number, level: number, add: boolean): void => {
+    changeLocCollision(shape: LocShape, angle: number, blockrange: boolean, breakroutefinding: boolean, length: number, width: number, active: number, x: number, z: number, level: number, add: boolean): void {
         const locLayer: LocLayer = locShapeLayer(shape);
         if (locLayer === LocLayer.WALL) {
             changeWall(x, z, level, angle, shape, blockrange, breakroutefinding, add);
@@ -69,19 +69,19 @@ export default class CollisionManager {
         }
     }
 
-    changeNpcCollision = (size: number, x: number, z: number, level: number, add: boolean): void => {
+    changeNpcCollision(size: number, x: number, z: number, level: number, add: boolean): void {
         changeNpc(x, z, level, size, add);
     }
 
-    changePlayerCollision = (size: number, x: number, z: number, level: number, add: boolean): void => {
+    changePlayerCollision(size: number, x: number, z: number, level: number, add: boolean): void {
         changePlayer(x, z, level, size, add);
     }
 
-    changeRoofCollision = (x: number, z: number, level: number, add: boolean): void => {
+    changeRoofCollision(x: number, z: number, level: number, add: boolean): void {
         changeRoof(x, z, level, add);
     }
 
-    private applyLandCollision = (mapsquareX: number, mapsquareZ: number, lands: Int8Array): void => {
+    private applyLandCollision(mapsquareX: number, mapsquareZ: number, lands: Int8Array): void {
         for (let level: number = 0; level < 4; level++) {
             for (let x: number = 0; x < 64; x++) {
                 const absoluteX: number = x + mapsquareX;
@@ -112,7 +112,7 @@ export default class CollisionManager {
         }
     }
 
-    private decodeLands = (lands: Int8Array, buf: Packet, mapsquareX: number, mapsquareZ: number): void => {
+    private decodeLands(lands: Int8Array, buf: Packet, mapsquareX: number, mapsquareZ: number): void {
         if (!buf.length) {
             return;
         }
@@ -127,7 +127,7 @@ export default class CollisionManager {
         this.applyLandCollision(mapsquareX, mapsquareZ, lands);
     }
 
-    private decodeLand = (buf: Packet): number => {
+    private decodeLand(buf: Packet): number {
         const opcode: number = buf.g1();
         if ((opcode & 0x1) !== 0) {
             buf.g1();
@@ -146,7 +146,7 @@ export default class CollisionManager {
         return collision;
     }
 
-    private decodeLocs = async (js5: Js5[], lands: Int8Array, buf: Packet, mapsquareX: number, mapsquareZ: number): Promise<void> => {
+    private async decodeLocs(js5: Js5[], lands: Int8Array, buf: Packet, mapsquareX: number, mapsquareZ: number): Promise<void> {
         if (!buf.length) {
             return;
         }
@@ -212,11 +212,11 @@ export default class CollisionManager {
         }
     }
 
-    private packCoord = (x: number, z: number, level: number): number => {
+    private packCoord(x: number, z: number, level: number): number {
         return (z & 0x3f) | ((x & 0x3f) << 6) | ((level & 0x3) << 12);
     }
 
-    private unpackCoord = (packed: number): { level: number; x: number; z: number } => {
+    private unpackCoord(packed: number): { level: number; x: number; z: number } {
         const z: number = packed & 0x3f;
         const x: number = (packed >> 6) & 0x3f;
         const level: number = (packed >> 12) & 0x3;
