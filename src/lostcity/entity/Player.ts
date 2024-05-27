@@ -6,14 +6,12 @@ import ServerScript from '#lostcity/script/ServerScript.js';
 import ServerScriptList from '#lostcity/script/ServerScriptList.js';
 import ServerScriptState from '#lostcity/script/ServerScriptState.js';
 import ServerTriggerType from '#lostcity/script/ServerTriggerType.js';
+import Entity from '#lostcity/entity/Entity.js';
 
-export default class Player {
+export default class Player extends Entity {
     // persistent data
     username: bigint = 0n;
     displayname: string = '';
-    level: number = 0;
-    x: number = 3232; // todo: CoordGrid
-    z: number = 3232;
     varp: (number | string | bigint)[] = new Array(10000);
     varc: (number | string | bigint)[] = new Array(10000);
     // todo: invs
@@ -43,6 +41,13 @@ export default class Player {
 
     // todo: extended info
     appearance: Uint8Array | null = null;
+
+    constructor() {
+        super(0, 3222, 3222, 1, 1);
+    }
+
+    resetEntity(respawn: boolean): void {
+    }
 
     login(): void {
         if (this.client) {

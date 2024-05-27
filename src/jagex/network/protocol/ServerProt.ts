@@ -422,7 +422,7 @@ ServerProt.REBUILD_NORMAL.encode = function(level: number, absX: number, absZ: n
 
     const zoneX: number = absX >> 3;
     const zoneZ: number = absZ >> 3;
-    let count: number = 9;
+    const count: number = 9;
     // for (let x: number = (zoneX - (buildAreaSize.size >> 4)) / 8; x <= ((buildAreaSize.size >> 4) + zoneX) / 8; x++) {
     //     for (let z: number = (zoneZ - (buildAreaSize.size >> 4)) / 8; z <= ((buildAreaSize.size >> 4) + zoneZ) / 8; z++) {
 	// 		// todo: check if map is valid

@@ -16,11 +16,12 @@ import Js5Archive from '#jagex/config/Js5Archive.js';
 import Player from '#lostcity/entity/Player.js';
 import ServerScriptState from '#lostcity/script/ServerScriptState.js';
 import ServerProt from '#jagex/network/protocol/ServerProt.js';
+import {PlayerList} from '#lostcity/entity/EntityList.js';
 
 class Lobby {
     tick: number = 0;
     server: net.Server = net.createServer();
-    players: Player[] = new Array(2048);
+    players: PlayerList = new PlayerList(2048);
 
     async loginDecode(client: ClientSocket, stream: Packet): Promise<void> {
         const opcode: number = stream.g1();
@@ -264,7 +265,8 @@ class Lobby {
 
                 const player: Player = new Player();
                 player.client = client;
-                this.addPlayer(player);
+                player.pid = this.players.next();
+                this.addPlayer(player.pid, player);
                 player.login();
                 break;
             }
@@ -462,9 +464,8 @@ class Lobby {
         }
 
         // process incoming packets
-        for (let i: number = 0; i < this.players.length; i++) {
-            const player: Player = this.players[i];
-            if (typeof this.players[i] === 'undefined' || !player.client) {
+        for (const player of this.players) {
+            if (!player.client) {
                 continue;
             }
 
@@ -476,19 +477,13 @@ class Lobby {
             client.netInQueue = [];
         }
 
-        for (let i: number = 0; i < this.players.length; i++) {
-            const player: Player = this.players[i];
-            if (typeof this.players[i] === 'undefined') {
-                continue;
-            }
-
+        for (const player of this.players) {
             player.cycle();
         }
 
         // process outgoing packets
-        for (let i: number = 0; i < this.players.length; i++) {
-            const player: Player = this.players[i];
-            if (typeof this.players[i] === 'undefined' || !player.client) {
+        for (const player of this.players) {
+            if (!player.client) {
                 continue;
             }
 
@@ -514,19 +509,15 @@ class Lobby {
         setTimeout(this.cycle.bind(this), 50);
     }
 
-    addPlayer(player: Player): void {
-        const index: number = this.players.findIndex((p: Player): boolean => typeof p === 'undefined' || p === null);
-        if (index !== -1) {
-            this.players[index] = player;
-        }
+    addPlayer(pid: number, player: Player): void {
+        this.players.set(pid, player);
     }
 
     removeClient(client: ClientSocket): void {
         client.end();
-
-        const index: number = this.players.findIndex((player: Player): boolean => typeof player !== 'undefined' && player !== null && player.client === client);
-        if (index !== -1) {
-            this.players.splice(index, 1);
+        const player: Player | null = client.player;
+        if (player) {
+            this.players.remove(player.pid);
         }
     }
 }
