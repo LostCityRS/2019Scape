@@ -467,6 +467,64 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
 		return -1;
 	}
 
+	function position(buf: Packet, viewport: Viewport, other: Player, index: number): void {
+		const current: number = viewport.positions[index];
+		const next: number = 0 << 18 | (other.level << 16) | (other.x >> 6 << 8) | other.x >> 6; // TODO
+		const update = current !== next;
+		buf.pBit(1, update ? 1 : 0);
+		if (update) {
+			const cs: number = current >> 18;
+			const cp: number = current >> 16;
+			const cx: number = current >> 8;
+			const cz: number = current & 0xff;
+
+			const ns: number = next >> 18;
+			const np: number = next >> 16;
+			const nx: number = next >> 8;
+			const nz: number = next & 0xff;
+
+			const dl: number = np - cp;
+			const dx: number = nx - cx;
+			const dz: number = nz - cz;
+			const ds: number = ns - cs;
+
+			if (cx == nx && cz == nz) {
+				buf.pBit(2, 1);
+				buf.pBit(2, dl);
+			} else if (Math.abs(dx) <= 1 && Math.abs(dz) <= 1) {
+				let direction: number;
+				if (dx == -1 && dz == -1) {
+					direction = 0;
+				} else if (dx == 1 && dz == -1) {
+					direction = 2;
+				} else if (dx == -1 && dz == 1) {
+					direction = 5;
+				} else if (dx == 1 && dz == 1) {
+					direction = 7;
+				} else if (dz == -1) {
+					direction = 1;
+				} else if (dx == -1) {
+					direction = 3;
+				} else if (dx == 1) {
+					direction = 4;
+				} else {
+					direction = 6;
+				}
+				buf.pBit(2, 2);
+				buf.pBit(5, ((dl & 0x3) << 3) + (direction & 0x7));
+			} else {
+				buf.pBit(2, 3);
+				buf.pBit(20, ((ds & 0x3) << 18) | ((dl & 0x3) << 16) | ((dx & 0xff) << 8) | (dz & 0xff));
+			}
+		}
+	}
+
+	function highPlayer(buf: Packet, viewport: Viewport, other: Player, index: number): void {
+		buf.pBit(1, 1); // updating
+		buf.pBit(2, 0);
+		viewport.updates.add(other.pid);
+	}
+
 	function high(buf: Packet, viewport: Viewport, nsn: boolean = true): void {
 		buf.accessBits();
 		let skip: number = -1;
@@ -481,20 +539,32 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
 				skip++;
 				continue;
 			}
-			const updating: boolean = false;
+			const updating: boolean = true; // TODO just forcing for appearance
 			if (!updating) {
 				viewport.nsnFlags[index] |= 0x2;
 				skip++;
 				continue;
 			}
 			skip = putSkip(buf, skip);
-			buf.pBit(1, 1); // has update
+			buf.pBit(1, 1); // do not skip
+			highPlayer(buf, viewport, other, index);
 		}
 		putSkip(buf, skip);
 		buf.accessBytes();
 		if (nsn) {
 			high(buf, viewport, false);
 		}
+	}
+
+	function lowPlayer(buf: Packet, viewport: Viewport, other: Player, index: number): void {
+		buf.pBit(2, 0);
+		position(buf, viewport, other, index);
+		buf.pBit(6, other.x & 0x3f);
+		buf.pBit(6, other.z & 0x3f);
+		buf.pBit(1, 1);
+		viewport.players[other.pid] = other;
+		viewport.nsnFlags[index] |= 0x2;
+		viewport.updates.add(other.pid);
 	}
 
 	function low(buf: Packet, viewport: Viewport, nsn: boolean = true): void {
@@ -518,7 +588,10 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
 				continue;
 			}
 			skip = putSkip(buf, skip);
-			buf.pBit(1, 1); // has update
+			buf.pBit(1, 1); // do not skip
+			// low block is just used to transfer to high block
+			// local player does not count.
+			lowPlayer(buf, viewport, other, index);
 		}
 		putSkip(buf, skip);
 		buf.accessBytes();
@@ -528,12 +601,63 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
 	}
 
 	const viewport: Viewport = player.viewport;
-	const buf: Packet = new Packet();
 
+	// bits
+	const buf: Packet = new Packet();
 	high(buf, viewport);
 	low(buf, viewport);
 
-    // masks
+	// bytes
+	const block: Packet = new Packet();
+	for (const pid of viewport.updates) {
+		let mask: number = 0;
+		mask |= 0x4; // appearance
+
+		block.p2(0); // unused
+		block.p1(mask);
+		if ((mask & 0x40) !== 0) {
+			block.p1(mask >> 8);
+		}
+		if ((mask & 0x1000) !== 0) {
+			block.p1(mask >> 16);
+		}
+
+		const appearance: Packet = new Packet();
+		appearance.p1(0); // info
+		appearance.p1(0); // visible
+		// wearpos defaults
+		appearance.p2(0);
+		appearance.p2(0);
+		appearance.p2(0);
+		appearance.p2(0);
+		// 2004scape values
+		appearance.p2(18 | 0x100); // index 2 (body)
+		appearance.p2(26 | 0x100); // index 3 (arms)
+		appearance.p2(36 | 0x100); // index 5 (legs)
+		appearance.p2(0 | 0x100); // index 0 (hair)
+		appearance.p2(33 | 0x100); // index 4 (gloves)
+		appearance.p2(42 | 0x100); // index 6 (boots)
+		appearance.p2(10 | 0x100); // index 1 (beard)
+		appearance.p2(0);
+		appearance.p1(0);
+		for (let index: number = 0; index < 10; index++) {
+			appearance.p1(0);
+		}
+		for (let index: number = 0; index < 10; index++) {
+			appearance.p1(0);
+		}
+		appearance.p2(2699); // bas // 2688
+		appearance.pjstr('2004Scape'); // name
+		appearance.p1(138); // combat lvl
+		appearance.p1(0); // idk
+		appearance.p1(0);
+		appearance.p1(0); // bgsound
+
+		block.p1_alt1(appearance.pos);
+		block.pdata_alt2(appearance.data, 0, appearance.pos);
+	}
+	buf.pdata(block);
+
 	viewport.reset();
 	return buf;
 }

@@ -7,11 +7,15 @@ export default class Viewport {
     readonly high: Int32Array;
     readonly low: Int32Array;
 
+    // persisted high players.
     readonly players: (Player | undefined)[];
 
     // runtime
     highCount: number = 0;
     lowCount: number = 0;
+
+    // for tracking high/low changes per tick.
+    updates: Set<number> = new Set();
 
     constructor() {
         this.nsnFlags = new Int32Array(2048);

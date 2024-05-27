@@ -415,6 +415,13 @@ export default class Packet {
         this.pos += src.length;
     }
 
+    pdata_alt2(src: Uint8Array, off: number, len: number): void {
+        this.ensure(len - off);
+        for (let i: number = off; i < off + len; i++) {
+            this.data[(++this.pos) - 1] = 128 + src[i];
+        }
+    }
+
     pSmart1or2(value: number): void {
         if (value < 128) {
             this.p1(value);
