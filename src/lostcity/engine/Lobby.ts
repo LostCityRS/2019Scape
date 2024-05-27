@@ -335,20 +335,20 @@ class Lobby {
             }
             case ClientProt.CLIENT_CHEAT: {
                 const scripted: boolean = message.buf.g1() == 1;
-                const suggest: boolean = message.buf.g1() == 1
+                const suggest: boolean = message.buf.g1() == 1;
                 const command: string = message.buf.gjstr();
 
                 switch (command) {
                     case 'js5_reload': {
                         ServerProt.JS5_RELOAD.send(client);
-                        break
+                        break;
                     }
                     case 'reboottimer': {
                         ServerProt.UPDATE_REBOOT_TIMER.send(client, 1200);
-                        break
+                        break;
                     }
                     default: {
-                        console.log(`Unknown command: ${command}`)
+                        console.log(`Unknown command: ${command}`);
                         break;
                     }
                 }

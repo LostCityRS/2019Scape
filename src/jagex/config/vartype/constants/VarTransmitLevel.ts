@@ -23,6 +23,6 @@ export default class VarTransmitLevel {
             this.NEVER,
             this.ON_SET_DIFFERENT,
             this.ON_SET_ALWAYS,
-        ]
+        ];
     }
 }

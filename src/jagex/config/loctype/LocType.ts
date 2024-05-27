@@ -390,7 +390,7 @@ export default class LocType extends ConfigType {
         } else if (code === 249) {
             this.params = ParamHelper.decode(buf);
         }
-    }
+    };
     
     private postDecode = (): void => {
         this.postDecodeActive();
@@ -401,7 +401,7 @@ export default class LocType extends ConfigType {
             this.op = null;
             this.quests = null;
         }*/
-    }
+    };
     
     private postDecodeActive = (): void => {
         if (this.active === -1) {
@@ -423,9 +423,9 @@ export default class LocType extends ConfigType {
             this.code177 = true;
         }
         if (this.active <= 0 && this.code186 === 0) { /* empty */ }
-    }
+    };
     
     private hasAnim = (): boolean => {
         return this.anim !== null;
-    }
+    };
 }

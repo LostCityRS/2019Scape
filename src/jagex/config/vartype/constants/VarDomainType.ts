@@ -45,6 +45,6 @@ export default class VarDomainType {
             this.CONTROLLER,
             this.PLAYER_GROUP,
             this.GLOBAL,
-        ]
+        ];
     }
 }

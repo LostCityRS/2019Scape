@@ -111,7 +111,7 @@ class World {
                 break;
             case ClientProt.CLIENT_CHEAT: {
                 const scripted: boolean = message.buf.g1() == 1;
-                const suggest: boolean = message.buf.g1() == 1
+                const suggest: boolean = message.buf.g1() == 1;
                 const cheat: string[] = message.buf.gjstr().toLowerCase().split(' ');
                 const command: string = cheat[0];
                 const args: string[] = cheat.slice(1);
@@ -119,11 +119,11 @@ class World {
                 switch (command) {
                     case 'js5_reload': {
                         ServerProt.JS5_RELOAD.send(client);
-                        break
+                        break;
                     }
                     case 'reboottimer': {
                         ServerProt.UPDATE_REBOOT_TIMER.send(client, 1200);
-                        break
+                        break;
                     }
                     case 'logout': {
                         ServerProt.LOGOUT.send(client);
@@ -134,7 +134,7 @@ class World {
                         break;
                     }
                     default: {
-                        console.log(`Unknown command: ${command}`)
+                        console.log(`Unknown command: ${command}`);
                         break;
                     }
                 }

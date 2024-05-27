@@ -22,7 +22,7 @@ export default class CollisionManager {
         const maps: Js5 = js5[Js5ArchiveType.Maps];
         const groups: Int32Array | null = maps.getGroupIds();
         if (groups === null) {
-            throw new Error('[CollisionManager] Unable to find Js5 Maps group ids.')
+            throw new Error('[CollisionManager] Unable to find Js5 Maps group ids.');
         }
         for (let index: number = 0; index < groups.length; index++) {
             const groupId: number = groups[index];
@@ -46,7 +46,7 @@ export default class CollisionManager {
         }
 
         console.timeEnd('Loading collision');
-    }
+    };
 
     changeLandCollision(x: number, z: number, level: number, add: boolean): void {
         changeFloor(x, z, level, add);

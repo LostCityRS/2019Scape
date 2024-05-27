@@ -74,5 +74,5 @@ export default class EnumType extends ConfigType {
         } else if (code === 102) {
             this.outputtype = ScriptVarType.of(buf.gSmart1or2());
         }
-    }
+    };
 }

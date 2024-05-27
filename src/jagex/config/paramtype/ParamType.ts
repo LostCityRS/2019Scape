@@ -45,5 +45,5 @@ export default class ParamType extends ConfigType {
             default:
                 throw new Error(`Unrecognised .param config code: ${code}`);
         }
-    }
+    };
 }

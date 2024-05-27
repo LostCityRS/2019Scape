@@ -89,7 +89,7 @@ class Lobby {
         }
 
         if (client.packetSize > 0) {
-			if (client.available < client.packetSize) {
+            if (client.available < client.packetSize) {
                 return false;
             }
 
@@ -145,7 +145,7 @@ class Lobby {
         }
 
         if (client.packetSize > 0) {
-			if (client.available < client.packetSize) {
+            if (client.available < client.packetSize) {
                 return false;
             }
 
@@ -230,7 +230,7 @@ class Lobby {
         }
 
         if (client.packetSize > 0) {
-			if (client.available < client.packetSize) {
+            if (client.available < client.packetSize) {
                 return false;
             }
 

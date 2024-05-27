@@ -23,6 +23,6 @@ export default class VarLifetime {
             this.TEMPORARY,
             this.PERMANENT,
             this.SERVER_PERMANENT,
-        ]
+        ];
     }
 }

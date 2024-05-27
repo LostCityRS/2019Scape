@@ -24,5 +24,5 @@ export default class StructType extends ConfigType {
         if (code === 249) {
             this.params = ParamHelper.decode(buf);
         }
-    }
+    };
 }

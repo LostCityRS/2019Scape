@@ -49,35 +49,35 @@ function jump(state: ServerScriptState, id: number): void {
 
 ServerScriptCommand.PUSH_CONSTANT_INT.handler = (state: ServerScriptState): void => {
     state.pushInt(state.intOperand);
-}
+};
 
 ServerScriptCommand.PUSH_CONSTANT_STRING.handler = (state: ServerScriptState): void => {
     state.pushString(state.stringOperand);
-}
+};
 
 ServerScriptCommand.PUSH_INT_LOCAL.handler = (state: ServerScriptState): void => {
     state.pushInt(state.intLocals[state.intOperand]);
-}
+};
 
 ServerScriptCommand.POP_INT_LOCAL.handler = (state: ServerScriptState): void => {
     state.intLocals[state.intOperand] = state.popInt();
-}
+};
 
 ServerScriptCommand.PUSH_STRING_LOCAL.handler = (state: ServerScriptState): void => {
     state.pushString(state.stringLocals[state.intOperand]);
-}
+};
 
 ServerScriptCommand.POP_STRING_LOCAL.handler = (state: ServerScriptState): void => {
     state.stringLocals[state.intOperand] = state.popString();
-}
+};
 
 ServerScriptCommand.POP_INT_DISCARD.handler = (state: ServerScriptState): void => {
     state.isp--;
-}
+};
 
 ServerScriptCommand.POP_STRING_DISCARD.handler = (state: ServerScriptState): void => {
     state.ssp--;
-}
+};
 
 ServerScriptCommand.PUSH_VARP.handler = (state: ServerScriptState): void => {
     const varpId: number = state.intOperand & 0xFFFF;
@@ -86,7 +86,7 @@ ServerScriptCommand.PUSH_VARP.handler = (state: ServerScriptState): void => {
     if (!secondary) {
         state.pushInt(state._activePlayer!.varp[varpId] as number);
     }
-}
+};
 
 ServerScriptCommand.POP_VARP.handler = (state: ServerScriptState): void => {
     const varpId: number = state.intOperand & 0xFFFF;
@@ -97,47 +97,47 @@ ServerScriptCommand.POP_VARP.handler = (state: ServerScriptState): void => {
         // temp, should be in cycle
         ServerProt.VARP_SMALL.send(state._activePlayer!.client!, varpId, state._activePlayer!.varp[varpId] as number);
     }
-}
+};
 
 ServerScriptCommand.BRANCH.handler = (state: ServerScriptState): void => {
     state.pc += state.intOperand;
-}
+};
 
 ServerScriptCommand.BRANCH_NOT.handler = (state: ServerScriptState): void => {
     if (state.popInt() !== state.popInt()) {
         state.pc += state.intOperand;
     }
-}
+};
 
 ServerScriptCommand.BRANCH_EQUALS.handler = (state: ServerScriptState): void => {
     if (state.popInt() === state.popInt()) {
         state.pc += state.intOperand;
     }
-}
+};
 
 ServerScriptCommand.BRANCH_LESS_THAN.handler = (state: ServerScriptState): void => {
     if (state.popInt() < state.popInt()) {
         state.pc += state.intOperand;
     }
-}
+};
 
 ServerScriptCommand.BRANCH_GREATER_THAN.handler = (state: ServerScriptState): void => {
     if (state.popInt() > state.popInt()) {
         state.pc += state.intOperand;
     }
-}
+};
 
 ServerScriptCommand.BRANCH_LESS_THAN_OR_EQUALS.handler = (state: ServerScriptState): void => {
     if (state.popInt() <= state.popInt()) {
         state.pc += state.intOperand;
     }
-}
+};
 
 ServerScriptCommand.BRANCH_GREATER_THAN_OR_EQUALS.handler = (state: ServerScriptState): void => {
     if (state.popInt() >= state.popInt()) {
         state.pc += state.intOperand;
     }
-}
+};
 
 ServerScriptCommand.RETURN.handler = (state: ServerScriptState): void => {
     if (state.fp === 0) {
@@ -150,29 +150,29 @@ ServerScriptCommand.RETURN.handler = (state: ServerScriptState): void => {
     state.script = frame.script;
     state.intLocals = frame.intLocals;
     state.stringLocals = frame.stringLocals;
-}
+};
 
 ServerScriptCommand.JOIN_STRING.handler = (state: ServerScriptState): void => {
     const count: number = state.intOperand;
     const strings: string[] = state.popStrings(count);
     state.pushString(strings.join(''));
-}
+};
 
 ServerScriptCommand.GOSUB.handler = (state: ServerScriptState): void => {
     gosub(state, state.popInt());
-}
+};
 
 ServerScriptCommand.GOSUB_WITH_PARAMS.handler = (state: ServerScriptState): void => {
     gosub(state, state.intOperand);
-}
+};
 
 ServerScriptCommand.JUMP.handler = (state: ServerScriptState): void => {
     jump(state, state.popInt());
-}
+};
 
 ServerScriptCommand.JUMP_WITH_PARAMS.handler = (state: ServerScriptState): void => {
     jump(state, state.intOperand);
-}
+};
 
 ServerScriptCommand.SWITCH.handler = (state: ServerScriptState): void => {
     const key: number = state.popInt();
@@ -185,4 +185,4 @@ ServerScriptCommand.SWITCH.handler = (state: ServerScriptState): void => {
     if (typeof result !== 'undefined') {
         state.pc += result;
     }
-}
+};

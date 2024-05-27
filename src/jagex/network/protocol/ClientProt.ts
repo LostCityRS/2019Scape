@@ -1,4 +1,4 @@
-import Packet from "#jagex/bytepacking/Packet.js";
+import Packet from '#jagex/bytepacking/Packet.js';
 
 export default class ClientProt {
 
@@ -253,7 +253,7 @@ export default class ClientProt {
             ClientProt.OPOBJ4,
             ClientProt.IF_BUTTOND,
             ClientProt.WINDOW_STATUS
-        ]
+        ];
     }
 
     readonly opcode: number;

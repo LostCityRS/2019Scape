@@ -21,5 +21,5 @@ export abstract class ConfigType {
 
             this.decode(buf, code);
         }
-    }
+    };
 }

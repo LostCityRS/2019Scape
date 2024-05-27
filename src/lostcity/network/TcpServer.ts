@@ -77,7 +77,7 @@ export class TcpServer {
 
             client.socket.on('end', (): void => {
                 client.socket.destroy();
-            })
+            });
 
             client.socket.on('destroy', (): void => {
                 client.socket.destroy();
