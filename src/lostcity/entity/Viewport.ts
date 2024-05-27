@@ -36,5 +36,6 @@ export default class Viewport {
             }
             this.nsnFlags[i] >>= 1;
         }
+        this.updates.clear();
     }
 }
