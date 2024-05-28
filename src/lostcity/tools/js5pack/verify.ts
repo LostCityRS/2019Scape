@@ -13,10 +13,10 @@ for (let i: number = 0; i < Js5Archive.getMaxId(); i++) {
     const js5: Js5 = await Js5.load(`data/pack/client.${type.name}.js5`, false);
 
     const oldIndex: Uint8Array = await Js5.decompress(js5.masterIndex);
-    const expected: number = Packet.getcrc(oldIndex);
+    const expected: number = Packet.getcrc(oldIndex, 0, oldIndex.length);
 
     const newIndex: Uint8Array = js5.index.encode();
-    const checksum: number = Packet.getcrc(newIndex);
+    const checksum: number = Packet.getcrc(newIndex, 0, newIndex.length);
 
     if (expected !== checksum) {
         console.error('Index mismatch');
@@ -31,7 +31,7 @@ for (let i: number = 0; i < Js5Archive.getMaxId(); i++) {
             continue;
         }
 
-        const groupChecksum: number = Packet.getcrc(groupData);
+        const groupChecksum: number = Packet.getcrc(groupData, 0, groupData.length);
         if (groupExpected !== groupChecksum) {
             console.error('Group mismatch', groupId, groupExpected, groupChecksum);
         }

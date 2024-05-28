@@ -2,7 +2,7 @@ import Packet from '#jagex/bytepacking/Packet.js';
 import RandomAccessFile from '#jagex/util/RandomAccessFile.js';
 
 export default class DiskStore {
-    static buffer: Packet = Packet.alloc(520);
+    static buffer: Packet = new Packet(new Uint8Array(520));
 
     data: RandomAccessFile | null = null;
     index: RandomAccessFile | null = null;
@@ -99,7 +99,9 @@ export default class DiskStore {
                 return null;
             }
 
-            data.set(DiskStore.buffer.gdata(blockSize), off);
+            const b: Uint8Array = new Uint8Array(blockSize);
+            DiskStore.buffer.gdata(b, 0, b.length);
+            data.set(b, off);
             off += blockSize;
 
             blockNum++;

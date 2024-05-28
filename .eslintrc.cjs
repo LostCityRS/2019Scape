@@ -75,11 +75,6 @@ module.exports = {
         'args': 'all',
         'argsIgnorePattern': '^_',
       }
-    ],
-
-    /**
-     * https://github.com/sweepline/eslint-plugin-unused-imports
-     */
-    'unused-imports/no-unused-imports': 'error',
+    ]
   }
 };

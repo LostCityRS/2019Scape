@@ -37,6 +37,7 @@
     "hash-wasm": "^4.11.0",
     "kysely": "^0.27.3",
     "mysql2": "^3.9.8",
+    "node-forge": "^1.3.1",
     "seek-bzip": "^2.0.0",
     "tar": "^6.2.1"
   },
@@ -45,6 +46,7 @@
     "@swc/helpers": "^0.5.11",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.12",
+    "@types/node-forge": "^1.3.11",
     "@typescript-eslint/eslint-plugin": "^7.10.0",
     "@typescript-eslint/parser": "^7.10.0",
     "concurrently": "^8.2.2",

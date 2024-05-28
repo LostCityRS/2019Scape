@@ -11,7 +11,7 @@ import ClientProt from '#jagex/network/protocol/ClientProt.js';
 
 import ClientMessage from '#jagex/network/ClientMessage.js';
 import ServerScriptList from '#lostcity/script/ServerScriptList.js';
-import Js5Archive from '#jagex/config/Js5Archive.js';
+import Js5Archive, {Js5ArchiveType} from '#jagex/config/Js5Archive.js';
 
 import Player from '#lostcity/entity/Player.js';
 import ServerScriptState from '#lostcity/script/ServerScriptState.js';
@@ -50,14 +50,14 @@ class Lobby {
                 const lang: number = buf.g1();
 
                 if (buildMajor !== 910 && buildMinor !== 1) {
-                    client.write(Uint8Array.from([6]));
+                    client.write(new Packet(Uint8Array.from([6])));
                     client.end();
                     return;
                 }
 
                 client.state = ConnectionState.Js5;
 
-                const reply: Packet = Packet.alloc(1 + CacheProvider.prefetches.length * 4);
+                const reply: Packet = new Packet(new Uint8Array(1 + CacheProvider.prefetches.length * 4));
                 reply.p1(0);
                 for (let i: number = 0; i < CacheProvider.prefetches.length; i++) {
                     reply.p4(CacheProvider.prefetches[i]);
@@ -66,7 +66,7 @@ class Lobby {
                 break;
             }
             case LoginProt.INIT_GAME_CONNECTION: {
-                const reply: Packet = Packet.alloc(9);
+                const reply: Packet = new Packet(new Uint8Array(9));
                 reply.p1(0);
                 reply.p4(Math.random() * 0xFFFFFFFF);
                 reply.p4(Math.random() * 0xFFFFFFFF);
@@ -78,14 +78,14 @@ class Lobby {
                 const buildMinor: number = buf.g4();
 
                 if (buildMajor !== 910 || buildMinor !== 1) {
-                    client.write(Uint8Array.from([6]));
+                    client.write(new Packet(Uint8Array.from([6])));
                     client.end();
                     return;
                 }
 
                 // start rsadec
                 if (buf.g1() !== 10) {
-                    client.write(Uint8Array.from([11]));
+                    client.write(new Packet(Uint8Array.from([11])));
                     client.end();
                     return;
                 }
@@ -219,13 +219,15 @@ class Lobby {
                 // start crcs
                 const crcs: number[] = [];
                 for (let index: number = 0; index < 42; index++) {
-                    crcs[index] = buf.g4();
+                    if (index !== Js5ArchiveType.LoadingSprites) {
+                        crcs[index] = buf.g4();
+                    }
                 }
                 // end crcs
 
                 client.state = ConnectionState.Lobby;
 
-                const reply: Packet = new Packet();
+                const reply: Packet = Packet.alloc(0);
                 reply.p1(2);
                 reply.p1(0);
                 const start: number = reply.pos;
@@ -239,7 +241,7 @@ class Lobby {
                 reply.p1(0); // quickchat2
                 reply.p1(0); // quickchat3
                 reply.p8(-1n); // membership time
-                reply.p5(12); // membership time left
+                reply.p5(12n); // membership time left
                 reply.p1(2); // members/subscription flag
                 reply.p4(1); // jcoins balance
                 reply.p4(0); // loyalty balance
@@ -294,7 +296,7 @@ class Lobby {
                 while (sent < data.length) {
                     const length: number = data.length;
 
-                    const buf: Packet = Packet.alloc(Math.min(102400, length - sent) + 5);
+                    const buf: Packet = new Packet(new Uint8Array(Math.min(102400, length - sent) + 5));
                     buf.p1(archive);
                     buf.p4(opcode === 1 ? group : group | 0x80000000);
 

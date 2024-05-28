@@ -35,14 +35,14 @@ export default class CollisionManager {
             const mapsquareZ: number = (groupId >> 7) << 6;
 
             const lands: Int8Array = new Int8Array(4 * 64 * 64); // 4 * 64 * 64 size is guaranteed for lands
-            this.decodeLands(lands, Packet.wrap(await maps.readFile(groupId, Js5MapFile.LAND), false), mapsquareX, mapsquareZ);
-            await this.decodeLocs(js5, lands, Packet.wrap(await maps.readFile(groupId, Js5MapFile.LOC), false), mapsquareX, mapsquareZ);
-
-            // const mapsquareX: number = (groupId & 0x7f) << 6;
-            // const mapsquareZ: number = (groupId >> 7) << 6;
-            //
-            // this.applyLandCollision(mapsquareX, mapsquareZ, lands);
-            // await this.applyLocCollision(js5, locs, mapsquareX, mapsquareZ, lands);
+            const land: Uint8Array | null = await maps.readFile(groupId, Js5MapFile.LAND);
+            if (land) {
+                this.decodeLands(lands, new Packet(land), mapsquareX, mapsquareZ);
+            }
+            const loc: Uint8Array | null = await maps.readFile(groupId, Js5MapFile.LOC);
+            if (loc) {
+                await this.decodeLocs(js5, lands, new Packet(loc), mapsquareX, mapsquareZ);
+            }
         }
 
         console.timeEnd('Loading collision');
@@ -81,6 +81,30 @@ export default class CollisionManager {
         changeRoof(x, z, level, add);
     }
 
+    private decodeLands(lands: Int8Array, buf: Packet, mapsquareX: number, mapsquareZ: number): void {
+        for (let level: number = 0; level < 4; level++) {
+            for (let x: number = 0; x < 64; x++) {
+                for (let z: number = 0; z < 64; z++) {
+                    const opcode: number = buf.g1();
+                    if ((opcode & 0x1) !== 0) {
+                        buf.pos++;
+                        buf.gSmart1or2();
+                    }
+                    if ((opcode & 0x2) !== 0) {
+                        lands[this.packCoord(x, z, level)] = buf.g1b();
+                    }
+                    if ((opcode & 0x4) !== 0) {
+                        buf.gSmart1or2();
+                    }
+                    if ((opcode & 0x8) !== 0) {
+                        buf.pos++;
+                    }
+                }
+            }
+        }
+        this.applyLandCollision(mapsquareX, mapsquareZ, lands);
+    }
+
     private applyLandCollision(mapsquareX: number, mapsquareZ: number, lands: Int8Array): void {
         for (let level: number = 0; level < 4; level++) {
             for (let x: number = 0; x < 64; x++) {
@@ -101,56 +125,19 @@ export default class CollisionManager {
                         continue;
                     }
 
-                    const adjustedLevel: number = (lands[this.packCoord(x, z, 1)] & 0x2) === 2 ? level - 1 : level;
-                    if (adjustedLevel < 0) {
+                    const bridged: boolean = (level === 1 ? land & 0x2 : lands[this.packCoord(x, z, 1)] & 0x2) === 2;
+                    const actualLevel: number = bridged ? level - 1 : level;
+                    if (actualLevel < 0) {
                         continue;
                     }
 
-                    this.changeLandCollision(absoluteX, absoluteZ, adjustedLevel, true);
+                    this.changeLandCollision(absoluteX, absoluteZ, actualLevel, true);
                 }
             }
         }
-    }
-
-    private decodeLands(lands: Int8Array, buf: Packet, mapsquareX: number, mapsquareZ: number): void {
-        if (!buf.length) {
-            return;
-        }
-
-        for (let level: number = 0; level < 4; level++) {
-            for (let x: number = 0; x < 64; x++) {
-                for (let z: number = 0; z < 64; z++) {
-                    lands[this.packCoord(x, z, level)] = this.decodeLand(buf);
-                }
-            }
-        }
-        this.applyLandCollision(mapsquareX, mapsquareZ, lands);
-    }
-
-    private decodeLand(buf: Packet): number {
-        const opcode: number = buf.g1();
-        if ((opcode & 0x1) !== 0) {
-            buf.g1();
-            buf.gSmart1or2();
-        }
-        let collision: number = 0;
-        if ((opcode & 0x2) !== 0) {
-            collision = buf.g1b();
-        }
-        if ((opcode & 0x4) !== 0) {
-            buf.gSmart1or2();
-        }
-        if ((opcode & 0x8) !== 0) {
-            buf.g1();
-        }
-        return collision;
     }
 
     private async decodeLocs(js5: Js5[], lands: Int8Array, buf: Packet, mapsquareX: number, mapsquareZ: number): Promise<void> {
-        if (!buf.length) {
-            return;
-        }
-
         let locId: number = -1;
         let locIdOffset: number = buf.gExtended1or2();
 
@@ -195,17 +182,23 @@ export default class CollisionManager {
 
                 coordOffset = buf.gSmart1or2();
 
-                const absoluteX: number = x + mapsquareX;
-                const absoluteZ: number = z + mapsquareZ;
-
-                const adjustedLevel: number = (lands[this.packCoord(x, z, 1)] & 0x2) === 2 ? level - 1 : level;
-                if (adjustedLevel < 0) {
+                const bridged: boolean = (level === 1 ? lands[coord] & 0x2 : lands[this.packCoord(x, z, 1)] & 0x2) === 2;
+                const actualLevel: number = bridged ? level - 1 : level;
+                if (actualLevel < 0) {
                     continue;
                 }
 
-                const locType: LocType = await LocType.list(locId, js5);
-                if (locType.blockwalk === 1) {
-                    this.changeLocCollision(info >> 2 & 0x1f, info & 0x3, locType.blockrange, locType.breakroutefinding, locType.length, locType.width, locType.active, absoluteX, absoluteZ, level, true);
+                const type: LocType = await LocType.list(locId, js5);
+                const width: number = type.width;
+                const length: number = type.length;
+                const shape: number = info >> 2 & 0x1f;
+                const angle: number = info & 0x3;
+
+                const absoluteX: number = x + mapsquareX;
+                const absoluteZ: number = z + mapsquareZ;
+
+                if (type.blockwalk === 1) {
+                    this.changeLocCollision(shape, angle, type.blockrange, type.breakroutefinding, length, width, type.active, absoluteX, absoluteZ, actualLevel, true);
                 }
             }
             locIdOffset = buf.gExtended1or2();

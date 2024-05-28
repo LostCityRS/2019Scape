@@ -104,7 +104,7 @@ class Lobby {
             const lang: number = client.in.g1();
 
             if (buildMajor !== 910 && buildMinor !== 1) {
-                const reply: Packet = Packet.alloc(1);
+                const reply: Packet = new Packet(new Uint8Array(1));
                 reply.p1(6);
                 client.write(reply.data, 0, reply.pos);
                 client.close();
@@ -113,7 +113,7 @@ class Lobby {
 
             client.state = 1;
 
-            const reply: Packet = Packet.alloc(1 + CacheProvider.prefetches.length * 4);
+            const reply: Packet = new Packet(new Uint8Array(1 + CacheProvider.prefetches.length * 4));
             reply.p1(0);
             for (let i: number = 0; i < CacheProvider.prefetches.length; i++) {
                 reply.p4(CacheProvider.prefetches[i]);
@@ -170,7 +170,7 @@ class Lobby {
             while (sent < data.length) {
                 const length: number = data.length;
 
-                const buf: Packet = Packet.alloc(Math.min(102400, length - sent) + 5);
+                const buf: Packet = new Packet(new Uint8Array(Math.min(102400, length - sent) + 5));
                 buf.p1(archive);
                 buf.p4(client.packetType === 1 ? group : group | 0x80000000);
 

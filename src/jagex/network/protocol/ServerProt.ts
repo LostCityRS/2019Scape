@@ -215,90 +215,91 @@ export default class ServerProt {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     encode(...args: any): Packet {
-        return new Packet();
+        return new Packet(new Uint8Array(0));
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     send(client: ClientSocket, ...args: any): void {
         const message: ServerMessage = ServerMessage.create(this);
         const buf: Packet = this.encode(...args);
-        message.buf.pdata(buf);
+        message.buf.pdata(buf.data, 0, buf.pos);
+        buf.release();
         client.send(message);
     }
 }
 
 ServerProt.VARP_SMALL.encode = function(id: number, value: number): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(3));
     buf.p1(value);
     buf.p2_alt2(id);
     return buf;
 };
 
 ServerProt.VARP_LARGE.encode = function(id: number, value: number): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(6));
     buf.p2_alt1(id);
     buf.p4(value);
     return buf;
 };
 
 ServerProt.VARBIT_SMALL.encode = function(id: number, value: number): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(3));
     buf.p1_alt3(value);
     buf.p2_alt2(id);
     return buf;
 };
 
 ServerProt.VARBIT_LARGE.encode = function(id: number, value: number): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(6));
     buf.p2_alt2(id);
     buf.p4_alt1(value);
     return buf;
 };
 
 ServerProt.CLIENT_SETVARC_SMALL.encode = function(id: number, value: number): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(3));
     buf.p1_alt3(value);
     buf.p2(id);
     return buf;
 };
 
 ServerProt.CLIENT_SETVARC_LARGE.encode = function(id: number, value: number): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(6));
     buf.p4_alt1(value);
     buf.p2_alt2(id);
     return buf;
 };
 
 ServerProt.CLIENT_SETVARCBIT_SMALL.encode = function(id: number, value: number): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(3));
     buf.p2(id);
     buf.p1_alt1(value);
     return buf;
 };
 
 ServerProt.CLIENT_SETVARCBIT_LARGE.encode = function(id: number, value: number): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(6));
     buf.p2_alt2(id);
     buf.p4_alt1(value);
     return buf;
 };
 
 ServerProt.CLIENT_SETVARCSTR_SMALL.encode = function(id: number, value: string): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(2 + value.length + 1));
     buf.p2(id);
     buf.pjstr(value);
     return buf;
 };
 
 ServerProt.CLIENT_SETVARCSTR_LARGE.encode = function(id: number, value: string): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(2 + value.length + 1));
     buf.p2(id);
     buf.pjstr(value);
     return buf;
 };
 
 ServerProt.IF_OPENTOP.encode = function(topLevelInterfaceId: number, type: number = 0, key: number[] = [0, 0, 0, 0]): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(19));
     buf.p4_alt2(key[3]);
     buf.p4_alt1(key[2]);
     buf.p4_alt2(key[0]);
@@ -309,7 +310,7 @@ ServerProt.IF_OPENTOP.encode = function(topLevelInterfaceId: number, type: numbe
 };
 
 ServerProt.IF_OPENSUB.encode = function(topLevelInterfaceId: number, component: number, subInterfaceId: number, type: number, key: number[] = [0, 0, 0, 0]): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(23));
     buf.p4_alt2(key[2]);
     buf.p4_alt1((topLevelInterfaceId << 16) | component);
     buf.p1_alt2(type);
@@ -321,7 +322,7 @@ ServerProt.IF_OPENSUB.encode = function(topLevelInterfaceId: number, component: 
 };
 
 ServerProt.IF_SETEVENTS.encode = function(interfaceId: number, component: number, fromSlot: number, toSlot: number, settings: number): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(12));
     buf.p2_alt1(fromSlot);
     buf.p4(interfaceId << 16 | component);
     buf.p2_alt3(toSlot);
@@ -330,7 +331,7 @@ ServerProt.IF_SETEVENTS.encode = function(interfaceId: number, component: number
 };
 
 ServerProt.RUNCLIENTSCRIPT.encode = function(scriptId: number, args: (string | number)[]): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = Packet.alloc(0);
     let descriptor: string = '';
     for (let i: number = args.length - 1; i >= 0; i--) {
         if (typeof args[i] === 'string') {
@@ -355,13 +356,13 @@ ServerProt.RUNCLIENTSCRIPT.encode = function(scriptId: number, args: (string | n
 };
 
 ServerProt.UPDATE_REBOOT_TIMER.encode = function(ticks: number): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = new Packet(new Uint8Array(2));
     buf.p2(ticks);
     return buf;
 };
 
 ServerProt.WORLDLIST_FETCH_REPLY.encode = function(id: number, value: number): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = Packet.alloc(0);
     // has update
     buf.pbool(true);
 
@@ -370,7 +371,7 @@ ServerProt.WORLDLIST_FETCH_REPLY.encode = function(id: number, value: number): P
 
     // full update
     /// world list
-    const worldList: Packet = new Packet();
+    const worldList: Packet = Packet.alloc(0);
     worldList.pSmart1or2(1); // # of locations
 
     /// location 1
@@ -390,8 +391,9 @@ ServerProt.WORLDLIST_FETCH_REPLY.encode = function(id: number, value: number): P
     worldList.pjstr2('localhost'); // hostname
 
     buf.pbool(true);
-    buf.pdata(worldList);
-    buf.p4(Packet.getcrc(worldList));
+    buf.pdata(worldList.data, 0, worldList.pos);
+    buf.p4(Packet.getcrc(worldList.data, 0, worldList.pos));
+    worldList.release();
 
     // partial update
     /// world 1
@@ -401,9 +403,9 @@ ServerProt.WORLDLIST_FETCH_REPLY.encode = function(id: number, value: number): P
 };
 
 ServerProt.REBUILD_NORMAL.encode = function(player: Player, level: number, absX: number, absZ: number, buildAreaSize: BuildAreaSize, forceRebuild: boolean = true, nearbyPlayers: boolean = false): Packet {
-    const buf: Packet = new Packet();
+    const buf: Packet = Packet.alloc(1);
     if (nearbyPlayers) {
-        buf.accessBits();
+        buf.bits();
 
         const highres: number = ((level & 0x3) << 28) | ((absX & 0x3FFF) << 14) | (absZ & 0x3FFF);
         buf.pBit(30, highres);
@@ -424,7 +426,7 @@ ServerProt.REBUILD_NORMAL.encode = function(player: Player, level: number, absX:
             viewport.low[viewport.lowCount++] = i;
         }
 
-        buf.accessBytes();
+        buf.bytes();
     }
 
     const zoneX: number = absX >> 3;
@@ -527,7 +529,7 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
     }
 
     function high(buf: Packet, viewport: Viewport, nsn: boolean = true): void {
-        buf.accessBits();
+        buf.bits();
         let skip: number = -1;
         for (let i: number = 0; i < viewport.highCount; i++) {
             const index: number = viewport.high[i];
@@ -551,7 +553,7 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
             highPlayer(buf, viewport, other, index);
         }
         putSkip(buf, skip);
-        buf.accessBytes();
+        buf.bytes();
         if (nsn) {
             high(buf, viewport, false);
         }
@@ -569,7 +571,7 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
     }
 
     function low(buf: Packet, viewport: Viewport, nsn: boolean = true): void {
-        buf.accessBits();
+        buf.bits();
         let skip: number = -1;
         for (let i: number = 0; i < viewport.lowCount; i++) {
             const index: number = viewport.low[i];
@@ -595,7 +597,7 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
             lowPlayer(buf, viewport, other, index);
         }
         putSkip(buf, skip);
-        buf.accessBytes();
+        buf.bytes();
         if (nsn) {
             low(buf, viewport, false);
         }
@@ -604,12 +606,12 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
     const viewport: Viewport = player.viewport;
 
     // bits
-    const buf: Packet = new Packet();
+    const buf: Packet = Packet.alloc(1);
     high(buf, viewport);
     low(buf, viewport);
 
     // bytes
-    const block: Packet = new Packet();
+    const block: Packet = Packet.alloc(1);
     for (const pid of viewport.updates) {
         let mask: number = 0;
         mask |= 0x4; // appearance
@@ -623,7 +625,7 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
             block.p1(mask >> 16);
         }
 
-        const appearance: Packet = new Packet();
+        const appearance: Packet = Packet.alloc(0);
         appearance.p1(0); // info
         appearance.p1(0); // visible
         // wearpos defaults
@@ -656,8 +658,10 @@ ServerProt.PLAYER_INFO.encode = function(player: Player): Packet {
 
         block.p1_alt1(appearance.pos);
         block.pdata_alt2(appearance.data, 0, appearance.pos);
+        appearance.release();
     }
-    buf.pdata(block);
+    buf.pdata(block.data, 0, block.pos);
+    block.release();
 
     viewport.reset();
     return buf;

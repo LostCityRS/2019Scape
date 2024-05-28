@@ -49,7 +49,7 @@ class World {
         const buf: Packet = stream.gPacket(size);
         switch (packetType) {
             case LoginProt.INIT_GAME_CONNECTION: {
-                const reply: Packet = Packet.alloc(9);
+                const reply: Packet = new Packet(new Uint8Array(9));
                 reply.p1(0);
                 reply.p4(Math.random() * 0xFFFFFFFF);
                 reply.p4(Math.random() * 0xFFFFFFFF);
@@ -57,11 +57,11 @@ class World {
                 break;
             }
             case LoginProt.GAMELOGIN: {
-                const reply: Packet = Packet.alloc(1);
+                const reply: Packet = new Packet(new Uint8Array(1));
                 reply.p1(2);
                 client.write(reply);
 
-                const varUpdate: Packet = new Packet();
+                const varUpdate: Packet = Packet.alloc(0);
                 varUpdate.p2(0);
                 const varUpdateStart: number = varUpdate.pos;
                 varUpdate.pbool(true); // no more vars
@@ -88,7 +88,7 @@ class World {
                 reply.pbool(true);
                 reply.p3(0);
                 reply.pbool(true);
-                reply.p6(0);
+                reply.p6(0n);
 
                 reply.psize1(reply.pos - start);
                 client.write(reply);

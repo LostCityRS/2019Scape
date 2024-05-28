@@ -8,7 +8,7 @@ export class TcpServerClient {
     lastResponse: number = 0;
 
     state: number = 0;
-    in: Packet = Packet.alloc(40000);
+    in: Packet = new Packet(new Uint8Array(40000));
     packetType: number = -1;
     packetSize: number = 0;
 

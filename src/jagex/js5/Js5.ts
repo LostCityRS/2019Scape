@@ -29,7 +29,7 @@ export default class Js5 {
     static async load(file: string, patch: boolean = true, readExtraInfo: boolean = true): Promise<Js5> {
         const store: RandomAccessFile = new RandomAccessFile(file, 'r');
 
-        const header: Packet = Packet.alloc(5);
+        const header: Packet = new Packet(new Uint8Array(5));
         store.read(header, 0, 5);
 
         const compression: number = header.g1();
@@ -39,7 +39,7 @@ export default class Js5 {
             masterIndexLength += 4;
         }
 
-        const masterIndex: Packet = Packet.alloc(masterIndexLength);
+        const masterIndex: Packet = new Packet(new Uint8Array(masterIndexLength));
         store.seek(0);
         store.read(masterIndex, 0, masterIndexLength);
 
@@ -129,7 +129,7 @@ export default class Js5 {
 
             js5.masterIndex = Js5.packGroup(index.encode(), 2);
 
-            index.checksum = Packet.getcrc(js5.masterIndex);
+            index.checksum = Packet.getcrc(js5.masterIndex, 0, js5.masterIndex.length);
             index.digest = await Whirlpool.compute(js5.masterIndex);
             await index.decode(js5.masterIndex);
         }
@@ -143,14 +143,14 @@ export default class Js5 {
             return;
         }
 
-        const idx255: Uint8Array = fs.readFileSync(`${inDir}/255/${archive}.dat`);
+        const idx255: Uint8Array = new Uint8Array(fs.readFileSync(`${inDir}/255/${archive}.dat`));
         const index: Js5Index = await Js5Index.from(idx255);
 
         fs.mkdirSync(`${outDir}`, { recursive: true });
         const js5: RandomAccessFile = new RandomAccessFile(`${outDir}/${file}`, 'w');
         js5.write(idx255, 0, idx255.length);
 
-        const info: Packet = Packet.alloc(index.size * 4);
+        const info: Packet = new Packet(new Uint8Array(index.size * 4));
         for (let i: number = 0; i < index.size; i++) {
             const group: number = index.groupIds![i];
             const expected: number = index.groupChecksums![group];
@@ -160,13 +160,13 @@ export default class Js5 {
                 continue;
             }
 
-            let data: Uint8Array = fs.readFileSync(`${inDir}/${archive}/${group}.dat`);
+            let data: Uint8Array = new Uint8Array(fs.readFileSync(`${inDir}/${archive}/${group}.dat`));
             if (stripVersion) {
                 data = data.subarray(0, data.length - 2);
             }
 
             if (verifyChecksums) {
-                const checksum: number = Packet.getcrc(data);
+                const checksum: number = Packet.getcrc(data, 0, data.length);
 
                 if (checksum !== expected) {
                     console.log(`Bad checksum for: ${archive}/${group}.dat`);
@@ -182,32 +182,28 @@ export default class Js5 {
         js5.write(info.data, 0, info.pos);
     }
 
-    static packGroup(src: Uint8Array | Packet, compression: number = 0): Uint8Array {
-        if (src instanceof Packet) {
-            src = src.data;
-        }
-
-        const buf: Packet = Packet.alloc(5);
+    static packGroup(src: Uint8Array, compression: number = 0): Uint8Array {
+        const buf: Packet = Packet.alloc(1);
 
         buf.p1(compression);
 
         if (compression === 0) {
-            buf.ensure(src.length);
             buf.p4(src.length);
-            buf.pdata(src);
+            buf.pdata(src, 0, src.length);
         } else if (compression === 2) {
             const compressed: Uint8Array = zlib.gzipSync(src);
             compressed[9] = 0;
 
-            buf.ensure(compressed.length + 4);
             buf.p4(compressed.length);
             buf.p4(src.length);
-            buf.pdata(compressed);
+            buf.pdata(compressed, 0, compressed.length);
         } else {
             throw new Error(`Unsupported compression type ${compression}`);
         }
 
-        return buf.data.subarray(0, buf.pos);
+        const data: Uint8Array = buf.data.slice(0, buf.pos);
+        buf.release();
+        return data;
     }
 
     constructor(store: RandomAccessFile, index: Js5Index, masterIndex: Uint8Array, readExtraInfo: boolean = true) {
@@ -216,7 +212,7 @@ export default class Js5 {
         this.masterIndex = masterIndex;
 
         const bytesLen: number = this.index.size * 4;
-        const lengths: Packet = Packet.alloc(bytesLen);
+        const lengths: Packet = new Packet(new Uint8Array(bytesLen));
         this.store.seek(this.store.length - bytesLen);
         this.store.read(lengths, 0, bytesLen);
 
@@ -389,7 +385,7 @@ export default class Js5 {
         }
 
         const pos: number = this.groupPos[group];
-        const header: Packet = Packet.alloc(5);
+        const header: Packet = new Packet(new Uint8Array(5));
         this.store.seek(pos);
         this.store.read(header, 0, 5);
 

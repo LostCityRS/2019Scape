@@ -29,7 +29,7 @@ export default async function packDefaults(): Promise<void> {
     const index: Js5Index = new Js5Index();
     index.format = 7;
     index.version = 1;
-    index.addGroup(4, Packet.getcrc(packed), Packet.getcrc(buf), packed.length, buf.length, 1574159676);
+    index.addGroup(4, Packet.getcrc(packed, 0, packed.length), Packet.getcrc(buf, 0, buf.length), packed.length, buf.length, 1574159676);
 
     // ----
 

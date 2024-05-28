@@ -22,7 +22,7 @@ export default class ServerMessage {
 
     constructor(packetType: ServerProt) {
         this.packetType = packetType;
-        this.buf = Packet.alloc(100);
+        this.buf = new Packet(new Uint8Array(40000));
         this.reset();
     }
 

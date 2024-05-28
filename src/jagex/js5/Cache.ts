@@ -81,7 +81,7 @@ export default class Cache {
     }
 
     async generateMasterIndexIndex(format: number = 7): Promise<void> {
-        const buf: Packet = new Packet();
+        const buf: Packet = Packet.alloc(1);
         if (format >= 7) {
             buf.p1(Js5Archive.getMaxId());
         }
@@ -96,27 +96,30 @@ export default class Cache {
                 if (format >= 7) {
                     buf.p4(0);
                     buf.p4(0);
-                    buf.pdata(new Uint8Array(64));
+                    buf.pdata(new Uint8Array(64), 0, 64);
                 }
                 continue;
             }
 
             const index: Js5Index = this.js5[i].index;
-            buf.pdata(index.encodeForMasterIndex());
+            const e: Uint8Array = index.encodeForMasterIndex();
+            buf.pdata(e, 0, e.length);
         }
 
         if (format >= 7) {
-            const hashBuf: Packet = new Packet();
+            const hashBuf: Packet = new Packet(new Uint8Array(64 + 1));
             hashBuf.p1(0);
-            hashBuf.pdata(await Whirlpool.compute(buf));
+            const whirlpool: Uint8Array = await Whirlpool.compute(buf.data.slice(0, buf.pos));
+            hashBuf.pdata(whirlpool, 0, whirlpool.length);
             // todo: encrypt here
-            buf.pdata(hashBuf);
+            buf.pdata(hashBuf.data, 0, hashBuf.pos);
         }
 
-        const js5Buf: Packet = Packet.alloc(buf.pos + 5);
+        const js5Buf: Packet = new Packet(new Uint8Array(buf.pos + 5));
         js5Buf.p1(0);
         js5Buf.p4(buf.pos);
-        js5Buf.pdata(buf);
+        js5Buf.pdata(buf.data, 0, buf.pos);
+        buf.release();
 
         this.masterIndexIndex = js5Buf.data;
     }

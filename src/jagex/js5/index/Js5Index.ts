@@ -31,7 +31,7 @@ export default class Js5Index {
 
     static async from(bytes: Uint8Array): Promise<Js5Index> {
         const index: Js5Index = new Js5Index();
-        index.checksum = Packet.getcrc(bytes);
+        index.checksum = Packet.getcrc(bytes, 0, bytes.length);
         index.digest = await Whirlpool.compute(bytes);
         await index.decode(bytes);
         return index;
@@ -136,7 +136,9 @@ export default class Js5Index {
             this.groupDigests = new Array(this.capacity).fill(null);
 
             for (let i: number = 0; i < this.size; i++) {
-                this.groupDigests[this.groupIds[i]] = buf.gdata(64);
+                const data: Uint8Array = new Uint8Array(64);
+                buf.gdata(data, 0, data.length);
+                this.groupDigests[this.groupIds[i]] = data;
             }
         }
         // console.timeEnd('groupDigests');
@@ -237,7 +239,7 @@ export default class Js5Index {
     }
 
     encode(): Uint8Array {
-        const buf: Packet = Packet.alloc(10);
+        const buf: Packet = Packet.alloc(1);
         buf.p1(this.format);
 
         if (this.format >= 6) {
@@ -273,7 +275,6 @@ export default class Js5Index {
         if (this.groupIds) {
             let prevGroupId: number = 0;
 
-            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 if (this.format >= 7) {
                     buf.pSmart2or4(this.groupIds[i] - prevGroupId);
@@ -286,35 +287,31 @@ export default class Js5Index {
         }
 
         if (this.groupNameHashes && this.groupIds) {
-            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 buf.p4(this.groupNameHashes[this.groupIds[i]]);
             }
         }
 
         if (this.groupChecksums && this.groupIds) {
-            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 buf.p4(this.groupChecksums[this.groupIds[i]]);
             }
         }
 
         if (this.groupUncompressedChecksums && this.groupIds) {
-            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 buf.p4(this.groupUncompressedChecksums[this.groupIds[i]]);
             }
         }
 
         if (this.groupDigests && this.groupIds) {
-            buf.ensure(this.size * 64);
             for (let i: number = 0; i < this.size; i++) {
-                buf.pdata(this.groupDigests[this.groupIds[i]]);
+                const data: Uint8Array = this.groupDigests[this.groupIds[i]];
+                buf.pdata(data, 0, data.length);
             }
         }
 
         if (this.groupLengths && this.groupUncompressedLengths && this.groupIds) {
-            buf.ensure(this.size * 8);
             for (let i: number = 0; i < this.size; i++) {
                 buf.p4(this.groupLengths[this.groupIds[i]]);
                 buf.p4(this.groupUncompressedLengths[this.groupIds[i]]);
@@ -322,14 +319,12 @@ export default class Js5Index {
         }
 
         if (this.groupVersions && this.groupIds) {
-            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 buf.p4(this.groupVersions[this.groupIds[i]]);
             }
         }
 
         if (this.groupSizes && this.groupIds) {
-            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 if (this.format >= 7) {
                     buf.pSmart2or4(this.groupSizes[this.groupIds[i]]);
@@ -344,7 +339,6 @@ export default class Js5Index {
             for (let i: number = 0; i < this.size; i++) {
                 totalFiles += this.groupSizes[this.groupIds[i]];
             }
-            buf.ensure(totalFiles * 4);
 
             for (let i: number = 0; i < this.size; i++) {
                 let prevFileId: number = 0;
@@ -379,7 +373,6 @@ export default class Js5Index {
         }
 
         if (this.fileIds && this.fileNameHashes && this.groupIds && this.groupSizes) {
-            buf.ensure(this.size * 4);
             for (let i: number = 0; i < this.size; i++) {
                 const groupId: number = this.groupIds[i];
                 const groupSize: number = this.groupSizes[groupId];
@@ -397,11 +390,13 @@ export default class Js5Index {
             }
         }
 
-        return buf.data.subarray(0, buf.pos);
+        const data: Uint8Array = buf.data.slice(0, buf.pos);
+        buf.release();
+        return data;
     }
 
     encodeForMasterIndex(): Uint8Array {
-        const buf: Packet = new Packet();
+        const buf: Packet = Packet.alloc(0);
         buf.p4(this.checksum);
 
         if (this.format >= 6) {
@@ -416,10 +411,12 @@ export default class Js5Index {
                 throw new Error('Need digest to create master index!');
             }
 
-            buf.pdata(this.digest);
+            buf.pdata(this.digest, 0, this.digest.length);
         }
 
-        return buf.data;
+        const data: Uint8Array = buf.data.slice(0, buf.pos);
+        buf.release();
+        return data;
     }
 
     addGroup(groupId: number, checksum: number, uncompressedChecksum: number, length: number, uncompressedLength: number, version: number): void {

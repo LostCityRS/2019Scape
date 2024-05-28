@@ -2,7 +2,7 @@ import Packet from '#jagex/bytepacking/Packet.js';
 
 export default class AudioDefaults {
     static encode(def: string[]): Uint8Array {
-        const buf: Packet = Packet.alloc(4);
+        const buf: Packet = Packet.alloc(0);
         for (let i: number = 0; i < def.length; i++) {
             const line: string = def[i];
             const [key, value] = line.split('=');
@@ -20,7 +20,9 @@ export default class AudioDefaults {
         }
         buf.p1(0);
 
-        return buf.data.subarray(0, buf.pos);
+        const data: Uint8Array = buf.data.slice(0, buf.pos);
+        buf.release();
+        return data;
     }
 
     loginmusic: number = 0;

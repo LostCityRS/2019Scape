@@ -22,16 +22,13 @@ export default class ClientSocket {
         this.state = ConnectionState.Login;
     }
 
-    write(buf: Uint8Array | Packet): void {
-        if (buf.length === 0) {
+    write(buf: Packet): void {
+        if (buf.length === 0 || buf.pos === 0) {
             return;
         }
 
-        if (buf instanceof Packet) {
-            buf = buf.data.subarray(0, buf.pos);
-        }
-
-        this.socket.write(buf);
+        this.socket.write(buf.data.subarray(0, buf.pos));
+        buf.release();
     }
 
     end(): void {
