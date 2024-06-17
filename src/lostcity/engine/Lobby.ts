@@ -266,6 +266,7 @@ class Lobby {
                 client.write(reply);
 
                 const player: Player = new Player();
+                client.player = player;
                 player.client = client;
                 player.pid = this.players.next();
                 this.addPlayer(player.pid, player);

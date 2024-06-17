@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 import BuildAreaSize from '#jagex/core/constants/BuidlAreaSize.js';
 import ServerProt from '#jagex/network/protocol/ServerProt.js';
 import ClientSocket from '#lostcity/network/ClientSocket.js';
@@ -48,10 +50,39 @@ export default class Player extends Entity {
         super(0, 3222, 3222, 1, 1);
     }
 
+    load() {
+        if (!fs.existsSync('data/players/player.json')) {
+            return;
+        }
+
+        const json = fs.readFileSync('data/players/player.json', 'utf8');
+        const data = JSON.parse(json);
+
+        this.x = data.x;
+        this.z = data.z;
+        this.level = data.level;
+    }
+
+    save() {
+        const json = JSON.stringify({
+            x: this.x,
+            z: this.z,
+            level: this.level
+        });
+
+        if (!fs.existsSync('data/players')) {
+            fs.mkdirSync('data/players', { recursive: true });
+        }
+
+        fs.writeFileSync('data/players/player.json', json);
+    }
+
     resetEntity(respawn: boolean): void {
     }
 
     login(): void {
+        this.load();
+
         if (this.client) {
             if (!ServerScriptState.MAP_LOBBY) {
                 ServerProt.REBUILD_NORMAL.send(this.client, this, this.level, this.x, this.z, this.buildAreaSize, true, true);

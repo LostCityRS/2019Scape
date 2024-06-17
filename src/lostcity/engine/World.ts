@@ -94,6 +94,7 @@ class World {
                 client.write(reply);
 
                 const player: Player = new Player();
+                client.player = player;
                 player.client = client;
                 player.pid = this.players.next();
                 this.addPlayer(player.pid, player);
@@ -104,8 +105,12 @@ class World {
     }
 
     async gameDecode(client: ClientSocket, message: ClientMessage): Promise<void> {
-        // console.log(`[WORLD]: Received packet ${message.packetType.debugname} opcode=${message.packetType.opcode} size=${message.buf.length}`);
+        console.log(`[WORLD]: Received packet ${message.packetType.debugname} opcode=${message.packetType.opcode} size=${message.buf.length}`);
+        if (!client || !client.player) {
+            return;
+        }
 
+        const player: Player = client.player;
         switch (message.packetType) {
             case ClientProt.NO_TIMEOUT:
                 break;
@@ -130,7 +135,16 @@ class World {
                         break;
                     }
                     case 'tele': {
-                        ServerProt.REBUILD_NORMAL.send(client, client.player, 0, parseInt(args[0]), parseInt(args[1]), client.player!.buildAreaSize);
+                        if (args.length < 2) {
+                            return;
+                        }
+
+                        player.x = parseInt(args[0]);
+                        player.z = parseInt(args[1]);
+                        if (args.length > 2) {
+                            player.level = parseInt(args[2]);
+                        }
+                        ServerProt.REBUILD_NORMAL.send(client, player, player.level, player.x, player.z, player.buildAreaSize);
                         break;
                     }
                     default: {
@@ -314,6 +328,7 @@ class World {
         client.end();
         const player: Player | null = client.player;
         if (player) {
+            player.save();
             this.players.remove(player.pid);
         }
     }
